@@ -1,14 +1,59 @@
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
+import { access, readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createContext, runInContext } from 'node:vm'
 import { satisfies } from 'semver'
 
-const app = process.argv[2] ?? '/Applications/Ham2K Mac Logger (Next).app'
-const assets = join(
-  app,
-  'Contents/Frameworks/App.framework/Versions/A/Resources/flutter_assets/assets/extensions',
-)
+const assetsPath =
+  'Contents/Frameworks/App.framework/Versions/A/Resources/flutter_assets/assets/extensions'
+
+function appInfo(app) {
+  const plist = join(app, 'Contents/Info.plist')
+  const field = (name) =>
+    execFileSync('/usr/libexec/PlistBuddy', ['-c', `Print :${name}`, plist], {
+      encoding: 'utf8',
+    }).trim()
+  return { app, version: field('CFBundleShortVersionString'), build: field('CFBundleVersion') }
+}
+
+async function selectApp(explicitPath) {
+  if (explicitPath) return { ...appInfo(explicitPath), selection: 'explicit path' }
+  // App updates may retain the old Mac Logger directory while renaming the
+  // executable to Power Logger. Check the running bundle path, not its name.
+  const running = execFileSync('ps', ['-axo', 'comm='], { encoding: 'utf8' }).split('\n')
+  const candidates = []
+  for (const name of await readdir('/Applications')) {
+    if (!/^Ham2K (?:Mac|Power) Logger(?: \([^)]+\))?\.app$/.test(name)) continue
+    const app = join('/Applications', name)
+    try {
+      await access(join(app, assetsPath, 'kernel.js'))
+      candidates.push({
+        ...appInfo(app),
+        running: running.some((command) => command.startsWith(`${app}/Contents/MacOS/`)),
+      })
+    } catch {
+      // Ignore incomplete app copies; the explicit-path form reports errors.
+    }
+  }
+  candidates.sort(
+    (a, b) => Number(b.running) - Number(a.running) || Number(b.build) - Number(a.build),
+  )
+  const selected = candidates[0]
+  if (!selected) {
+    throw new Error('No Ham2K Logger app found in /Applications. Pass the installed .app path.')
+  }
+  return {
+    app: selected.app,
+    version: selected.version,
+    build: selected.build,
+    selection: selected.running ? 'running app' : 'latest installed build',
+  }
+}
+
+const installation = await selectApp(process.argv[2])
+const { app } = installation
+const assets = join(app, assetsPath)
 const kernelSource = await readFile(join(assets, 'kernel.js'), 'utf8')
 const manifest = JSON.parse(await readFile(new URL('../manifest.json', import.meta.url), 'utf8'))
 const messages = []
@@ -71,7 +116,7 @@ if (problems.length === 0) {
 console.log(
   JSON.stringify(
     {
-      app,
+      ...installation,
       kernelSha256: createHash('sha256').update(kernelSource).digest('hex'),
       sharedVersions: kernel.sharedVersions,
       contextCapabilities,
