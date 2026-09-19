@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Check, package, and attach the bundle to an existing GitHub release"
+#MISE depends=["check"]
+#USAGE arg "<tag>" env="RELEASE_TAG" help="Release tag matching the package version, such as v0.1.1"
+#USAGE flag "--dry-run" help="Validate release files without uploading them"
+
+set -euo pipefail
+node scripts/release.mjs "$usage_tag" "${usage_dry_run:-false}"

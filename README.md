@@ -15,8 +15,10 @@ adaptation uses MPL-2.0. See [provenance](docs/PROVENANCE.md),
    [manifest.json](manifest.json). Native installation, member/nonmember/CWA
    prefills, and saved exchanges were verified in **Power Logger 26.9.0,
    build 169**; see [verification and limits](docs/VERIFICATION.md).
-2. Build with `mise run check`, then choose **Settings → Features & Extensions
-   → Install from file** and select `dist/n1rwj-cwt-0.1.1.h2kext`.
+2. Download the `.h2kext` asset from a
+   [GitHub release](https://github.com/rwjblue/ham2k-cwops-cwt-ext/releases), or
+   build it locally with `mise run check`. Choose **Settings → Features &
+   Extensions → Install from file** and select the bundle.
 3. **Disable the original CWops CWT extension.** Both handle `cwt` references;
    enabling both creates duplicate handlers.
 4. Open **Settings → Accounts, Services & Data Sources → CWops CWT call
@@ -75,6 +77,29 @@ them. `mise run verify-host` inspects the running macOS Ham2K app, or the
 latest installed build, without changing it. Pass an explicit `.app` path
 to inspect another installation. Failure means its dependencies/contracts
 are insufficient.
+
+## Release
+
+Update the version in `manifest.json`, `package.json`, and `package-lock.json`,
+then commit and push. Publish a GitHub release with the matching tag, such as
+`v0.1.1`, pointing at that commit. The **Release** workflow checks out the tagged
+commit, runs `mise run check`, verifies the versions and checksum, and attaches
+`n1rwj-cwt-<version>.h2kext` and its `.sha256` file. Published prereleases also
+trigger the build. Draft releases do not.
+
+Preview the same process locally without uploading:
+
+```sh
+mise run release --dry-run v0.1.1
+```
+
+The workflow uses GitHub's built-in token; no extra secret is required.
+Existing assets are never overwritten. If an upload fails, inspect the release
+assets before retrying; remove an incomplete pair before rerunning the job.
+Keep release immutability disabled for this workflow, since it attaches assets
+after publication.
+
+## Verification
 
 `src/cwt/` preserves upstream logic; `src/history/` contains pure parsing and
 resolution; `src/data/` handles refresh/cache; `src/integration/` connects native
