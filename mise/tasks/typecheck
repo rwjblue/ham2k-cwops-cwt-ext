@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#MISE description="Typecheck sandbox code and Vitest tests"
+#MISE depends=["install"]
+
+set -euo pipefail
+npx --no-install tsc --project tsconfig.json
+npx --no-install tsc --project tsconfig.test.json

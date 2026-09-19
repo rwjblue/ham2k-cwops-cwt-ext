@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Run every required local/CI check and produce an extension bundle"
+#MISE depends=["lint", "typecheck", "test", "pack"]
+
+set -euo pipefail
+echo "All checks passed; installable extension is in dist/."

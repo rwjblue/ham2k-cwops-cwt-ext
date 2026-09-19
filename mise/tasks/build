@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Build an ES2020 sandbox bundle with official Ham2K tools"
+#MISE depends=["install"]
+
+set -euo pipefail
+node build.mjs

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Validate and package the installable .h2kext with official tools"
+#MISE depends=["build"]
+
+set -euo pipefail
+node pack.mjs

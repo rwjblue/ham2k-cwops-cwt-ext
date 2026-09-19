@@ -1,0 +1,37 @@
+{
+  "key": "n1rwj-cwt",
+  "name": "N1RWJ CWT",
+  "shortName": "CWT",
+  "version": "0.1.0",
+  "description": "CWops CWT with exchange suggestions from N1MM call history and past CWT contacts; adapted from Sebastian Delmont KI2D's official extension",
+  "category": "contest",
+  "icon": "clock-fast",
+  "accentColor": "#4527A0",
+  "api": 1,
+  "keywords": ["contest", "cwt", "cwops", "cw", "mini-test", "cabrillo", "call-history"],
+  "hooks": [
+    "activity",
+    "adifFields",
+    "dataFile",
+    "export",
+    "lookup",
+    "ref:cwt",
+    "scoring",
+    "settingsPanel"
+  ],
+  "domains": ["n1mm.hamdocs.com", "n1mmwp.hamdocs.com"],
+  "relevance": {
+    "interests": ["cw"]
+  },
+  "sharedDependencies": {
+    "@ham2k/lib-callsigns": "^1.0.2",
+    "@ham2k/lib-country-files": "^1.0.202605301",
+    "@ham2k/lib-dxcc-data": "^1.0.1",
+    "@ham2k/lib-format-tools": "^1.2.0",
+    "@ham2k/lib-geo-tools": "^1.1.1",
+    "@ham2k/lib-operation-data": "^1.1.3",
+    "@ham2k/lib-qson-cabrillo": "^1.2.0",
+    "i18next": "^23.16.8",
+    "liquidjs": "^10.29.0"
+  }
+}

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Format source and configuration"
+#MISE depends=["install"]
+
+set -euo pipefail
+npx --no-install biome check --write .

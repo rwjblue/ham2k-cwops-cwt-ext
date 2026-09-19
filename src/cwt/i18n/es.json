@@ -1,0 +1,19 @@
+{
+  "activityLabel": "CWT de CWops",
+  "setupLabel": "Configuración CWT",
+  "sessionLabel": "Sesión",
+  "ourNameLabel": "Nuestro Nombre",
+  "ourNamePlaceholder": "ej. SEB",
+  "ourNumberLabel": "Nuestro Número o QTH",
+  "ourNumberPlaceholder": "ej. 1234 o NY",
+  "powerLabel": "Potencia",
+  "rulesLink": "[Reglas oficiales](https://cwops.org/cwops-tests/)",
+  "nameLabel": "Nombre",
+  "numberLabel": "Nro",
+  "unconfigured": "CWT (sin configurar)",
+  "adifExport": "ADIF para {{contest}}",
+  "cabrilloExport": "Cabrillo para {{contest}}",
+  "ourExchangeSubtitle": "{{name}} {{number}}",
+  "notConfigured": "¡Sin configurar!",
+  "sessionDescription": "Una hora de CW — nombre y número de CWops"
+}
