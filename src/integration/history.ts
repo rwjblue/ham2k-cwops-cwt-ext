@@ -32,9 +32,18 @@ export function contact(qso: Qson): CwtHistoryContact | undefined {
 
 interface Index {
   rows: Map<string, Qson>
+  operationIdentity?: string
   loading?: Promise<void>
   generation: number
   validations: Map<string, Promise<Qson[] | undefined>>
+}
+
+function operationIdentity(operation: Qson): string | undefined {
+  const createdAt = operation.createdAtMillis
+  const station = normalizeCall(text(operation.stationCall))
+  return typeof createdAt === 'number' && Number.isFinite(createdAt) && station
+    ? JSON.stringify([createdAt, station])
+    : undefined
 }
 
 function rowsById(rows: Qson[]): Map<string, Qson> {
@@ -50,6 +59,19 @@ function rowsById(rows: Qson[]): Map<string, Qson> {
  * exchanges; initial and bounded omitted-row reads cover missing snapshots. */
 export function createHistoryAdapter() {
   const operations = new Map<string, Index>()
+  function operationUuid(operation: Qson): string {
+    const uuid = text(operation.uuid)
+    if (uuid) return uuid
+    // Native lookup/loggingControls pass operation.data without its row UUID.
+    // Scoring's qsonPayloadFor adds the UUID, so recover it only when exactly
+    // one indexed operation shares the immutable creation stamp and station.
+    const identity = operationIdentity(operation)
+    if (!identity) return ''
+    const matching = [...operations.entries()].filter(
+      ([, index]) => index.operationIdentity === identity,
+    )
+    return matching.length === 1 ? (matching[0]?.[0] ?? '') : ''
+  }
   function entry(uuid: string): Index {
     let index = operations.get(uuid)
     if (!index) {
@@ -69,6 +91,7 @@ export function createHistoryAdapter() {
       const uuid = text(operation.uuid)
       if (!uuid) return
       const index = entry(uuid)
+      index.operationIdentity = operationIdentity(operation)
       index.generation++
       index.validations.clear()
       if (resumeFrom !== undefined) {
@@ -84,8 +107,10 @@ export function createHistoryAdapter() {
       const call = text(object(qso.their).call)
       const keys = callLookupKeys(call)
       if (!keys.length || !cwtRef(operation)) return { currentOperation: [], olderHistory: [] }
-      const opId = text(operation.uuid)
-      const index = entry(opId)
+      const opId = operationUuid(operation)
+      const index: Index = opId
+        ? entry(opId)
+        : { rows: new Map(), generation: 0, validations: new Map() }
       if (!index.loading) {
         const before = index.generation
         index.loading = (async () => {

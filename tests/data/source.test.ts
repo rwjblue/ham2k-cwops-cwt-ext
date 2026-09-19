@@ -1,7 +1,13 @@
 import type { FetchResponse } from '@ham2k/extension-sdk'
 import { describe, expect, it, vi } from 'vitest'
 import type { Fetcher } from '../../src/data/source'
-import { DEFAULT_SOURCE, downloadForm, latestEntry, sourceText } from '../../src/data/source'
+import {
+  DEFAULT_SOURCE,
+  downloadForm,
+  latestEntry,
+  sourceText,
+  sourceValidationError,
+} from '../../src/data/source'
 
 const entryUrl = 'https://n1mmwp.hamdocs.com/mmfiles/cwops_4321-new-txt/'
 const downloadUrl = 'https://n1mmwp.hamdocs.com/mmfile/get/file/CWOPS_4321-NEW.txt'
@@ -83,14 +89,31 @@ describe('N1MM source discovery', () => {
     expect(fetch.mock.calls[0]?.[0]).toBe(downloadUrl)
   })
 
-  it('passes downloaded/local raw text through without network access', async () => {
+  it('passes directly downloaded HTTPS text through without additional network access', async () => {
     const fetch = vi.fn<Fetcher>()
-    await expect(sourceText(raw, '/local/CWOPS.txt', fetch)).resolves.toEqual({
+    await expect(sourceText(raw, downloadUrl, fetch)).resolves.toEqual({
       body: raw,
-      url: '/local/CWOPS.txt',
+      url: downloadUrl,
     })
     expect(fetch).not.toHaveBeenCalled()
   })
+
+  it.each(['/tmp/CWOPS.txt', 'file:///tmp/CWOPS.txt', 'http://n1mm.hamdocs.com/file.txt'])(
+    'rejects unsupported source %s instead of promising local file access',
+    async (url) => {
+      const fetch = vi.fn<Fetcher>()
+      expect(sourceValidationError(url)).toContain('Local file paths are not supported')
+      await expect(sourceText(raw, url, fetch)).rejects.toThrow(
+        'Local file paths are not supported',
+      )
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each(['', '  ', DEFAULT_SOURCE, entryUrl, downloadUrl])(
+    'accepts a supported HTTPS source or automatic discovery: %s',
+    (url) => expect(sourceValidationError(url)).toBeNull(),
+  )
 
   it('reports changed listing or form markup instead of guessing a stale URL or nonce', async () => {
     const fetch = vi.fn<Fetcher>()

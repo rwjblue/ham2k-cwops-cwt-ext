@@ -15,6 +15,7 @@ import type {
 } from '@ham2k/extension-sdk'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import manifest from '../../manifest.json'
+import { DEFAULT_SOURCE } from '../../src/data/source'
 
 type Qson = Record<string, JSONValue>
 type HookTypes = {
@@ -209,5 +210,53 @@ describe('the installable bundle with a simulated host bridge', () => {
     expect(definition.elements).toContainEqual(
       expect.objectContaining({ key: 'source', value: source }),
     )
+  })
+
+  it('rejects local source edits without persisting them', async () => {
+    const runtime = harness()
+    const settings = runtime.hook('settingsPanel')
+    const args = {
+      panelKey: manifest.key,
+      fieldKey: 'source',
+      value: '/tmp/cwops.txt',
+      state: { source: '/tmp/cwops.txt' },
+    }
+    expect(await settings.validateField?.(args, ctx)).toContain(
+      'Local file paths are not supported',
+    )
+    await expect(settings.onChangeField(args, ctx)).rejects.toThrow(
+      'Local file paths are not supported',
+    )
+    expect(runtime.settingsGroups).toEqual({})
+  })
+
+  it('keeps a legacy invalid source visible while allowing native cache replay and automatic discovery', async () => {
+    const source = '/tmp/previously-accepted-cwops.txt'
+    const runtime = harness({ [`extension_${manifest.key}`]: { source } })
+    const dataFile = runtime.hook('dataFile')
+    const snapshot = {
+      schema: 1,
+      body,
+      url: DEFAULT_SOURCE,
+      fetchedAt: '2026-09-19T15:33:12.600Z',
+    }
+    dataFile.onLoadRawData?.(snapshot)
+    expect(typeof dataFile.url === 'function' ? await dataFile.url({}, ctx) : dataFile.url).toBe(
+      DEFAULT_SOURCE,
+    )
+    const settings = await runtime
+      .hook('settingsPanel')
+      .getDefinition({ panelKey: manifest.key }, ctx)
+    expect(settings.elements).toContainEqual(
+      expect.objectContaining({ key: 'source', value: source }),
+    )
+    expect(settings.elements).toContainEqual(
+      expect.objectContaining({ text: expect.stringContaining('Saved source is unsupported') }),
+    )
+    const controls = await runtime
+      .hook('activity')
+      .loggingControls?.({ operation, qso: { their: { call: 'K1ABC' } } }, ctx)
+    expect(controls?.[1]?.input).toMatchObject({ field: 'number', suggestedValue: '4567' })
+    expect(runtime.settingsGroups[`extension_${manifest.key}`]).toEqual({ source })
   })
 })

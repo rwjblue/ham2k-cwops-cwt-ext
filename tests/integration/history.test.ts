@@ -12,6 +12,55 @@ function qso(uuid: string, number = '1234', call = 'K1ABC'): Qson {
 }
 
 describe('history adapter', () => {
+  it('connects native UUID-less lookup/control payloads to the UUID supplied by scoring', async () => {
+    const history = createHistoryAdapter()
+    const nativeOperation = {
+      stationCall: 'N1RWJ/TEST',
+      createdAtMillis: 1789832158828,
+      refs: [{ type: 'cwt', ref: '2026-09-23-1300' }],
+    }
+    const current = qso('current', '3806', 'K0ACP')
+    history.update({ operation: { ...nativeOperation, uuid: 'native-op' }, qsos: [current] })
+    const getQsos = vi.fn()
+    expect(
+      await history.find(
+        nativeOperation,
+        { their: { call: 'K0ACP' } },
+        {
+          online: false,
+          getQsos,
+          getHistoryForCall: async () => [current],
+        },
+      ),
+    ).toEqual({ currentOperation: [contact(current)], olderHistory: [] })
+    expect(getQsos).not.toHaveBeenCalled()
+  })
+
+  it('never matches UUID-less operations by station alone or guesses through an ambiguous identity', async () => {
+    const history = createHistoryAdapter()
+    const nativeOperation = {
+      stationCall: 'N1RWJ/TEST',
+      createdAtMillis: 1000,
+      refs: operation.refs,
+    }
+    const current = qso('current')
+    history.update({ operation: { ...nativeOperation, uuid: 'first' }, qsos: [current] })
+    const ctx = { online: false, getHistoryForCall: async () => [current] }
+    expect(
+      (await history.find({ ...nativeOperation, createdAtMillis: 2000 }, candidate, ctx))
+        .currentOperation,
+    ).toEqual([])
+    expect(
+      (await history.find({ ...nativeOperation, stationCall: 'W1XYZ' }, candidate, ctx))
+        .currentOperation,
+    ).toEqual([])
+    history.update({ operation: { ...nativeOperation, uuid: 'second' }, qsos: [qso('other')] })
+    expect((await history.find(nativeOperation, candidate, ctx)).currentOperation).toEqual([])
+    expect(
+      (await history.find({ ...nativeOperation, uuid: 'first' }, candidate, ctx)).currentOperation,
+    ).toEqual([contact(current)])
+  })
+
   it('reads the operation once, then classifies fresh matching rows by operation membership', async () => {
     const current = qso('current')
     const older = qso('older', '2345')

@@ -3,6 +3,13 @@ import type { FetchOptions, FetchResponse } from '@ham2k/extension-sdk'
 export const DEFAULT_SOURCE = 'https://n1mm.hamdocs.com/mmfiles/categories/callhistory/'
 export type Fetcher = (url: string, options?: FetchOptions) => Promise<FetchResponse>
 
+/** Native data-file downloads use HTTP; the SDK exposes no local file reader. */
+export function sourceValidationError(value: string): string | null {
+  const source = value.trim()
+  if (!source || /^https:\/\/n1mm(?:wp)?\.hamdocs\.com\/\S*$/i.test(source)) return null
+  return 'Use an HTTPS N1MM URL or leave blank for automatic discovery. Local file paths are not supported.'
+}
+
 function decode(value: string): string {
   return value
     .replace(/&amp;/g, '&')
@@ -23,9 +30,9 @@ function attributes(tag: string): Record<string, string> {
 function n1mmUrl(value: string, base: string): string {
   const origin = /^https:\/\/[^/]+/.exec(base)?.[0]
   const url = value.startsWith('/') ? `${origin}${value}` : value
-  if (!/^https:\/\/n1mm(?:wp)?\.hamdocs\.com\//i.test(url)) {
+  if (sourceValidationError(url)) {
     throw new Error(
-      'The N1MM page linked to an unsupported download host. Select a local call-history file.',
+      'The N1MM page linked to an unsupported download host. Select an HTTPS CWOPS entry or text URL on an N1MM host.',
     )
   }
   return url
@@ -39,7 +46,7 @@ export function latestEntry(html: string, base: string): string {
     }
   }
   throw new Error(
-    'No CWOPS entry found on the N1MM listing. Select its current entry URL or a downloaded local file.',
+    'No CWOPS entry found on the N1MM listing. Select its current HTTPS CWOPS entry or text URL on an N1MM host.',
   )
 }
 
@@ -61,7 +68,7 @@ export function downloadForm(html: string, base: string): { url: string; body: s
     }
   }
   throw new Error(
-    'N1MM download form has changed. Download the CWOPS text file and select its local path.',
+    'N1MM download form has changed. Previous data retained; this extension needs a download adapter update or a direct HTTPS text URL on an N1MM host.',
   )
 }
 
@@ -78,6 +85,8 @@ export async function sourceText(
   url: string,
   fetch: Fetcher,
 ): Promise<{ body: string; url: string }> {
+  const error = sourceValidationError(url)
+  if (error) throw new Error(error)
   if (!/<(?:!doctype|html|form)\b/i.test(body)) return { body, url }
   let entryUrl = url
   let entry = body

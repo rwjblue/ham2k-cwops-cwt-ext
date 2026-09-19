@@ -12,15 +12,17 @@ adaptation uses MPL-2.0. See [provenance](docs/PROVENANCE.md),
 ## Install and use
 
 1. Use a Ham2K build supporting SDK 0.5.0 and the shared-library versions in
-   [manifest.json](manifest.json). The locally available Next build 109 is
-   **too old**; see [verification and limits](docs/VERIFICATION.md).
-2. Build with `mise run check`, then choose **Settings → Extensions → Install
-   from file…** and select `dist/n1rwj-cwt-0.1.0.h2kext`.
+   [manifest.json](manifest.json). Native installation, member/nonmember/CWA
+   prefills, and saved exchanges were verified in **Power Logger 26.9.0,
+   build 169**; see [verification and limits](docs/VERIFICATION.md).
+2. Build with `mise run check`, then choose **Settings → Features & Extensions
+   → Install from file** and select `dist/n1rwj-cwt-0.1.1.h2kext`.
 3. **Disable the original CWops CWT extension.** Both handle `cwt` references;
    enabling both creates duplicate handlers.
-4. Open **Settings → Data Files** and refresh **CWops CWT call history
-   (N1RWJ)**. The default source discovers the current CWOPS entry in the
-   N1MM category. Automatic refresh is daily when Ham2K is online.
+4. Open **Settings → Accounts, Services & Data Sources → CWops CWT call
+   history (N1RWJ) → Refresh**. The default source discovers the current
+   CWOPS entry in the N1MM category. Automatic refresh is daily when Ham2K
+   is online.
 5. Choose a CWT session, configure your sent name/number, and enter a call.
    Suggestions fill the separate native name and number controls. Check what
    was received and correct it as needed.
@@ -29,10 +31,11 @@ Log CWT contacts **one callsign at a time**. Ham2K's batch call-list logging
 shares the same exchange controls across its calls.
 
 **CWT Prefill** settings show source, file date, download time, record count,
-and warnings. Select another N1MM CWOPS entry URL, direct text URL on either
-N1MM host, or absolute local file path, then refresh its Data Files entry.
-A local file is the fallback if the download site changes. Mobile file-path
-access depends on the host; the default HTTPS source avoids that requirement.
+and warnings. Leave the source blank for automatic discovery, or select an
+HTTPS N1MM category, CWOPS entry, or direct text URL on `n1mm.hamdocs.com`
+or `n1mmwp.hamdocs.com`, then refresh its data-source entry. Local file paths
+are unsupported: this host's data-file loader fetches HTTP resources, and
+SDK 0.5.0 provides no local import capability for this extension.
 
 ## Exchange behavior
 
@@ -51,10 +54,10 @@ Ham2K protects touched controls during lookups and callsign corrections. Use
 **Wipe** for a fresh contact to reset those edits. Unknown calls clear previous
 untouched suggestions. See [supported syntax and precedence](docs/CALL-HISTORY.md).
 
-The native Data Files cache restores the last successful dataset offline.
-Failed downloads and malformed replacements leave it intact. This extension
-uses local history and an in-memory file index while typing. No backend is
-required.
+The native Data Files cache retains the last successful dataset across failed
+refreshes and app restarts. Malformed replacements also leave it intact. This
+extension uses local history and an in-memory file index while typing. No
+backend is required. Testing with the operating system offline remains pending.
 
 ## Develop
 
@@ -68,11 +71,19 @@ mise run check      # lint, typecheck, tests, build, official pack validation
 
 Individual tasks: `lint`, `typecheck`, `test`, `build`, `pack`. The archive and
 SHA-256 file are written to `dist/`. CI runs the same `check` task and uploads
-them. `mise run verify-host` inspects the installed macOS Ham2K app without
-changing it; failure means its dependencies/contracts are insufficient.
+them. `mise run verify-host` inspects the running macOS Ham2K app, or the
+latest installed build, without changing it. Pass an explicit `.app` path
+to inspect another installation. Failure means its dependencies/contracts
+are insufficient.
 
 `src/cwt/` preserves upstream logic; `src/history/` contains pure parsing and
 resolution; `src/data/` handles refresh/cache; `src/integration/` connects native
 controls. Tests cover fixtures, host-contract models, and the built bundle.
-**Native end-to-end use remains unverified** on a compatible app;
+Native installation, data download, member/nonmember/CWA logging, an
+unknown-number case, and operator edits/clearing across callsign corrections
+have been verified, along with native ADIF/Cabrillo exports and cached
+suggestions after a failed refresh and app restart. A native check of version
+0.1.1 also confirmed current-operation history overriding a conflicting file
+name and a successful refresh after restoring the default source.
+OS-offline use and a controlled delayed-lookup race remain unverified;
 [VERIFICATION.md](docs/VERIFICATION.md) records the evidence and limits.

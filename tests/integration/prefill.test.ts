@@ -1,6 +1,7 @@
 import type { HookContext, JSONValue, LoggingControlDescriptor } from '@ham2k/extension-sdk'
+import { contestScorer } from '@ham2k/extension-sdk'
 import { describe, expect, it, vi } from 'vitest'
-import { AdifFieldsHook, ExportHook } from '../../src/cwt/index.ts'
+import { AdifFieldsHook, CWTScorer, ExportHook } from '../../src/cwt/index.ts'
 import { createFileCache } from '../../src/data/cache.ts'
 import { createPrefill, EMPTY_SUGGESTION } from '../../src/integration/prefill.ts'
 
@@ -56,6 +57,58 @@ class Controls {
 }
 
 describe('prefill to saved/exported CWT exchange', () => {
+  it('retains a corrected saved exchange in native UUID-less controls and provenance lookups', async () => {
+    const prefill = await setup('!!Order!!,Call,Name,Exch1\n# CWOPS\nK0ACP,Art,3806')
+    // Native exported QSON carries operation.uuid; the native lookup and
+    // logging-controls paths pass operation.data and omit that UUID.
+    const nativeOperation: Qson = {
+      stationCall: 'N1RWJ/TEST',
+      userTitle: 'CWT extension validation (TEST)',
+      createdAtMillis: 1789832158828,
+      refs: [{ type: 'cwt', ref: '2026-09-23-1300', ourName: 'ROB', ourNumber: 'CWA' }],
+    }
+    const saved: Qson = {
+      uuid: 'saved-contact',
+      refs: [{ type: 'cwt', name: 'ARTHUR', number: '3806' }],
+      their: { call: 'K0ACP', exchange: 'ARTHUR 3806' },
+      our: { call: 'N1RWJ/TEST' },
+      freq: 14046.45,
+      band: '20m',
+      mode: 'CW',
+      startAtMillis: 1789832362350,
+      updatedAtMillis: 1789832713139,
+    }
+    await prefill.scoring(contestScorer(CWTScorer, { scope: { refTypes: ['cwt'] } })).scoreQsos(
+      {
+        operation: {
+          ...nativeOperation,
+          uuid: 'native-operation',
+          local: { operatorCall: 'N1RWJ' },
+        },
+        qsos: [saved],
+      },
+      ctx,
+    )
+    const context = { ...ctx, getHistoryForCall: async () => [saved], getQsos: vi.fn() }
+    const controls = await prefill.activity.loggingControls(
+      {
+        operation: nativeOperation,
+        qso: { their: { call: 'K0ACP' } },
+      },
+      context,
+    )
+    expect(controls[0]?.input).toMatchObject({ suggestedValue: 'ARTHUR' })
+    expect(controls[1]?.input).toMatchObject({ suggestedValue: '3806' })
+    const lookups = await prefill.lookup.lookupCall(
+      { operation: nativeOperation, qso: {}, callInfo: { call: 'K0ACP' } },
+      context,
+    )
+    expect(lookups[0]?.notes?.[0]).toContain(
+      'name ARTHUR (current-operation); exchange 3806 (current-operation)',
+    )
+    expect(context.getQsos).not.toHaveBeenCalled()
+  })
+
   it('displays the same normalized first name that CWT saves and exports', async () => {
     const { activity } = await setup('!!Order!!,Call,Name,Exch1\nK1ABC,  Hiram Percy  ,1234')
     const controls = await activity.loggingControls(
