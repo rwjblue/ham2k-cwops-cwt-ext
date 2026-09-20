@@ -1,6 +1,7 @@
 import type { DataFileDefinition, DynamicSettingsPanel, JSONValue } from '@ham2k/extension-sdk'
 import { host } from '@ham2k/extension-sdk'
 import manifest from '../../manifest.json'
+import { tFor } from '../cwt/i18n.ts'
 import { createFileCache } from './cache.ts'
 import { DEFAULT_SOURCE, sourceText, sourceValidationError } from './source.ts'
 
@@ -21,16 +22,15 @@ async function savedSource(): Promise<string> {
 
 async function selectedSource(): Promise<string> {
   const source = await savedSource()
-  // Earlier versions accepted local paths, which the native downloader cannot
-  // read. Keep this definition available so native cache replay still runs.
+  // A bad saved setting must not hide the definition: the host needs it to
+  // replay the last good data file from disk when starting offline.
   return sourceValidationError(source) ? DEFAULT_SOURCE : source || DEFAULT_SOURCE
 }
 
 export const DataFile: DataFileDefinition = {
   key: `${manifest.key}_history`,
-  name: 'CWops CWT call history (N1RWJ)',
-  description:
-    'N1MM CWOPS exchanges; retains the last valid file offline. Configure the source in CWT Prefill settings.',
+  name: (_args, ctx) => tFor(ctx)('historyFileName'),
+  description: (_args, ctx) => tFor(ctx)('historyFileDescription'),
   url: selectedSource,
   maxAgeInDays: 1,
   fetchType: 'raw',
@@ -47,46 +47,62 @@ export const DataFile: DataFileDefinition = {
 
 export const Settings: DynamicSettingsPanel = {
   kind: 'dynamic',
-  async getPanels() {
-    return [{ key: manifest.key, title: 'CWT Prefill', icon: 'clock-fast', dataFilesSection: true }]
+  async getPanels(_args, ctx) {
+    return [
+      {
+        key: manifest.key,
+        title: tFor(ctx)('prefillTitle'),
+        icon: 'clock-fast',
+        dataFilesSection: true,
+      },
+    ]
   },
-  async getDefinition() {
+  async getDefinition(_args, ctx) {
+    const t = tFor(ctx)
     await fileCache.load()
     const source = await savedSource()
-    const sourceError = sourceValidationError(source)
     const loaded = fileCache.current()
     const status = loaded
-      ? `${Object.keys(loaded.parsed.records).length} calls. Downloaded ${loaded.snapshot.fetchedAt}. File date: ${loaded.parsed.sourceUpdatedAt ?? 'not declared'}.\n\nSource: ${loaded.snapshot.url}\n\n${loaded.parsed.issues.length} parser warning(s).`
-      : 'No valid file cached yet. Download the CWT data file in Settings → Data Files.'
+      ? t('historyStatus', {
+          count: Object.keys(loaded.parsed.records).length,
+          downloaded: loaded.snapshot.fetchedAt,
+          date: loaded.parsed.sourceUpdatedAt ?? t('historyUnknownDate'),
+          source: loaded.snapshot.url,
+          warnings: loaded.parsed.issues.length,
+        })
+      : t('historyEmpty')
+    const cacheError = fileCache.error()
     return {
       elements: [
         {
           type: 'markdown',
-          text: `${status}${fileCache.error() ? `\n\nLast cache error: ${fileCache.error()}` : ''}${sourceError ? `\n\nSaved source is unsupported. ${sourceError} Automatic discovery is being used until you enter a supported URL.` : ''}`,
+          text: [
+            status,
+            cacheError ? t('historyCacheError', { error: cacheError }) : '',
+            sourceValidationError(source) ? t('historyUnsupportedSavedSource') : '',
+          ]
+            .filter(Boolean)
+            .join('\n\n'),
         },
         {
           type: 'field',
           fieldType: 'text',
           key: 'source',
-          label: 'Call-history source HTTPS URL',
+          label: t('historySourceLabel'),
           uppercase: false,
           value: source || DEFAULT_SOURCE,
         },
-        {
-          type: 'markdown',
-          text: 'The default N1MM category discovers its latest CWOPS download. You may select an HTTPS CWOPS entry URL or direct text URL on the N1MM hosts. Ham2K data sources do not support local file paths. After changing the source, refresh the CWT entry in Data Files. The previous valid file remains active until a replacement succeeds.\n\nOperator edits and deliberate blanks take priority. Next: current-operation CWT exchanges, this selected file, then older CWT exchanges. A missing number never implies nonmembership.\n\nBased on the official CWT extension by **Sebastian Delmont, KI2D**, the main Ham2K developer. Disable the original CWops CWT extension to avoid duplicate handlers.',
-        },
+        { type: 'markdown', text: t('historyHelp') },
       ],
     }
   },
-  async validateField({ fieldKey, value }) {
+  async validateField({ fieldKey, value }, ctx) {
     if (fieldKey !== 'source' || typeof value !== 'string') return null
-    return sourceValidationError(value)
+    return sourceValidationError(value) ? tFor(ctx)('historyInvalidSource') : null
   },
-  async onChangeField({ fieldKey, value }) {
+  async onChangeField({ fieldKey, value }, ctx) {
     if (fieldKey === 'source' && typeof value === 'string') {
-      const error = sourceValidationError(value)
-      if (error) throw new Error(error)
+      if (sourceValidationError(value)) throw new Error(tFor(ctx)('historyInvalidSource'))
       await host.setSettings({ source: value.trim() })
     }
   },

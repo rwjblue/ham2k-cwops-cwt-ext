@@ -1,7 +1,7 @@
 import type { HookContext, JSONValue, LoggingControlDescriptor } from '@ham2k/extension-sdk'
 import { contestScorer } from '@ham2k/extension-sdk'
-import { describe, expect, it, vi } from 'vitest'
-import { AdifFieldsHook, CWTScorer, ExportHook } from '../../src/cwt/index.ts'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ActivityHook, AdifFieldsHook, CWTScorer, ExportHook } from '../../src/cwt/index.ts'
 import { createFileCache } from '../../src/data/cache.ts'
 import { createPrefill, EMPTY_SUGGESTION } from '../../src/integration/prefill.ts'
 
@@ -14,6 +14,8 @@ const operation: Qson = {
 const ctx: HookContext = { online: false, locale: 'en' }
 const file =
   '!!Order!!,Call,Name,Exch1\n# CWOPS\nK1ABC,AL,4567\nK2ABC,BOB,CWA\nK3ABC,CARL,PA\nK4ABC,DAN,\n'
+
+afterEach(() => vi.restoreAllMocks())
 
 async function setup(body = file) {
   const cache = createFileCache({ read: async () => null, write: async () => {} })
@@ -104,7 +106,7 @@ describe('prefill to saved/exported CWT exchange', () => {
       context,
     )
     expect(lookups[0]?.notes?.[0]).toContain(
-      'name ARTHUR (current-operation); exchange 3806 (current-operation)',
+      'name ARTHUR (current operation); exchange 3806 (current operation)',
     )
     expect(context.getQsos).not.toHaveBeenCalled()
   })
@@ -116,6 +118,29 @@ describe('prefill to saved/exported CWT exchange', () => {
       ctx,
     )
     expect(controls[0]?.input).toMatchObject({ suggestedValue: 'HIRAM' })
+  })
+
+  it('only changes suggestions for the CWT name and number fields', async () => {
+    const unrelated: LoggingControlDescriptor[] = [
+      {
+        key: 'other/name',
+        label: 'Other name',
+        input: { kind: 'text', refType: 'other', field: 'name', suggestedValue: 'OTHER' },
+      },
+      {
+        key: 'cwt/note',
+        label: 'Note',
+        input: { kind: 'text', refType: 'cwt', field: 'note', suggestedValue: 'NOTE' },
+      },
+    ]
+    const qso = { their: { call: 'K1ABC' } }
+    const base = await ActivityHook.loggingControls({ operation, qso }, ctx)
+    vi.spyOn(ActivityHook, 'loggingControls').mockResolvedValueOnce([...base, ...unrelated])
+    const { activity } = await setup()
+    const controls = await activity.loggingControls({ operation, qso }, ctx)
+    expect(controls[0]?.input).toMatchObject({ suggestedValue: 'AL' })
+    expect(controls[1]?.input).toMatchObject({ suggestedValue: '4567' })
+    expect(controls.slice(2)).toEqual(unrelated)
   })
   it.each([
     ['K1ABC', 'AL', '4567'],
@@ -223,13 +248,22 @@ describe('prefill to saved/exported CWT exchange', () => {
     )
     expect(controls[0]?.input).toMatchObject({ suggestedValue: 'AL' })
     expect(controls[1]?.input).toMatchObject({ suggestedValue: '9876' })
-    const notes = await prefill.lookup.lookupCall(
-      { operation, qso: {}, callInfo: { call: 'K1ABC' } },
-      context,
-    )
-    expect(notes[0]?.notes?.[0]).toContain(
-      'name AL (selected-file); exchange 9876 (current-operation)',
-    )
+    for (const [locale, expected] of [
+      [
+        'en',
+        'CWT: name AL (selected file); exchange 9876 (current operation); file date unknown, downloaded 2026-09-19',
+      ],
+      [
+        'es',
+        'CWT: nombre AL (archivo seleccionado); intercambio 9876 (operación actual); archivo fecha desconocida, descargado 2026-09-19',
+      ],
+    ]) {
+      const notes = await prefill.lookup.lookupCall(
+        { operation, qso: {}, callInfo: { call: 'K1ABC' } },
+        { ...context, locale },
+      )
+      expect(notes[0]).toMatchObject({ source: 'n1rwj-cwt', notes: [expected] })
+    }
     expect(context.getQsos).not.toHaveBeenCalled()
     expect(
       await prefill.lookup.lookupCall({ operation: {}, qso: {}, callInfo: { call: 'K1ABC' } }, ctx),

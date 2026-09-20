@@ -3,6 +3,12 @@
 CWT exchange suggestions from N1MM CWops call history and previous CWT
 contacts, packaged as a personal Ham2K extension (`n1rwj-cwt`).
 
+The feature is proposed in [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1).
+That PR is the source of truth for feature changes; this repo keeps an
+installable personal version available while it is reviewed. Version 0.1.2
+backports its history-loading race fix, CWT-only suggestion handling, and
+English/Spanish prefill and settings text.
+
 **Based on the official CWT extension by Sebastian Delmont, KI2D, the main
 Ham2K developer.** His setup, scheduling, scoring, exchange entry,
 translations, ADIF and Cabrillo behavior are preserved. This independent
@@ -78,11 +84,22 @@ latest installed build, without changing it. Pass an explicit `.app` path
 to inspect another installation. Failure means its dependencies/contracts
 are insufficient.
 
+### Keeping the personal extension aligned
+
+Backport relevant fixes from `extensions/contests/ham2k-cwt/` in the upstream
+PR, adapting imports and tests to this repo's layout and Vitest setup. Keep
+the personal `n1rwj-cwt` identity, `n1rwj-cwt_history` data-file key, settings,
+export identifiers, licensing notices, and build/release tooling intact so
+existing installations retain their data and configuration. Run
+`mise run format` and `mise run check` after each backport and bump the personal
+version when preparing an updated bundle. Upstream-only packaging changes do
+not need a matching personal change.
+
 ## Release
 
 Update the version in `manifest.json`, `package.json`, and `package-lock.json`,
 then commit and push. Publish a GitHub release with the matching tag, such as
-`v0.1.1`, pointing at that commit. The **Release** workflow checks out the tagged
+`v0.1.2`, pointing at that commit. The **Release** workflow checks out the tagged
 commit, runs `mise run check`, verifies the versions and checksum, and attaches
 `n1rwj-cwt-<version>.h2kext` and its `.sha256` file. Published prereleases also
 trigger the build. Draft releases do not.
@@ -90,7 +107,7 @@ trigger the build. Draft releases do not.
 Preview the same process locally without uploading:
 
 ```sh
-mise run release --dry-run v0.1.1
+mise run release --dry-run v0.1.2
 ```
 
 The workflow uses GitHub's built-in token; no extra secret is required.

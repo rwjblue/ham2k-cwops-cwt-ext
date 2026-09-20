@@ -1,5 +1,23 @@
 # Verification and compatibility
 
+## Personal backport 0.1.2
+
+The backport from [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1)
+passed `mise run check`: **190 tests across 13 files**, Biome, TypeScript,
+build, and official packaging validation. Its focused history regression
+failed against the previous code and passes with the fix. It verifies both
+full and resumed scoring during a pending initial log read, including waiting
+for refreshed membership before requesting targeted callsign history.
+Additional coverage checks English/Spanish settings and provenance, preserves
+the personal cache identity, and leaves unrelated input suggestions intact.
+
+`mise run verify-host` also accepted 0.1.2 against the installed Power Logger
+26.9.0 build 169 kernel, registering all eight hooks. This runs the installed
+JavaScript kernel under Node; **0.1.2 has not been tested in the native UI**.
+The native observations below describe 0.1.0 and 0.1.1.
+
+## Earlier verification
+
 Verified September 19, 2026. `mise run check` runs Biome, TypeScript,
 deterministic Vitest tests, the published builder, and official `h2kext-pack`
 validation. Local `0.1.1` validation passed **182 tests across 11 files**,

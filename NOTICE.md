@@ -15,10 +15,12 @@ Source and build instructions are available at
 See [docs/PROVENANCE.md](docs/PROVENANCE.md) for exact upstream sources and
 the original archive checksum.
 
-The bundle includes portions of the published `@ham2k/extension-sdk`,
-licensed under the MIT license:
+The bundle includes portions of the published `@ham2k/extension-sdk` and
+prefill improvements backported from Ham2K/extensions PR #1, under the
+following MIT notices:
 
 Copyright (c) 2026 Sebastian Delmont <sd@ham2k.com>
+Copyright (c) 2026 Robert Jackson (N1RWJ)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

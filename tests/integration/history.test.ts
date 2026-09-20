@@ -149,38 +149,69 @@ describe('history adapter', () => {
     expect(getQsos).toHaveBeenCalledTimes(1)
   })
 
-  it('does not let an older pending full-log read replace a newer full scoring pass', async () => {
-    let finishRead: (rows: Qson[]) => void = () => {
-      throw new Error('Read has not started')
-    }
-    const stale = qso('stale')
-    const current = qso('current', '2345')
-    const history = createHistoryAdapter()
-    const ctx = {
-      online: false,
-      getQsos: () =>
-        new Promise<Qson[]>((resolve) => {
-          finishRead = resolve
-        }),
-      getHistoryForCall: async () => [current],
-    }
-    const pending = history.find(operation, candidate, ctx)
-    history.update({ operation, qsos: [current] })
-    finishRead([stale])
-    expect(await pending).toEqual({ currentOperation: [contact(current)], olderHistory: [] })
-  })
-
-  it('shares an initial whole-log read among concurrent calls', async () => {
-    const current = qso('current')
-    const getQsos = vi.fn().mockResolvedValue([current])
-    const history = createHistoryAdapter()
-    await Promise.all(
-      Array.from({ length: 5 }, () =>
-        history.find(operation, candidate, { online: false, getQsos }),
-      ),
-    )
-    expect(getQsos).toHaveBeenCalledTimes(1)
-  })
+  it.each(['full', 'resumed'] as const)(
+    '%s scoring supersedes a pending initial read without losing current precedence',
+    async (mode) => {
+      let finishRead: (rows: Qson[]) => void = () => {
+        throw new Error('Read has not started')
+      }
+      const initialRead = new Promise<Qson[]>((resolve) => {
+        finishRead = resolve
+      })
+      let finishRefresh!: (rows: Qson[]) => void
+      let markRefreshStarted!: () => void
+      const refreshedRead = new Promise<Qson[]>((resolve) => {
+        finishRefresh = resolve
+      })
+      const refreshStarted = new Promise<void>((resolve) => {
+        markRefreshStarted = resolve
+      })
+      const current = qso('current', '5555')
+      const earlier = qso('earlier', '')
+      const rows = [earlier, current]
+      const history = createHistoryAdapter()
+      const getQsos = vi
+        .fn()
+        .mockReturnValueOnce(initialRead)
+        .mockImplementation(() => {
+          markRefreshStarted()
+          return refreshedRead
+        })
+      const getHistoryForCall = vi.fn().mockResolvedValue(rows)
+      const ctx = {
+        online: false,
+        getQsos,
+        getHistoryForCall,
+      }
+      const first = history.find(operation, candidate, ctx)
+      const second = history.find(operation, candidate, ctx)
+      const resumed = mode === 'resumed'
+      history.update({
+        operation,
+        qsos: resumed ? [current] : rows,
+        resumeFrom: resumed ? {} : undefined,
+      })
+      finishRead([qso('stale')])
+      if (resumed) {
+        await refreshStarted
+        expect(getHistoryForCall).not.toHaveBeenCalled()
+        finishRefresh(rows)
+      }
+      for (const tiers of await Promise.all([first, second])) {
+        expect(tiers).toEqual({ currentOperation: rows.map(contact), olderHistory: [] })
+        expect(
+          resolveCwtExchange({
+            call: 'K1ABC',
+            ...tiers,
+            selectedFile: { K1ABC: { call: 'K1ABC', number: '1234', membership: 'member' } },
+          }).number,
+        ).toMatchObject({ value: '5555', source: 'current-operation' })
+      }
+      await history.find(operation, candidate, ctx)
+      expect(getQsos).toHaveBeenCalledTimes(resumed ? 2 : 1)
+      expect(getQsos).toHaveBeenCalledWith('op')
+    },
+  )
 
   it('queries an exact portable call and its unambiguous base without using a generic exchange', async () => {
     const getHistoryForCall = vi

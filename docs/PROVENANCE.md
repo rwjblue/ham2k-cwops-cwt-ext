@@ -56,6 +56,19 @@ builder.
 
 ## Compatibility boundaries retained
 
+### Public extensions PR
+
+[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1) now carries
+the exchange-prefill feature in the official extension's source layout.
+Its feature behavior is the source of truth for ongoing personal backports.
+Version 0.1.2 brings back its history-loading race fix, restriction of
+suggestions to CWT exchange fields, and localized prefill/settings text.
+Those contributions carry Robert Jackson's MIT notice, retained in `NOTICE.md`.
+The personal extension retains the original adaptation's MPL-2.0 notices,
+published SDK dependency, export identifiers, storage keys, and build tools.
+
+### Existing operations and exchanges
+
 - The activity/ref type remains `cwt`, preserving existing CWT operations and
   received exchanges. The extension key is personal (`n1rwj-cwt`). Disable
   the official CWT extension before enabling this one, because both register

@@ -5,7 +5,9 @@ import type {
   LookupHook,
   ScoringHook,
 } from '@ham2k/extension-sdk'
+import manifest from '../../manifest.json'
 import { firstName } from '../cwt/exchange.ts'
+import { tFor } from '../cwt/i18n.ts'
 import { ActivityHook as UpstreamActivity } from '../cwt/index.ts'
 import type { FileCache } from '../data/cache.ts'
 import { resolveCwtExchange } from '../history/index.ts'
@@ -17,6 +19,13 @@ type Qson = Record<string, JSONValue>
 // One space clears an untouched control and is trimmed out on save. A touched
 // field (including a deliberate blank) is protected by the native host.
 export const EMPTY_SUGGESTION = ' '
+
+const SOURCE_LABELS = {
+  operator: 'prefillSourceOperator',
+  'current-operation': 'prefillSourceCurrentOperation',
+  'selected-file': 'prefillSourceSelectedFile',
+  'older-history': 'prefillSourceOlderHistory',
+} as const
 
 export function createPrefill(cache: FileCache) {
   const history = createHistoryAdapter()
@@ -39,12 +48,12 @@ export function createPrefill(cache: FileCache) {
       return controls.map((control) => {
         if (control.input.kind !== 'text') return control
         const field = control.input.field
+        if (control.input.refType !== 'cwt' || (field !== 'name' && field !== 'number'))
+          return control
         const suggestion =
           field === 'name'
             ? firstName(resolved.name?.value) || control.input.suggestedValue
-            : field === 'number'
-              ? resolved.number?.value
-              : undefined
+            : resolved.number?.value
         return {
           ...control,
           input: { ...control.input, suggestedValue: suggestion || EMPTY_SUGGESTION },
@@ -62,21 +71,33 @@ export function createPrefill(cache: FileCache) {
         ctx,
       )
       if (!result.name && !result.number) return []
+      const t = tFor(ctx)
       const fields = [
-        result.name && `name ${result.name.value} (${result.name.source})`,
-        result.number && `exchange ${result.number.value} (${result.number.source})`,
+        result.name &&
+          t('prefillName', {
+            value: result.name.value,
+            source: t(SOURCE_LABELS[result.name.source]),
+          }),
+        result.number &&
+          t('prefillExchange', {
+            value: result.number.value,
+            source: t(SOURCE_LABELS[result.number.source]),
+          }),
       ].filter(Boolean)
       const file = cache.current()
       const freshness =
         file && [result.name?.source, result.number?.source].includes('selected-file')
-          ? `; file ${file.parsed.sourceUpdatedAt ?? 'date unknown'}, downloaded ${file.snapshot.fetchedAt.slice(0, 10)}`
+          ? t('prefillFreshness', {
+              fileDate: file.parsed.sourceUpdatedAt ?? t('prefillUnknownDate'),
+              downloadDate: file.snapshot.fetchedAt.slice(0, 10),
+            })
           : ''
       return [
         {
           call: callInfo.call ?? '',
-          source: 'n1rwj-cwt',
+          source: manifest.key,
           scope: 'general',
-          notes: [`CWT: ${fields.join('; ')}${freshness}`],
+          notes: [t('prefillNote', { fields: fields.join('; '), freshness })],
         },
       ]
     },

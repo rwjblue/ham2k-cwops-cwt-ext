@@ -111,20 +111,25 @@ export function createHistoryAdapter() {
       const index: Index = opId
         ? entry(opId)
         : { rows: new Map(), generation: 0, validations: new Map() }
-      if (!index.loading) {
-        const before = index.generation
-        index.loading = (async () => {
-          try {
-            const rows = opId && ctx.getQsos ? await ctx.getQsos(opId) : null
-            if (index.generation === before) index.rows = rowsById(rows ?? [])
-          } catch {
-            /* History is optional; file suggestions remain usable. */
-          }
-        })()
-      }
-      await index.loading
+      let generation: number
+      do {
+        generation = index.generation
+        if (!index.loading) {
+          const before = generation
+          index.loading = (async () => {
+            try {
+              const rows = opId && ctx.getQsos ? await ctx.getQsos(opId) : null
+              if (index.generation === before) index.rows = rowsById(rows ?? [])
+            } catch {
+              /* History is optional; file suggestions remain usable. */
+            }
+          })()
+        }
+        await index.loading
+        // Resumed scoring may invalidate membership while a read is pending.
+        // Wait for the new generation's shared read before classifying rows.
+      } while (index.generation !== generation)
       const relevant = (row: Qson) => row.uuid !== qso.uuid || !qso.uuid
-      const generation = index.generation
       const getHistory = ctx.getHistoryForCall
       const responses = getHistory
         ? await Promise.all(

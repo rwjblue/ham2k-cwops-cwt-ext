@@ -251,7 +251,9 @@ describe('the installable bundle with a simulated host bridge', () => {
       expect.objectContaining({ key: 'source', value: source }),
     )
     expect(settings.elements).toContainEqual(
-      expect.objectContaining({ text: expect.stringContaining('Saved source is unsupported') }),
+      expect.objectContaining({
+        text: expect.stringContaining('The saved source is unsupported.'),
+      }),
     )
     const controls = await runtime
       .hook('activity')
