@@ -3,11 +3,14 @@
 CWT exchange suggestions from N1MM CWops call history and previous CWT
 contacts, packaged as a personal Ham2K extension (`n1rwj-cwt`).
 
-The feature is proposed in [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1).
-That PR is the source of truth for feature changes; this repo keeps an
-installable personal version available while it is reviewed. Version 0.1.2
-backports its history-loading race fix, CWT-only suggestion handling, and
-English/Spanish prefill and settings text.
+**This repository is a temporary personal extension until
+[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1) lands.**
+It keeps an installable version available while the upstream change is
+reviewed, and is not intended to be a long-term fork. That PR is the source
+of truth for feature changes; relevant changes made here must also be
+applied to its source branch. Version 0.1.2 backports its history-loading
+race fix, CWT-only suggestion handling, and English/Spanish prefill and
+settings text.
 
 **Based on the official CWT extension by Sebastian Delmont, KI2D, the main
 Ham2K developer.** His setup, scheduling, scoring, exchange entry,
@@ -85,6 +88,16 @@ to inspect another installation. Failure means its dependencies/contracts
 are insufficient.
 
 ### Keeping the personal extension aligned
+
+Keep relevant changes synchronized in both directions until PR #1 lands.
+For every change made here, apply any upstream-relevant behavior, bug fix,
+test, translation, or documentation change to the PR's source branch,
+`codex/cwt-call-history`, in `~/src/github/ham2k/extensions`. The upstream CWT
+extension lives in `extensions/contests/ham2k-cwt/`. Verify the checkout and
+current PR branch before editing, and run the upstream repository's checks
+for any changes there. Personal-only identity, packaging, release tooling,
+and temporary-repository documentation do not need to be copied upstream;
+note that exception when reporting the change.
 
 Backport relevant fixes from `extensions/contests/ham2k-cwt/` in the upstream
 PR, adapting imports and tests to this repo's layout and Vitest setup. Keep

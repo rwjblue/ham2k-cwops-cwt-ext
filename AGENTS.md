@@ -1,5 +1,20 @@
 # Working on this extension
 
+commit-message-default: auto
+
+- This repository is temporary until
+  [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1) lands.
+  That PR is the source of truth. For every change here, also apply the
+  upstream-relevant behavior, fixes, tests, translations, and documentation
+  to the PR's source branch, currently `codex/cwt-call-history`, in the local
+  checkout at `~/src/github/ham2k/extensions`. The upstream CWT code lives in
+  `extensions/contests/ham2k-cwt/`. Verify the checkout and current PR source
+  branch before editing; update that branch, not the PR's target `main`.
+  Read the upstream repository's instructions and run its relevant checks.
+  Personal-only identity, packaging, release tooling, and documentation
+  about this temporary repository are exempt; state why a change does not
+  need an upstream counterpart when reporting it. Backport relevant upstream
+  changes here as well while this temporary extension is in use.
 - Read `node_modules/@ham2k/extension-sdk/AGENTS.md` and the relevant SDK
   `docs/` sections before changing a hook. Run `mise run install` first when
   dependencies are absent. Published `dist/index.d.ts` is the typed contract;
