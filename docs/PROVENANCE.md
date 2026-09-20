@@ -82,6 +82,7 @@ published SDK dependency, export identifiers, storage keys, and build tools.
 - `ourName` and `ourNumber` retain the sent exchange. The QSO CWT ref's
   `name` and `number` retain the received exchange, including intentional
   blanks. Their joined value is projected to `their.exchange` for the log.
-- Generic location guesses remain placeholders only. Data/history suggestions
+- Generic location guesses prefill Number/QTH only after all known CWT
+  exchange sources are exhausted. Data/history suggestions
   introduced by this adaptation must explicitly identify a valid exchange;
   missing membership records do not prove nonmembership.

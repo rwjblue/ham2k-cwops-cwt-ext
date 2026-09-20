@@ -6,10 +6,12 @@ import type {
   ScoringHook,
 } from '@ham2k/extension-sdk'
 import manifest from '../../manifest.json'
-import { firstName } from '../cwt/exchange.ts'
+import { firstName, guessedQth } from '../cwt/exchange.ts'
 import { tFor } from '../cwt/i18n.ts'
 import { ActivityHook as UpstreamActivity } from '../cwt/index.ts'
 import type { FileCache } from '../data/cache.ts'
+import { callLookupKeys } from '../history/callsign.ts'
+import { membershipForExchange, normalizeKnownExchange } from '../history/exchange.ts'
 import { resolveCwtExchange } from '../history/index.ts'
 import { createHistoryAdapter, cwtRef, object, text } from './history.ts'
 
@@ -26,6 +28,14 @@ const SOURCE_LABELS = {
   'selected-file': 'prefillSourceSelectedFile',
   'older-history': 'prefillSourceOlderHistory',
 } as const
+
+function locationSuggestion(qso: Qson): string | undefined {
+  const their = object(qso.their)
+  if (!callLookupKeys(text(their.call)).length) return undefined
+  const qth = normalizeKnownExchange(guessedQth(their))
+  // Location data may suggest a QTH, never a member number or CWA status.
+  return membershipForExchange(qth) === 'nonmember' ? qth : undefined
+}
 
 export function createPrefill(cache: FileCache) {
   const history = createHistoryAdapter()
@@ -53,7 +63,7 @@ export function createPrefill(cache: FileCache) {
         const suggestion =
           field === 'name'
             ? firstName(resolved.name?.value) || control.input.suggestedValue
-            : resolved.number?.value
+            : resolved.number?.value || locationSuggestion(args.qso ?? {})
         return {
           ...control,
           input: { ...control.input, suggestedValue: suggestion || EMPTY_SUGGESTION },

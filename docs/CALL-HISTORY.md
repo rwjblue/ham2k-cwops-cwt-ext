@@ -84,6 +84,15 @@ Name and number resolve independently in this order:
 3. The selected call-history file.
 4. Older compatible CWT contacts.
 
+After these sources are exhausted, native controls can use Ham2K’s ordinary
+name suggestion and prefill Number/QTH with a location guess: state first,
+then country/entity prefix, including the callsign country file. This is a
+last-resort suggestion, not evidence of nonmembership, and is saved if left
+unchanged. Operator corrections and deliberate clearing still take priority.
+The pure resolver and its membership result describe only known exchanges;
+the location fallback is applied separately by the logging-controls adapter.
+Lookup notes report known history/file sources, not this location fallback.
+
 For each source, exact callsign matches precede an unambiguous base call;
 within history matches, the newest dated contact wins for each available
 field. Undated contacts sort last, with stable input order for ties. Only

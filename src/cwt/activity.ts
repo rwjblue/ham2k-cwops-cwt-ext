@@ -196,9 +196,8 @@ export const ActivityHook = {
           maxLength: 6,
           uppercase: true,
           pattern: NUMBER_PATTERN,
-          // A HINT, never a suggested value — see `guessedQth`. Most CWT
-          // participants are members sending a number, and pre-filling a state
-          // would stamp the wrong exchange onto the majority of contacts.
+          // The prefill adapter uses this location only after known CWT
+          // exchanges from the current operation, file, and older history.
           placeholder: qth || undefined,
         },
       },
@@ -223,7 +222,7 @@ export const ActivityHook = {
     const nameDecided = qsoRef !== undefined && 'name' in qsoRef
     const numberDecided = qsoRef !== undefined && 'number' in qsoRef
     const name = nameDecided ? firstName(qsoRef.name) : guessedName(their)
-    // The number is never guessed — only what the operator typed is recorded.
+    // Save the control value (typed or prefilled); do not guess again on save.
     const number = numberDecided ? normalizeNumber(qsoRef.number) : ''
 
     if (!name && !number) {

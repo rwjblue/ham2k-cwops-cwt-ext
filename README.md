@@ -53,8 +53,11 @@ SDK 0.5.0 provides no local import capability for this extension.
 Each field uses operator input first (including intentional clearing), then
 current-operation CWT history, the selected file, and older compatible CWT
 history. Names retain the original host name suggestion as a final fallback.
-Generic location guesses are hints only. Missing records or member numbers
-never prove nonmembership.
+When no exchange is found, Number/QTH prefills from the station’s state,
+then its country/entity prefix (including callsign country-file lookup).
+Check this guess against what was received; missing records or member numbers
+never prove nonmembership. The prefilled location is saved unless you change
+or clear it.
 
 Exact calls precede an unambiguous base call. Names/member numbers/CWA can
 follow a portable suffix; nonmember locations require an exact call. Only
@@ -62,8 +65,9 @@ explicit CWT references qualify as log history. The received exchange is
 stored on the CWT ref and projected to the log, ADIF, and Cabrillo.
 
 Ham2K protects touched controls during lookups and callsign corrections. Use
-**Wipe** for a fresh contact to reset those edits. Unknown calls clear previous
-untouched suggestions. See [supported syntax and precedence](docs/CALL-HISTORY.md).
+**Wipe** for a fresh contact to reset those edits. Calls without a known exchange
+replace previous untouched suggestions with a location guess, or clear them
+when no location is available. See [supported syntax and precedence](docs/CALL-HISTORY.md).
 
 The native Data Files cache retains the last successful dataset across failed
 refreshes and app restarts. Malformed replacements also leave it intact. This

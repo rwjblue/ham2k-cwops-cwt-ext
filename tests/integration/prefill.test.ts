@@ -146,12 +146,14 @@ describe('prefill to saved/exported CWT exchange', () => {
     ['K1ABC', 'AL', '4567'],
     ['K2ABC', 'BOB', 'CWA'],
     ['K3ABC', 'CARL', 'PA'],
+    ['DL1ABC', 'HELMUT', 'DL'],
+    ['W9ZZZ', 'HELMUT', 'WI'],
   ])('round-trips %s through controls, save, ADIF and Cabrillo', async (call, name, number) => {
     const { activity } = await setup()
     const ui = new Controls()
     const qso: Qson = {
       uuid: 'new',
-      their: { call },
+      their: { call, guess: { name: 'Helmut', ...(call === 'W9ZZZ' ? { state: 'wi' } : {}) } },
       mode: 'CW',
       freq: 14030,
       band: '20m',
@@ -196,7 +198,7 @@ describe('prefill to saved/exported CWT exchange', () => {
     })
   })
 
-  it('clears stale untouched suggestions on a callsign with no exchange, without guessing state', async () => {
+  it('replaces stale suggestions with location fallback and clears them when no location exists', async () => {
     const { activity } = await setup()
     const ui = new Controls()
     ui.apply(await activity.loggingControls({ operation, qso: { their: { call: 'K1ABC' } } }, ctx))
@@ -204,15 +206,58 @@ describe('prefill to saved/exported CWT exchange', () => {
       { operation, qso: { their: { call: 'W9ZZZ', guess: { state: 'WI' } }, refs: ui.refs() } },
       ctx,
     )
-    expect(unknown[1]?.input).toMatchObject({ suggestedValue: EMPTY_SUGGESTION, placeholder: 'WI' })
+    expect(unknown[1]?.input).toMatchObject({ suggestedValue: 'WI', placeholder: 'WI' })
     ui.apply(unknown)
+    expect(ui.refs()).toEqual([{ type: 'cwt', number: 'WI' }])
+    ui.apply(await activity.loggingControls({ operation, qso: { their: { call: '' } } }, ctx))
     expect(ui.refs()).toEqual([{ type: 'cwt' }])
+  })
+
+  it.each(['', '9999'])('protects operator exchange %j from location fallback', async (number) => {
+    const { activity } = await setup()
+    const ui = new Controls()
+    ui.apply(await activity.loggingControls({ operation, qso: { their: { call: 'K1ABC' } } }, ctx))
+    ui.type('cwt/number', number)
+    const qso = { their: { call: 'W9ZZZ', guess: { state: 'WI' } } }
+    ui.apply(await activity.loggingControls({ operation, qso }, ctx))
+    expect(ui.refs()).toEqual([{ type: 'cwt', number }])
+    const saved = await activity.processQsoBeforeSave(
+      { operation, qso: { ...qso, refs: ui.refs() } },
+      ctx,
+    )
+    expect(saved?.their).toEqual({ exchange: number })
+  })
+
+  it.each(['1234', 'CWA', 'TOO-LONG'])(
+    'does not promote invalid location %s into an exchange',
+    async (state) => {
+      const { activity } = await setup()
+      const controls = await activity.loggingControls(
+        { operation, qso: { their: { call: 'W9ZZZ', guess: { state } } } },
+        ctx,
+      )
+      expect(controls[1]?.input).toMatchObject({ suggestedValue: EMPTY_SUGGESTION })
+    },
+  )
+
+  it('uses older CWT exchanges before location fallback for a file record with no exchange', async () => {
+    const { activity } = await setup()
+    const controls = await activity.loggingControls(
+      { operation, qso: { their: { call: 'K4ABC', guess: { state: 'CT' } } } },
+      {
+        ...ctx,
+        getHistoryForCall: async () => [
+          { uuid: 'old', their: { call: 'K4ABC' }, refs: [{ type: 'cwt', number: '6789' }] },
+        ],
+      },
+    )
+    expect(controls[1]?.input).toMatchObject({ suggestedValue: '6789' })
   })
 
   it('does not treat an unrelated contest exchange as a CWT number', async () => {
     const { activity } = await setup()
     const controls = await activity.loggingControls(
-      { operation, qso: { their: { call: 'K4ABC', exchange: 'DAN CT', guess: { state: 'CT' } } } },
+      { operation, qso: { their: { call: 'K4ABC', exchange: 'DAN CT', guess: { state: 'WI' } } } },
       {
         ...ctx,
         getHistoryForCall: async () => [
@@ -225,7 +270,7 @@ describe('prefill to saved/exported CWT exchange', () => {
       },
     )
     expect(controls[0]?.input).toMatchObject({ suggestedValue: 'DAN' })
-    expect(controls[1]?.input).toMatchObject({ suggestedValue: EMPTY_SUGGESTION })
+    expect(controls[1]?.input).toMatchObject({ suggestedValue: 'WI' })
   })
 
   it('resolves fields across current operation, file, then older CWT and reports provenance', async () => {
@@ -243,7 +288,7 @@ describe('prefill to saved/exported CWT exchange', () => {
     prefill.history.update({ operation, qsos: [current] })
     const context = { ...ctx, getHistoryForCall: async () => [current, old], getQsos: vi.fn() }
     const controls = await prefill.activity.loggingControls(
-      { operation, qso: { their: { call: 'K1ABC' } } },
+      { operation, qso: { their: { call: 'K1ABC', guess: { state: 'WI' } } } },
       context,
     )
     expect(controls[0]?.input).toMatchObject({ suggestedValue: 'AL' })

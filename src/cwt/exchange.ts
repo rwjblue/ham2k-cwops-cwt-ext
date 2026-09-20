@@ -40,10 +40,8 @@ export function guessedName(their: Record<string, JSONValue>): string {
 
 /// What a NON-MEMBER would send — their state, province or entity prefix.
 ///
-/// Offered as a PLACEHOLDER only, never as a suggested value: most CWT
-/// participants are members sending a number, so pre-filling a state would
-/// stamp the wrong exchange onto the majority of contacts as data of record.
-/// A hint costs nothing when it's wrong.
+/// Used as a placeholder and, after all known CWT exchanges are exhausted,
+/// as a location prefill. This guess does not establish club membership.
 export function guessedQth(their: Record<string, JSONValue>): string {
   const guess = (their.guess as Record<string, JSONValue>) ?? {}
   const call = str(their.call)
