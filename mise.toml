@@ -1,2 +1,5 @@
 [tools]
 node = "24.21.0"
+
+[task_config]
+excludes = ["mise/tasks/node_modules"]

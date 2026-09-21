@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-#MISE description="Typecheck sandbox code and Vitest tests"
-#MISE depends=["install"]
+#MISE description="Typecheck sandbox code, Vitest tests, and Node TypeScript tasks"
+#MISE depends=["install", "local-tasks-npm-install"]
 
 set -euo pipefail
 npx --no-install tsc --project tsconfig.json
 npx --no-install tsc --project tsconfig.test.json
+cd mise/tasks
+npx --no-install tsc --noEmit

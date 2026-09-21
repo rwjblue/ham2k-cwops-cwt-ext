@@ -1,20 +1,28 @@
-# Working on this extension
+# Working on this extension monorepo
 
 commit-message-default: auto
 
-- This repository is temporary until
+- This repository is the permanent home for N1RWJ extensions. Only the
+  personal CWT extension is temporary until
   [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1) lands.
-  That PR is the source of truth. For every change here, also apply the
-  upstream-relevant behavior, fixes, tests, translations, and documentation
-  to the PR's source branch, currently `codex/cwt-call-history`, in the local
-  checkout at `~/src/github/ham2k/extensions`. The upstream CWT code lives in
-  `extensions/contests/ham2k-cwt/`. Verify the checkout and current PR source
-  branch before editing; update that branch, not the PR's target `main`.
-  Read the upstream repository's instructions and run its relevant checks.
-  Personal-only identity, packaging, release tooling, and documentation
-  about this temporary repository are exempt; state why a change does not
-  need an upstream counterpart when reporting it. Backport relevant upstream
-  changes here as well while this temporary extension is in use.
+  That PR is the source of truth for CWT behavior. For CWT-relevant behavior,
+  fixes, tests, translations, and documentation here (including shared-code
+  changes that affect CWT), also update the PR source branch, currently
+  `codex/cwt-call-history`, in `~/src/github/ham2k/extensions`. Verify the
+  checkout and current PR source branch before editing; never update its
+  target `main` instead. Read upstream instructions and run relevant checks.
+  Upstream CWT lives in `extensions/contests/ham2k-cwt/`; backport relevant
+  changes here while the personal extension is in use. MST, SST, general
+  monorepo tooling, and personal packaging/identity are exempt; explain the
+  exemption when reporting those changes.
+- Each independently installable extension lives in `extensions/<group>/<key>/`
+  with its manifest, package, source, and tests. Shared sandbox code lives in
+  `packages/<name>/src/`. Keep contest exchange semantics outside the generic
+  N1MM parser and downloader. MST serials are per contact, never history hints;
+  SST locations are state/province or DX, never CWops member numbers.
+- Node runs TypeScript automation using built-in type stripping. Use explicit
+  `.ts` imports, type-only imports, and erasable syntax. Extension runtime code
+  still requires the official ES2020 bundle because Ham2K runs a JS sandbox.
 - Read `node_modules/@ham2k/extension-sdk/AGENTS.md` and the relevant SDK
   `docs/` sections before changing a hook. Run `mise run install` first when
   dependencies are absent. Published `dist/index.d.ts` is the typed contract;
@@ -33,6 +41,8 @@ commit-message-default: auto
 - All automation lives in executable file-based `mise/tasks/` scripts. Use
   `mise run format` to apply formatting and `mise run check` for the same
   lint, typecheck, test, build, and official packaging checks used in CI.
+  Follow the task skill: complex tasks use TypeScript with local task dependency
+  installation and their own strict typecheck. Root npm scripts are unnecessary.
 - Shared libraries are dev dependencies only for local typechecking and
   tests; the official build preset uses the host's declared shared libraries.
   Do not inline them or silently widen the manifest compatibility ranges.

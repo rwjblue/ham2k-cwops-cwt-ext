@@ -1,9 +1,9 @@
 {
-  "name": "n1rwj-cwt",
-  "version": "0.1.2",
+  "name": "ham2k-n1rwj-extensions",
+  "version": "0.2.0",
   "private": true,
   "license": "MPL-2.0",
-  "description": "Personal CWT extension for Ham2K with CWops call-history exchange suggestions",
+  "description": "N1RWJ Ham2K extensions: CWT, ICWC MST, and K1USN SST",
   "type": "module",
   "engines": {
     "node": "24.x"
@@ -27,10 +27,15 @@
     "liquidjs": "10.28.0",
     "semver": "7.8.5",
     "typescript": "6.0.3",
-    "vitest": "5.0.1"
+    "vitest": "5.0.1",
+    "@types/semver": "7.7.1"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true
-  }
+  },
+  "workspaces": [
+    "extensions/*/*",
+    "packages/*"
+  ]
 }

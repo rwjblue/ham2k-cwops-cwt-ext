@@ -1,23 +1,25 @@
 # Attribution
 
-This extension is derived from **CWops CWT by Sebastian Delmont, KI2D**, the
+The CWT extension is derived from **CWops CWT by Sebastian Delmont, KI2D**, the
 main Ham2K developer. The original CWT source is copyright © 2026 Sebastian
 Delmont <sd@ham2k.com>, licensed under the Mozilla Public License 2.0. Its
 copyright and SPDX notices are retained in the adapted source files.
 
-Changes for N1RWJ add CWops call-history data, previous-contact suggestions,
-tests, and standalone packaging. This is an independent adaptation; Ham2K
-and Sebastian Delmont do not maintain or endorse it.
+Changes for N1RWJ add contest call-history data, previous-contact suggestions,
+MST and SST extensions, shared code, tests, and independent packaging. These
+are independent extensions; Ham2K and Sebastian Delmont do not maintain or
+endorse them.
 
 The adapted source is distributed under MPL-2.0; see [LICENSE](LICENSE).
 Source and build instructions are available at
-<https://github.com/rwjblue/ham2k-cwops-cwt-ext>.
+[ham2k-n1rwj-extensions](https://github.com/rwjblue/ham2k-n1rwj-extensions).
 See [docs/PROVENANCE.md](docs/PROVENANCE.md) for exact upstream sources and
 the original archive checksum.
 
-The bundle includes portions of the published `@ham2k/extension-sdk` and
-prefill improvements backported from Ham2K/extensions PR #1, under the
-following MIT notices:
+The bundles include portions of the published `@ham2k/extension-sdk`;
+CWT also includes prefill improvements backported from Ham2K/extensions
+PR #1. The SDK and build tools are separately licensed under MIT. Retained
+MIT notices follow:
 
 Copyright (c) 2026 Sebastian Delmont <sd@ham2k.com>
 Copyright (c) 2026 Robert Jackson (N1RWJ)

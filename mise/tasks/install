@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Install the exact locked npm dependencies"
-#MISE sources=["package.json", "package-lock.json"]
+#MISE sources=["package.json", "package-lock.json", "extensions/**/package.json", "packages/*/package.json"]
 #MISE outputs=["node_modules/.package-lock.json"]
 
 set -euo pipefail

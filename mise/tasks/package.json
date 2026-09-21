@@ -1,0 +1,9 @@
+{
+  "name": "n1rwj-extension-tasks",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "typescript": "6.0.3"
+  }
+}

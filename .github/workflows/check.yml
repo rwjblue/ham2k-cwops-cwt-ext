@@ -17,7 +17,7 @@ jobs:
       - run: mise run check
       - uses: actions/upload-artifact@v4
         with:
-          name: n1rwj-cwt
+          name: n1rwj-extensions
           path: |
             dist/*.h2kext
             dist/*.h2kext.sha256

@@ -1,0 +1,121 @@
+# N1RWJ CWT for Ham2K
+
+CWT exchange suggestions from N1MM CWops call history and previous CWT
+contacts, packaged as a personal Ham2K extension (`n1rwj-cwt`).
+
+**This CWT extension is temporary until
+[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1) lands.**
+It keeps an installable version available while the upstream change is
+reviewed, and is not intended to be a long-term fork. That PR is the source
+of truth for feature changes; relevant changes made here must also be
+applied to its source branch. Version 0.1.2 backports its history-loading
+race fix, CWT-only suggestion handling, and English/Spanish prefill and
+settings text.
+
+**Based on the official CWT extension by Sebastian Delmont, KI2D, the main
+Ham2K developer.** His setup, scheduling, scoring, exchange entry,
+translations, ADIF and Cabrillo behavior are preserved. This independent
+adaptation uses MPL-2.0. See [provenance](../../../docs/PROVENANCE.md),
+[license](../../../LICENSE), and [notices](../../../NOTICE.md).
+
+## Install and use
+
+1. Use a Ham2K build supporting SDK 0.5.0 and the shared-library versions in
+   [manifest.json](manifest.json). Native installation, member/nonmember/CWA
+   prefills, and saved exchanges were verified in **Power Logger 26.9.0,
+   build 169**; see [verification and limits](../../../docs/VERIFICATION.md).
+2. Download the `.h2kext` asset from a
+   [GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases), or
+   build it locally with `mise run check`. Choose **Settings → Features &
+   Extensions → Install from file** and select the bundle.
+3. **Disable the original CWops CWT extension.** Both handle `cwt` references;
+   enabling both creates duplicate handlers.
+4. Open **Settings → Accounts, Services & Data Sources → CWops CWT call
+   history (N1RWJ) → Refresh**. The default source discovers the current
+   CWOPS entry in the N1MM category. Automatic refresh is daily when Ham2K
+   is online.
+5. Choose a CWT session, configure your sent name/number, and enter a call.
+   Suggestions fill the separate native name and number controls. Check what
+   was received and correct it as needed.
+
+Log CWT contacts **one callsign at a time**. Ham2K's batch call-list logging
+shares the same exchange controls across its calls.
+
+**CWT Prefill** settings show source, file date, download time, record count,
+and warnings. Leave the source blank for automatic discovery, or select an
+HTTPS N1MM category, CWOPS entry, or direct text URL on `n1mm.hamdocs.com`
+or `n1mmwp.hamdocs.com`, then refresh its data-source entry. Local file paths
+are unsupported: this host's data-file loader fetches HTTP resources, and
+SDK 0.5.0 provides no local import capability for this extension.
+
+## Exchange behavior
+
+Each field uses operator input first (including intentional clearing), then
+current-operation CWT history, the selected file, and older compatible CWT
+history. Names retain the original host name suggestion as a final fallback.
+When no exchange is found, Number/QTH prefills from the station’s state,
+then its country/entity prefix (including callsign country-file lookup).
+Check this guess against what was received; missing records or member numbers
+never prove nonmembership. The prefilled location is saved unless you change
+or clear it.
+
+Exact calls precede an unambiguous base call. Names/member numbers/CWA can
+follow a portable suffix; nonmember locations require an exact call. Only
+explicit CWT references qualify as log history. The received exchange is
+stored on the CWT ref and projected to the log, ADIF, and Cabrillo.
+
+Ham2K protects touched controls during lookups and callsign corrections. Use
+**Wipe** for a fresh contact to reset those edits. Calls without a known exchange
+replace previous untouched suggestions with a location guess, or clear them
+when no location is available. See [supported syntax and precedence](../../../docs/CALL-HISTORY.md).
+
+The native Data Files cache retains the last successful dataset across failed
+refreshes and app restarts. Malformed replacements also leave it intact. This
+extension uses local history and an in-memory file index while typing. No
+backend is required. Testing with the operating system offline remains pending.
+
+## Develop
+
+Run commands at the repository root; see the [monorepo guide](../../../README.md).
+`mise run build n1rwj-cwt` builds this extension and `mise run pack n1rwj-cwt`
+creates its independent archive in the root `dist/` directory.
+
+### Keeping the personal extension aligned
+
+Keep relevant changes synchronized in both directions until PR #1 lands.
+For every CWT behavior change made here, apply any upstream-relevant behavior, bug fix,
+test, translation, or documentation change to the PR's source branch,
+`codex/cwt-call-history`, in `~/src/github/ham2k/extensions`. The upstream CWT
+extension lives in `extensions/contests/ham2k-cwt/`. Verify the checkout and
+current PR branch before editing, and run the upstream repository's checks
+for any changes there. Personal-only identity, packaging, release tooling,
+and personal CWT documentation do not need to be copied upstream;
+note that exception when reporting the change.
+
+Backport relevant fixes from `extensions/contests/ham2k-cwt/` in the upstream
+PR, adapting imports and tests to this repo's layout and Vitest setup. Keep
+the personal `n1rwj-cwt` identity, `n1rwj-cwt_history` data-file key, settings,
+export identifiers, licensing notices, and build/release tooling intact so
+existing installations retain their data and configuration. Run
+`mise run format` and `mise run check` after each backport and bump the personal
+version when preparing an updated bundle. Upstream-only packaging changes do
+not need a matching personal change.
+
+## Release
+
+CWT participates in the repository's synchronized release. See the root
+[release instructions](../../../README.md#release).
+
+## Verification
+
+`src/cwt/` preserves upstream logic; `src/history/` contains pure parsing and
+resolution; `src/data/` handles refresh/cache; `src/integration/` connects native
+controls. Tests cover fixtures, host-contract models, and the built bundle.
+Native installation, data download, member/nonmember/CWA logging, an
+unknown-number case, and operator edits/clearing across callsign corrections
+have been verified, along with native ADIF/Cabrillo exports and cached
+suggestions after a failed refresh and app restart. A native check of version
+0.1.1 also confirmed current-operation history overriding a conflicting file
+name and a successful refresh after restoring the default source.
+OS-offline use and a controlled delayed-lookup race remain unverified;
+[VERIFICATION.md](../../../docs/VERIFICATION.md) records the evidence and limits.

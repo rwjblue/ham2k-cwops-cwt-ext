@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#MISE description="Install locked dependencies for TypeScript tasks"
+#MISE hide=true
+#MISE sources=["mise/tasks/package.json", "mise/tasks/package-lock.json"]
+#MISE outputs=["mise/tasks/node_modules/.package-lock.json"]
+
+set -euo pipefail
+cd "$(cd "$(dirname "$0")" && pwd -P)"
+npm ci

@@ -1,148 +1,172 @@
-# N1RWJ CWT for Ham2K
+# N1RWJ extensions for Ham2K
 
-CWT exchange suggestions from N1MM CWops call history and previous CWT
-contacts, packaged as a personal Ham2K extension (`n1rwj-cwt`).
+Independently installable Ham2K extensions, with shared TypeScript code,
+Vitest tests, a mise toolchain, and GitHub releases containing ready-to-install
+`.h2kext` bundles. This repository is a permanent home for new extensions.
 
-**This repository is a temporary personal extension until
-[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1) lands.**
-It keeps an installable version available while the upstream change is
-reviewed, and is not intended to be a long-term fork. That PR is the source
-of truth for feature changes; relevant changes made here must also be
-applied to its source branch. Version 0.1.2 backports its history-loading
-race fix, CWT-only suggestion handling, and English/Spanish prefill and
-settings text.
+| Extension | Exchange | Weekly sessions, UTC | Scoring |
+| --- | --- | --- | --- |
+| [CWops CWT](extensions/contests/n1rwj-cwt/) (`n1rwj-cwt`) | Name and CWops number, CWA, or nonmember location | Wednesday 13:00 and 19:00; Thursday 03:00 and 07:00 | QSOs × unique callsigns across the session |
+| [ICWC MST](extensions/contests/n1rwj-mst/) (`n1rwj-mst`) | Name and sequential QSO number | Monday 13:00 and 19:00; Tuesday 03:00 | QSOs × unique callsigns across the session |
+| [K1USN SST](extensions/contests/n1rwj-sst/) (`n1rwj-sst`) | Name and US state, Canadian province, or DX | Monday 00:00; Friday 20:00 | QSOs × state/province/DXCC multipliers counted once per band |
 
-**Based on the official CWT extension by Sebastian Delmont, KI2D, the main
-Ham2K developer.** His setup, scheduling, scoring, exchange entry,
-translations, ADIF and Cabrillo behavior are preserved. This independent
-adaptation uses MPL-2.0. See [provenance](docs/PROVENANCE.md),
-[license](LICENSE), and [notices](NOTICE.md).
+Every session lasts one hour. These contests use CW on 160, 80, 40, 20, 15,
+and 10 meters; each station can be worked once per band. MST encourages
+20–25 WPM; SST has a 20 WPM maximum. SST uses `DX` for locations outside the
+lower 48 US states and Canada, including Alaska and Hawaii; the lower 48 US
+and Canada do not also earn country multipliers. See the sponsors' current
+[CWT rules](https://cwops.org/cwops-tests/),
+[MST rules](https://internationalcwcouncil.org/mst-contest/), and
+[SST rules](https://www.k1usn.com/sst_rules.html). The
+[sponsor-linked SST definition](https://n1mmwp.hamdocs.com/mmfiles/k1usnsst-udc/)
+specifies per-band multipliers. Calendar suggestions follow the normal weekly
+schedule; check sponsor announcements for cancellations or moved sessions.
 
-## Install and use
+Only the personal CWT extension is temporary, pending
+[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1).
+CWT derives from **Sebastian Delmont, KI2D**, the main Ham2K developer.
+His attribution and MPL-2.0 notices remain in the source. See
+[provenance](docs/PROVENANCE.md), [license](LICENSE), and [notices](NOTICE.md).
 
-1. Use a Ham2K build supporting SDK 0.5.0 and the shared-library versions in
-   [manifest.json](manifest.json). Native installation, member/nonmember/CWA
-   prefills, and saved exchanges were verified in **Power Logger 26.9.0,
-   build 169**; see [verification and limits](docs/VERIFICATION.md).
-2. Download the `.h2kext` asset from a
-   [GitHub release](https://github.com/rwjblue/ham2k-cwops-cwt-ext/releases), or
-   build it locally with `mise run check`. Choose **Settings → Features &
-   Extensions → Install from file** and select the bundle.
-3. **Disable the original CWops CWT extension.** Both handle `cwt` references;
-   enabling both creates duplicate handlers.
-4. Open **Settings → Accounts, Services & Data Sources → CWops CWT call
-   history (N1RWJ) → Refresh**. The default source discovers the current
-   CWOPS entry in the N1MM category. Automatic refresh is daily when Ham2K
-   is online.
-5. Choose a CWT session, configure your sent name/number, and enter a call.
-   Suggestions fill the separate native name and number controls. Check what
-   was received and correct it as needed.
+## Install and operate
 
-Log CWT contacts **one callsign at a time**. Ham2K's batch call-list logging
-shares the same exchange controls across its calls.
+1. Download the bundle for each extension you want from
+   [GitHub releases](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases).
+   The matching `.sha256` file lets you verify the download.
+2. In Ham2K, choose **Settings → Features & Extensions → Install from file**
+   and select the `.h2kext` file. Each bundle installs separately. The host
+   must support the hooks and shared-library versions declared in its manifest.
+3. **For CWT, disable the original CWops CWT extension.** Both handle `cwt`
+   references, so enabling both creates duplicate handlers. The personal key,
+   saved CWT references, settings, and data-file identity remain compatible
+   with previous releases of this repository.
+4. Refresh the extension's call-history entry under **Settings → Accounts,
+   Services & Data Sources**. Its settings accept an HTTPS N1MM entry or text
+   URL; leaving the source blank discovers the current contest-specific file.
+5. Add the desired session to an operation, configure your sent exchange,
+   and log contacts. Always copy and verify the exchange actually sent.
 
-**CWT Prefill** settings show source, file date, download time, record count,
-and warnings. Leave the source blank for automatic discovery, or select an
-HTTPS N1MM category, CWOPS entry, or direct text URL on `n1mm.hamdocs.com`
-or `n1mmwp.hamdocs.com`, then refresh its data-source entry. Local file paths
-are unsupported: this host's data-file loader fetches HTTP resources, and
-SDK 0.5.0 provides no local import capability for this extension.
+MST suggests names from history; received serial numbers must be entered for
+each contact and are never reused from history or CWops membership data.
+Ham2K allocates your outgoing MST serials. SST suggests names and locations.
+Explicit edits and intentional clearing take priority. Data downloads occur
+during refresh, with the last successful dataset retained after a failed
+replacement. No download or full-log read is required for each keystroke.
 
-## Exchange behavior
-
-Each field uses operator input first (including intentional clearing), then
-current-operation CWT history, the selected file, and older compatible CWT
-history. Names retain the original host name suggestion as a final fallback.
-When no exchange is found, Number/QTH prefills from the station’s state,
-then its country/entity prefix (including callsign country-file lookup).
-Check this guess against what was received; missing records or member numbers
-never prove nonmembership. The prefilled location is saved unless you change
-or clear it.
-
-Exact calls precede an unambiguous base call. Names/member numbers/CWA can
-follow a portable suffix; nonmember locations require an exact call. Only
-explicit CWT references qualify as log history. The received exchange is
-stored on the CWT ref and projected to the log, ADIF, and Cabrillo.
-
-Ham2K protects touched controls during lookups and callsign corrections. Use
-**Wipe** for a fresh contact to reset those edits. Calls without a known exchange
-replace previous untouched suggestions with a location guess, or clear them
-when no location is available. See [supported syntax and precedence](docs/CALL-HISTORY.md).
-
-The native Data Files cache retains the last successful dataset across failed
-refreshes and app restarts. Malformed replacements also leave it intact. This
-extension uses local history and an in-memory file index while typing. No
-backend is required. Testing with the operating system offline remains pending.
+Use one callsign per contact for these exchange-based contests: batch call
+entry shares exchange controls. ADIF and Cabrillo exports preserve the
+contest exchange. MST and SST scores are reported through
+[3830 Scores](https://www.3830scores.com/); their sponsors do not require log
+uploads. See the [CWT guide](extensions/contests/n1rwj-cwt/README.md) and
+[call-history details](docs/CALL-HISTORY.md) for CWT precedence and portable
+calls. [Verification](docs/VERIFICATION.md) separates automated checks from
+tests performed in the native Ham2K app.
 
 ## Develop
 
-Install [mise](https://mise.jdx.dev/), then run:
+Install [mise](https://mise.jdx.dev/) and use its executable file tasks:
 
 ```sh
-mise run install    # pinned Node and locked npm dependencies
-mise run format     # apply formatting and safe lint fixes
-mise run check      # lint, typecheck, tests, build, official pack validation
+mise run install
+mise run extension:list
+mise run format
+mise run check
 ```
 
-Individual tasks: `lint`, `typecheck`, `test`, `build`, `pack`. The archive and
-SHA-256 file are written to `dist/`. CI runs the same `check` task and uploads
-them. `mise run verify-host` inspects the running macOS Ham2K app, or the
-latest installed build, without changing it. Pass an explicit `.app` path
-to inspect another installation. Failure means its dependencies/contracts
-are insufficient.
+`check` runs lint, strict TypeScript checking, Vitest, the official extension
+build, and official package validation. CI runs the same task. Individual
+tasks are `lint`, `typecheck`, `test`, `build`, and `pack`:
 
-### Keeping the personal extension aligned
+```sh
+mise run build n1rwj-mst
+mise run pack n1rwj-sst
+mise run test -- extensions/contests/n1rwj-cwt/tests
+mise run verify-host n1rwj-mst
+mise run verify-host --app "/Applications/Ham2K Power Logger Next.app"
+```
 
-Keep relevant changes synchronized in both directions until PR #1 lands.
-For every change made here, apply any upstream-relevant behavior, bug fix,
-test, translation, or documentation change to the PR's source branch,
-`codex/cwt-call-history`, in `~/src/github/ham2k/extensions`. The upstream CWT
-extension lives in `extensions/contests/ham2k-cwt/`. Verify the checkout and
-current PR branch before editing, and run the upstream repository's checks
-for any changes there. Personal-only identity, packaging, release tooling,
-and temporary-repository documentation do not need to be copied upstream;
-note that exception when reporting the change.
+Omit the extension key to build, package, or verify all extensions. `pack`
+builds the workspaces and writes the selected archives and checksums to
+`dist/`. `verify-host` evaluates bundles against the running or newest
+installed macOS Ham2K JavaScript kernel; it does not substitute for native
+installation and logging tests.
 
-Backport relevant fixes from `extensions/contests/ham2k-cwt/` in the upstream
-PR, adapting imports and tests to this repo's layout and Vitest setup. Keep
-the personal `n1rwj-cwt` identity, `n1rwj-cwt_history` data-file key, settings,
-export identifiers, licensing notices, and build/release tooling intact so
-existing installations retain their data and configuration. Run
-`mise run format` and `mise run check` after each backport and bump the personal
-version when preparing an updated bundle. Upstream-only packaging changes do
-not need a matching personal change.
+```text
+extensions/contests/n1rwj-cwt/   CWT manifest, source, and tests
+extensions/contests/n1rwj-mst/   MST manifest, configuration, and tests
+extensions/contests/n1rwj-sst/   SST manifest, configuration, and tests
+packages/n1mm/                 Generic N1MM parsing, callsigns, and downloads
+packages/mini-contest/          Shared MST/SST hooks, history, and scoring
+mise/tasks/                    Executable automation and its TypeScript config
+scripts/                       TypeScript implementation of repository tooling
+```
+
+Node 24 runs TypeScript automation directly with built-in type stripping.
+Type checking is a separate required step; use erasable syntax, explicit
+`.ts` imports, and type-only imports. Extension source still needs the
+official Ham2K build preset: the host runs an ES2020 JavaScript sandbox without
+Node, DOM, or global `fetch`. Read the installed SDK's `AGENTS.md`, relevant
+`docs/`, and published `dist/index.d.ts` before changing hooks. Host-provided
+shared libraries stay declared in each manifest and externalized from bundles;
+local installations of those libraries are development dependencies.
+
+### Add an extension
+
+```sh
+mise run extension:new n1rwj-notes --name "N1RWJ Notes"
+mise run extension:new n1rwj-example --name "Example Contest" --group contests
+mise run check
+```
+
+The generator creates a typed panel extension, manifest, package, Vitest
+test, and README, then updates the workspace lockfile. The default group is
+`dashboards`; `--group` chooses a directory, while the generated hook remains
+a panel until you adapt it. It refuses invalid/reserved keys and existing
+extensions. Update the manifest's category and hooks when changing the
+extension type. New workspaces are discovered automatically by build, check,
+packaging, and release tasks.
+
+Keep reusable parsing independent of contest meaning. For example, N1MM's
+`Exch1` contains a CWT membership/location exchange or an SST location;
+neither is an MST serial number. New substantive behavior needs deterministic
+Vitest tests. The repository uses the user's Jujutsu workflow and
+`commit-message-default: auto` in [AGENTS.md](AGENTS.md).
+
+### Keep CWT aligned upstream
+
+While the personal CWT extension is in use, synchronize CWT behavior, fixes,
+tests, translations, and relevant documentation with the source branch of
+[PR #1](https://github.com/ham2k/extensions/pull/1), currently
+`codex/cwt-call-history` in `~/src/github/ham2k/extensions`. Its CWT source is
+`extensions/contests/ham2k-cwt/`. Verify the current PR branch before editing
+and run upstream checks. This also applies to shared changes affecting CWT.
+Backport relevant upstream fixes here, preserving personal identity and saved
+data. MST, SST, monorepo tooling, and personal packaging are independent of
+that CWT synchronization requirement.
 
 ## Release
 
-Update the version in `manifest.json`, `package.json`, and `package-lock.json`,
-then commit and push. Publish a GitHub release with the matching tag, such as
-`v0.1.2`, pointing at that commit. The **Release** workflow checks out the tagged
-commit, runs `mise run check`, verifies the versions and checksum, and attaches
-`n1rwj-cwt-<version>.h2kext` and its `.sha256` file. Published prereleases also
-trigger the build. Draft releases do not.
-
-Preview the same process locally without uploading:
+All extensions and shared workspaces use one synchronized repository version.
+Prepare and validate a release before committing, pushing, and publishing it:
 
 ```sh
-mise run release --dry-run v0.1.2
+mise run release:prepare 0.2.0
+mise run format
+mise run release v0.2.0 --dry-run
 ```
 
-The workflow uses GitHub's built-in token; no extra secret is required.
-Existing assets are never overwritten. If an upload fails, inspect the release
-assets before retrying; remove an incomplete pair before rerunning the job.
-Keep release immutability disabled for this workflow, since it attaches assets
-after publication.
+`release:prepare` updates the root package, every extension's manifest and
+package, shared packages, and lockfile. `release --dry-run` runs `check` and
+validates matching versions and SHA-256 files without uploading anything.
+Commit the prepared files, push, then publish a GitHub release tagged with
+that version at the tested commit.
 
-## Verification
-
-`src/cwt/` preserves upstream logic; `src/history/` contains pure parsing and
-resolution; `src/data/` handles refresh/cache; `src/integration/` connects native
-controls. Tests cover fixtures, host-contract models, and the built bundle.
-Native installation, data download, member/nonmember/CWA logging, an
-unknown-number case, and operator edits/clearing across callsign corrections
-have been verified, along with native ADIF/Cabrillo exports and cached
-suggestions after a failed refresh and app restart. A native check of version
-0.1.1 also confirmed current-operation history overriding a conflicting file
-name and a successful refresh after restoring the default source.
-OS-offline use and a controlled delayed-lookup race remain unverified;
-[VERIFICATION.md](docs/VERIFICATION.md) records the evidence and limits.
+The **Release** workflow responds to published releases and prereleases,
+checks out the tagged commit, and runs `mise run release`. It attaches only
+the current extensions' exact `<key>-<version>.h2kext` and `.sha256` pairs;
+unrelated or older files in `dist/` are excluded. The same task can attach
+assets to an existing release locally. It uses GitHub's built-in CI token and
+refuses to overwrite existing assets. Draft releases do not trigger uploads.
+Keep release immutability disabled while using this workflow because assets
+are attached after publication. After an interrupted upload, inspect the
+existing assets before retrying.
