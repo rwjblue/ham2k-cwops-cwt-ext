@@ -22,7 +22,11 @@ async function sharedPackages(
   return result
 }
 
-export async function validateRelease(root: string, tag: string): Promise<string[]> {
+export async function validateRelease(
+  root: string,
+  tag: string,
+  assetDirectory = join(root, 'dist'),
+): Promise<string[]> {
   const pkg = await readJson<PackageJson>(join(root, 'package.json'))
   const lock = await readJson<PackageLock>(join(root, 'package-lock.json'))
   if (
@@ -48,7 +52,7 @@ export async function validateRelease(root: string, tag: string): Promise<string
       throw new Error(`${key}: manifest, package, lockfile, and release versions must match`)
     }
     const filename = `${key}-${version}.h2kext`
-    const bundle = join(root, 'dist', filename)
+    const bundle = join(assetDirectory, filename)
     const checksum = `${bundle}.sha256`
     const digest = createHash('sha256')
       .update(await readFile(bundle))

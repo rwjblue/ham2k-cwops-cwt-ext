@@ -1,3 +1,8 @@
+redactions = ["H2K_CATALOG_TOKEN"]
+
+[env]
+_.file = { path = ".env.local", redact = true }
+
 [tools]
 node = "24.21.0"
 

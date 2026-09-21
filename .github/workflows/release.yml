@@ -24,3 +24,21 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+
+  catalog:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: jdx/mise-action@v2
+      - name: Submit GitHub release bundles to the Ham2K catalog
+        run: mise run release:catalog
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          H2K_CATALOG_TOKEN: ${{ secrets.H2K_CATALOG_TOKEN }}
