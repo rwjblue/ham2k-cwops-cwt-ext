@@ -8,6 +8,12 @@ import { canonicalLocation, LOCATIONS, received, validSerial } from './exchange.
 import { BANDS, type ContestConfig, object, type Qson, refOf, text } from './model.ts'
 import { sessionFor } from './schedule.ts'
 
+// Ham2K localizes its built-in scoring keys and displays unknown strings
+// verbatim (app/lib/tools/scoring_labels.dart). The SDK has no custom label
+// registration, so extension-only alerts must already be readable text.
+const OUTSIDE_SESSION = 'Outside selected session'
+const UNKNOWN_MULTIPLIER = 'Unknown DXCC multiplier'
+
 export type Scoresheet = {
   worked: Record<string, string[]>
   multipliers: Record<string, true>
@@ -47,7 +53,7 @@ export function createScorer(config: ContestConfig): ContestScorer<Scoresheet> {
         typeof qso.startAtMillis === 'number' &&
         (qso.startAtMillis < session.startMillis || qso.startAtMillis >= session.endMillis)
       ) {
-        return result({ value: 0, alerts: ['outsideSession'] })
+        return result({ value: 0, alerts: [OUTSIDE_SESSION] })
       }
       const worked = scoresheet.worked[call]
       if (worked?.includes(band)) return result({ value: 0, dupe: true, alerts: ['duplicate'] })
@@ -78,7 +84,7 @@ export function createScorer(config: ContestConfig): ContestScorer<Scoresheet> {
       )
         score.alerts = ['invalidExchange']
       else if (config.exchange === 'name-location' && exchange.value === 'DX' && !mult)
-        score.alerts = ['unknownMultiplier']
+        score.alerts = [UNKNOWN_MULTIPLIER]
       return result(score)
     },
     summarizeScore({ scoresheet, scope }) {

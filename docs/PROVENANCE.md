@@ -70,16 +70,19 @@ The personal extension retains the original adaptation's MPL-2.0 notices,
 published SDK dependency, export identifiers, storage keys, and build tools.
 
 The monorepo move preserves that CWT behavior and data identity. Generic N1MM
-CSV parsing, callsign handling, and downloads now live in `packages/n1mm/`;
-CWT-specific membership interpretation and exchange precedence remain in the
-CWT workspace. Recognition of MST/SST file markers, source-date variants,
-and numbered N1MM download slugs is synchronized with the upstream CWT PR.
+CSV parsing, callsign handling, and downloads now live in `packages/n1mm/`.
+`packages/contest-history/` provides the shared CWT/MST/SST operation-history
+adapter; CWT-specific membership interpretation and exchange precedence
+remain in the CWT workspace. Recognition of MST/SST file markers, source-date
+variants, and numbered N1MM download slugs is synchronized with the upstream
+CWT PR.
 
 ### MST and SST
 
 `extensions/contests/n1rwj-mst/` and `extensions/contests/n1rwj-sst/` are new
-extensions using `packages/mini-contest/` and the shared N1MM adapters. Their
-contest behavior follows the [ICWC MST rules](https://internationalcwcouncil.org/mst-contest/)
+extensions using `packages/mini-contest/` and the shared N1MM and
+operation-history adapters. Their contest behavior follows the
+[ICWC MST rules](https://internationalcwcouncil.org/mst-contest/)
 and [K1USN SST rules](https://www.k1usn.com/sst_rules.html), with export layouts
 checked against the sponsor-linked N1MM definitions for
 [MST](https://n1mmwp.hamdocs.com/mmfiles/icwc-mst-udc/) and

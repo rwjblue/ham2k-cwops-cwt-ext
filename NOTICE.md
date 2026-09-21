@@ -6,9 +6,9 @@ Delmont <sd@ham2k.com>, licensed under the Mozilla Public License 2.0. Its
 copyright and SPDX notices are retained in the adapted source files.
 
 Changes for N1RWJ add contest call-history data, previous-contact suggestions,
-MST and SST extensions, shared code, tests, and independent packaging. These
-are independent extensions; Ham2K and Sebastian Delmont do not maintain or
-endorse them.
+MST and SST extensions, shared N1MM and operation-history adapters, tests, and
+independent packaging. These are independent extensions; Ham2K and Sebastian
+Delmont do not maintain or endorse them.
 
 The adapted source is distributed under MPL-2.0; see [LICENSE](LICENSE).
 Source and build instructions are available at

@@ -82,7 +82,7 @@ mise run build n1rwj-mst
 mise run pack n1rwj-sst
 mise run test -- extensions/contests/n1rwj-cwt/tests
 mise run verify-host n1rwj-mst
-mise run verify-host --app "/Applications/Ham2K Power Logger Next.app"
+mise run verify-host --app "/Applications/Ham2K Mac Logger (Next).app"
 ```
 
 Omit the extension key to build, package, or verify all extensions. `pack`
@@ -93,10 +93,11 @@ installation and logging tests.
 
 ```text
 extensions/contests/n1rwj-cwt/   CWT manifest, source, and tests
-extensions/contests/n1rwj-mst/   MST manifest, configuration, and tests
-extensions/contests/n1rwj-sst/   SST manifest, configuration, and tests
+extensions/contests/n1rwj-mst/   MST manifest and configuration
+extensions/contests/n1rwj-sst/   SST manifest and configuration
 packages/n1mm/                 Generic N1MM parsing, callsigns, and downloads
-packages/mini-contest/          Shared MST/SST hooks, history, and scoring
+packages/contest-history/      Shared CWT/MST/SST operation-history adapter
+packages/mini-contest/          Shared MST/SST hooks, history, scoring, and tests
 mise/tasks/                    Executable automation and its TypeScript config
 scripts/                       TypeScript implementation of repository tooling
 ```

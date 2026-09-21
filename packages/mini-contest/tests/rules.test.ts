@@ -105,7 +105,7 @@ describe('MST scoring', () => {
       '2026-09-21-1300',
     )
     expect(result.verdicts.map((row) => row.value)).toEqual([0, 1, 1, 0])
-    expect(result.verdicts[3]?.alerts).toContain('outsideSession')
+    expect(result.verdicts[3]?.alerts).toContain('Outside selected session')
   })
   it('flags incomplete or invalid received exchanges while retaining provisional QSO points', () => {
     const result = score(mst, [
@@ -151,7 +151,7 @@ describe('SST scoring', () => {
       qso('sst', 'VE3ABC', '20m', 'DX', 1),
     ])
     expect(result.tally).toMatchObject({ qsos: 4, mults: 2, total: 8 })
-    expect(result.verdicts[2]?.alerts).toEqual(['unknownMultiplier'])
+    expect(result.verdicts[2]?.alerts).toEqual(['Unknown DXCC multiplier'])
   })
   it('canonicalizes NL/NF to one multiplier while retaining Labrador separately', () => {
     const result = score(sst, [

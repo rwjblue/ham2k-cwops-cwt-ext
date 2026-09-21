@@ -1,5 +1,78 @@
 # Verification and compatibility
 
+## Monorepo release 0.2.0
+
+Verified September 20–21, 2026, using Power Logger 26.9.0 build 169 at
+`/Applications/Ham2K Mac Logger (Next).app`. This is a permanent repository;
+only the personal CWT extension retains the upstream transition arrangement.
+
+`mise run check` passed lint, strict TypeScript checks (including executable
+tasks), **264 tests across 19 files**, all three builds, and official packaging
+validation. Tests cover shared N1MM parsing/downloads, bounded contest history,
+CWT regressions, MST/SST schedules, exchanges, scoring and exports, generated
+bundles, extension scaffolding, and release version/asset validation.
+[Main CI passed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35555147399)
+for the monorepo implementation. The installed-kernel check registered all
+22 hooks across CWT, MST, and SST and accepted their declared shared libraries.
+It uses the kernel identified below under Node and is separate from native UI
+testing.
+
+All three `0.2.0` bundles were installed in the native app. CWT updated from
+`0.1.2` while retaining its settings, cached data, and existing operation.
+The following native checks used dedicated operations with station
+`N1RWJ/TEST` and the native **Testing** label; they were synthetic contacts,
+not on-air QSOs:
+
+- **CWT:** reopening the existing three-contact test operation retained its
+  `3 × 3` score. A fresh `K0ACP` draft suggested `ARTHUR / 3806`, with both
+  fields identified as current-operation history, despite the conflicting
+  file name and a separate MST contact for the same callsign. The draft was
+  wiped without saving.
+- **MST:** automatic N1MM discovery downloaded 7,772 calls, file date
+  `2026-09-14`, with six nonfatal parser warnings. The selected session was
+  `2026-09-21 1300z`, with sent name `ROB` and LP power. Saving `K0ACP` at
+  `13:05z` on 20m CW retained sent serial `1` and received exchange
+  `42 ARTHUR`; the operation displayed `1 × 1`. After reopening it with the
+  final build, a fresh `K0AD` draft showed sent serial `2`, an empty received
+  serial, and the suggested name `AL`. That draft was wiped.
+- **SST:** automatic discovery downloaded 15,643 calls, file date
+  `2026-09-15`, with one nonfatal warning. The selected session was
+  `2026-09-25 2000z`, with sent exchange `ROB RI` and LP power. Saving
+  `K1USN / WATSON / MA` at `20:05z` on 20m CW retained those values and
+  displayed `1 × 1`.
+- **SST corrections and clearing:** after deliberately clearing the location,
+  changing `K1USN` to `K1USN/P` left that field blank. Changing the name to
+  `WATT` and then the call to `K1USN/M` retained the correction and blank
+  location. After wiping, a fresh `K1USN` draft again suggested `WATSON / MA`.
+  Replacing the call with `ZZ0ZZZ` without editing the exchange cleared the
+  name and suggested `DX` after lookup completed. All these drafts were
+  wiped. This exercises the native touched-control and clearing contracts,
+  not a controlled delayed-network race.
+- The final MST/SST builds replace custom internal alert keys with readable
+  labels. A fresh SST draft visibly displayed **Outside selected session**;
+  built-in alerts continue to use the host's localization.
+- **Exports:** native ADIF and Cabrillo exports were written locally and
+  inspected. MST ADIF used `ICWC-MST`, `STX=1`, `SRX=42`, and complete
+  exchanges `1 ROB` / `42 ARTHUR`; its Cabrillo QSO used `ROB 1` /
+  `ARTHUR 42`. SST ADIF used `K1USN-SST` and `ROB RI` / `WATSON MA`;
+  Cabrillo used `CONTEST: K1USNSST` and the same name/location exchanges.
+  Both Cabrillo files used `CATEGORY-POWER: LOW` and omitted RST fields.
+  No contest submission was uploaded. Test exports stay in ignored `dist/`.
+
+The native checks establish installation/update, live data discovery, saved
+exchange controls, representative scores, serial progression, input protection,
+and native exports. Cross-band multiplier rules, session boundaries, history
+edits/deletions, and failed-refresh recovery are covered by deterministic tests;
+they were not all repeated in native MST/SST operations. OS-offline use and a
+controlled slow-lookup race remain unverified in the native app. Earlier CWT
+failed-refresh/restart observations below remain historical evidence.
+
+Upstream-relevant N1MM metadata fixes were also pushed to the source branch of
+[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1), with its
+115 tests, typecheck, build, and official packaging checks passing. Monorepo
+organization, personal release tooling, and the new MST/SST extensions do not
+change upstream CWT behavior and do not need matching changes in that PR.
+
 ## Personal backport 0.1.2
 
 The backport from [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1)
