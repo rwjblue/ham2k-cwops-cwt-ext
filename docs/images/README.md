@@ -34,9 +34,14 @@ table using the installed published bundle. It observes public reports for
 watch override is `W8CAR`, with map origin `EN81OK`, the public locator of
 its POTA activation at **US-9496**. No contacts or spots were created.
 
+The [compact map](rbn/rbn-compact-map.jpg) and
+[compact receiver list](rbn/rbn-compact-list.jpg) were captured after unlocking
+the Mac, with the same installed bundle and observation settings. They show
+30 receivers in a 449×768 macOS window, not a physical phone. The native view
+selector switched successfully between the map and receiver cards.
+
 The older `rbn-next170-*` images remain as historical evidence for the earlier
-SVG migration; they are no longer the current README examples. Updated compact
-captures remain pending because the Mac locked during layout setup.
+SVG migration; they are no longer the current README examples.
 
 See [verification and compatibility](../VERIFICATION.md) for package hashes,
 runtime checks, and limitations. Keep capture details here rather than pinning

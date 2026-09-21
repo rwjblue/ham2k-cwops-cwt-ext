@@ -37,8 +37,14 @@ example shows the reception map and receiver table together:
 
 ![RBN map and receiver table in Ham2K](../../../docs/images/rbn/rbn-desktop.jpg)
 
-Narrow layouts can show the map or receiver cards separately. These screenshots
-show the published extension running in the native macOS app. See the
+Narrow layouts can show the map or receiver cards separately:
+
+| Map view | Receiver list |
+| --- | --- |
+| ![RBN map in a compact Ham2K window](../../../docs/images/rbn/rbn-compact-map.jpg) | ![RBN receiver cards in a compact Ham2K window](../../../docs/images/rbn/rbn-compact-list.jpg) |
+
+These screenshots show the published extension running in the native macOS app;
+the compact examples use a narrow desktop window. See the
 [screenshot record](../../../docs/images/README.md) for capture versions and
 the [verification record](../../../docs/VERIFICATION.md) for runtime coverage.
 Physical phone and Linux runtime checks remain outstanding.

@@ -33,9 +33,12 @@ No QSOs or spots were created.
 This establishes native installation and rendering of the published packages
 and supersedes the earlier pending desktop visual check below. It is a focused
 screenshot verification, not a repeat of every contest behavior or RBN control
-test. Updated compact captures could not be completed because the Mac locked
-during layout setup. Physical phone, Linux, CPU, and battery checks remain
-outstanding.
+test. After unlocking the Mac, compact map and receiver-card captures were
+completed in a 449×768 window with the same published bundle and overrides.
+The native view selector switched between **Map** and **List**; both captures
+showed 30 receivers on one band and 7,977 km maximum distance. The desktop
+window size was restored afterward. Physical phone, Linux, CPU, and battery
+checks remain outstanding.
 
 ## Release 0.3.1 — 2026-09-21
 
