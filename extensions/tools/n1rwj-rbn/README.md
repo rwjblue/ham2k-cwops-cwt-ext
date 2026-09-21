@@ -10,10 +10,10 @@ Part of the [N1RWJ extension family](../../../README.md).
 
 ## Install and open the panel
 
-1. Use a Ham2K version with native SVG panels. Published **Ham2K Next 26.9.0
-   build 170** supports them; older builds such as 169 show **App update needed**.
-2. Download **`n1rwj-rbn-0.3.1.h2kext`** from the
-   [v0.3.1 release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1).
+1. Use a Ham2K version with native SVG panels. If the panel shows
+   **App update needed**, update Ham2K before using it.
+2. Download `n1rwj-rbn-<version>.h2kext` from the
+   [latest GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/latest).
 3. In Ham2K, open **Settings → Features & Extensions → Install from file**
    and select the downloaded package.
 4. Open an operation, choose **Edit Layout → Add a Panel → RBN · My signal**,
@@ -23,6 +23,31 @@ Part of the [N1RWJ extension family](../../../README.md).
    Reports load automatically when the panel is visible.
 
 No build tools, map accounts, or custom Ham2K build are required.
+
+## In Ham2K
+
+Installing the extension makes **RBN · My signal** available in the operation's
+**Edit Layout → Add a Panel** menu. Choose its **+** button, place it in your
+layout, and save.
+
+![RBN · My signal in Ham2K's Add a Panel menu](../../../docs/images/rbn/rbn-add-panel.jpg)
+
+The panel then appears alongside your other operation panels. This desktop
+example shows the reception map and receiver table together:
+
+![RBN map and receiver table in Ham2K](../../../docs/images/rbn/rbn-next170-desktop.jpg)
+
+Narrow layouts can show the map or receiver cards separately:
+
+| Map view | Receiver list |
+| --- | --- |
+| ![RBN map in a compact Ham2K window](../../../docs/images/rbn/rbn-next170-phone-map.jpg) | ![RBN receiver cards in a compact Ham2K window](../../../docs/images/rbn/rbn-next170-phone-list.jpg) |
+
+These native macOS captures show the original SVG map before its later visual
+refinements; the compact examples use a 448×770 window. See the
+[screenshot record](../../../docs/images/README.md) for capture versions and
+the [verification record](../../../docs/VERIFICATION.md) for runtime coverage.
+Physical phone and Linux runtime checks remain outstanding.
 
 ## Configuration is optional
 
@@ -87,15 +112,6 @@ table side by side. Page size follows the available height and text size.
 In a short pane, choose **Map** or **List** to give that view more room. The
 information button opens **Report details** with timestamps, origin, source
 attribution and warnings. Long details are paginated too.
-
-![RBN map and receiver table in published Ham2K Next build 170](../../../docs/images/rbn/rbn-next170-desktop.jpg)
-
-Also see the [compact map](../../../docs/images/rbn/rbn-next170-phone-map.jpg)
-and [compact receiver cards](../../../docs/images/rbn/rbn-next170-phone-list.jpg).
-These native macOS captures show the original SVG map before the 0.3.1 visual
-refinements; the compact examples use a 448×770 window.
-Physical phone and Linux runtime checks remain outstanding. Exact package
-versions and test coverage are in the [verification record](../../../docs/VERIFICATION.md).
 
 ## Refreshes and interpreting reports
 

@@ -29,7 +29,7 @@ regular weekly schedule; it does not track sponsor schedule exceptions.
 ## Get started
 
 1. Download `n1rwj-mst-<version>.h2kext` from
-   [N1RWJ releases](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases)
+   [latest GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/latest)
    and install it through **Settings → Features & Extensions → Install from file**.
 2. **Create a new operation for each session**, add MST, and select the
    correct UTC date/time. Set your first name and power class: QRP (up to
@@ -41,6 +41,24 @@ regular weekly schedule; it does not track sponsor schedule exceptions.
 
 Log **one callsign at a time**; batch call entry shares the received exchange
 fields. Use **Wipe** to start a fresh contact and reset edits in the controls.
+
+## In Ham2K
+
+Open the operation title, then **Edit activity** beside MST to choose the
+UTC session, your sent name, and power class.
+
+![MST session and sent-exchange setup in Ham2K](../../../docs/images/contests/mst-setup.jpg)
+
+The logging view adds **Sent #**, **Received #**, and **Name**. This saved
+test contact shows sent serial `1`, received serial `42`, and `ARTHUR`.
+The received serial is copied for each contact; call history suggests only
+the name.
+
+![MST exchange controls and saved test contact in Ham2K](../../../docs/images/contests/mst-logging.jpg)
+
+These native macOS screenshots use a **Testing** operation with synthetic
+contacts. See the [screenshot record](../../../docs/images/README.md) for
+capture versions; the dates and exchanges shown are examples.
 
 ## How serial numbers work
 

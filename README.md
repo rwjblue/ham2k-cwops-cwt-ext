@@ -15,7 +15,8 @@ install only the ones you want.
 
 1. Download the bundle for each extension you want from
    [latest GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/latest).
-   The matching `.sha256` file lets you verify the download.
+   Choose the `.h2kext` asset whose name starts with the extension key in the
+   table above. The matching `.sha256` file lets you verify the download.
 2. In Ham2K, choose **Settings → Features & Extensions → Install from file**
    and select the `.h2kext` file. Each bundle installs separately. The host
    must support the hooks and shared-library versions declared in its manifest.
@@ -24,10 +25,17 @@ Then follow the steps for the extension below. Building from source is
 optional. GitHub downloads and catalog availability are separate; see
 [publishing status and recovery](docs/PUBLISHING.md) for the catalog workflow.
 
+After installation, search for **N1RWJ** in **Features & Extensions** to
+see the installed extensions and their enable switches. The versions in this
+example screenshot are historical; use the latest release linked above.
+
+![Installed N1RWJ contest extensions and RBN panel in Ham2K](docs/images/extensions-installed.jpg)
+
 ### RBN · My signal
 
-The RBN panel requires native SVG scene support, verified in published
-**Ham2K Next 26.9.0 build 170**. Build 169 displays an update message.
+The RBN panel requires a Ham2K version with native SVG panel support.
+If it shows **App update needed**, update Ham2K before using the panel.
+See the [verification record](docs/VERIFICATION.md) for tested builds.
 
 1. Open an operation and choose **Edit Layout → Add a Panel → RBN · My signal**.
    Turn on **Enable Layout Customization** in app settings if layout editing is

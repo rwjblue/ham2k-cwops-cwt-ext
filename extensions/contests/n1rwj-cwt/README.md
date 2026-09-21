@@ -31,7 +31,7 @@ for special sessions or schedule changes.
 ## Get started
 
 1. Download `n1rwj-cwt-<version>.h2kext` from
-   [N1RWJ releases](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases)
+   [latest GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/latest)
    and install it through **Settings → Features & Extensions → Install from file**.
 2. **Disable the original CWops CWT extension.** Enable only one CWT extension
    so Ham2K has one set of exchange controls and scoring rules.
@@ -46,6 +46,24 @@ for special sessions or schedule changes.
 Use a separate operation for each session and log **one callsign at a time**;
 batch call entry shares the exchange fields. Use **Wipe** to start a fresh
 contact and reset any edits left in the controls.
+
+## In Ham2K
+
+Open the operation title, then **Edit activity** beside CWT to choose the
+UTC session, your sent name/number or location, and power class.
+
+![CWT session and sent-exchange setup in Ham2K](../../../docs/images/contests/cwt-setup.jpg)
+
+The logging view adds **Name** and **Nr** beside the normal contact fields.
+Here the selected test contact has `STEVE IA`; the log also shows a member
+number and a `CWA` exchange. The **Info** pane identifies the call-history
+source, and the log header shows the score.
+
+![CWT exchange controls and saved test contact in Ham2K](../../../docs/images/contests/cwt-logging.jpg)
+
+These native macOS screenshots use a **Testing** operation with synthetic
+contacts. See the [screenshot record](../../../docs/images/README.md) for
+capture versions; the dates and exchanges shown are examples.
 
 ## Where the call history comes from
 
