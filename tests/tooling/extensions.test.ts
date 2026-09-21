@@ -111,4 +111,42 @@ describe('extension discovery and scaffolding', () => {
     await writeFile(join(extension, 'manifest.json'), JSON.stringify(manifest))
     await expect(packExtensions(dir)).rejects.toThrow('build manifest is stale')
   }, 20_000)
+
+  it('packages nested extension assets while preserving repository notices', async () => {
+    const dir = await fixture()
+    await symlink(join(repo, 'node_modules'), join(dir, 'node_modules'), 'dir')
+    await mkdir(join(dir, 'docs'))
+    for (const path of ['LICENSE', 'NOTICE.md', 'docs/PROVENANCE.md']) {
+      await copyFile(join(repo, path), join(dir, path))
+    }
+    const extension = await scaffoldExtension(dir, { key: 'n1rwj-assets' })
+    await mkdir(join(extension, 'assets/licenses'), { recursive: true })
+    await writeFile(join(extension, 'assets/licenses/third-party.txt'), 'Third-party copyright\n')
+    await writeFile(join(extension, 'assets/ATTRIBUTION.md'), 'Bundled geography attribution\n')
+    await buildExtensions(dir)
+    await packExtensions(dir)
+    expect(await readFile(join(extension, 'build/assets/LICENSE'), 'utf8')).toBe(
+      await readFile(join(repo, 'LICENSE'), 'utf8'),
+    )
+    expect(await readFile(join(extension, 'build/assets/licenses/third-party.txt'), 'utf8')).toBe(
+      'Third-party copyright\n',
+    )
+    // ZIP entry names survive compression; this checks the official output,
+    // rather than only the intermediate build directory.
+    const bundle = (await readFile(join(dir, 'dist/n1rwj-assets-0.2.0.h2kext'))).toString('latin1')
+    for (const entry of [
+      'assets/LICENSE',
+      'assets/NOTICE.md',
+      'assets/PROVENANCE.md',
+      'assets/licenses/third-party.txt',
+      'assets/ATTRIBUTION.md',
+    ]) {
+      expect(bundle).toContain(entry)
+    }
+    await writeFile(join(extension, 'assets/LICENSE'), 'Must not replace the root license')
+    await expect(buildExtensions(dir)).rejects.toThrow('already exists')
+    expect(await readFile(join(extension, 'build/assets/LICENSE'), 'utf8')).toBe(
+      await readFile(join(repo, 'LICENSE'), 'utf8'),
+    )
+  }, 20_000)
 })

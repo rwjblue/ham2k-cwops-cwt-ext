@@ -53,6 +53,8 @@ async function selectApp(explicitPath?: string) {
   }
 }
 
+export { assetsPath as installedHostAssetsPath, selectApp as selectInstalledHost }
+
 interface HostMessage {
   type: string
   method?: string

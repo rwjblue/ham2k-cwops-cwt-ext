@@ -1,0 +1,28 @@
+{
+  "key": "n1rwj-rbn",
+  "name": "N1RWJ RBN · My signal",
+  "shortName": "RBN",
+  "version": "0.3.0",
+  "description": "See where your CW signal is heard: a bundled world map and sortable Reverse Beacon Network receiver reports.",
+  "category": "dashboard",
+  "icon": "radar",
+  "accentColor": "#245FC2",
+  "api": 1,
+  "keywords": ["rbn", "reverse-beacon", "cw", "map", "propagation", "signal"],
+  "hooks": ["panel"],
+  "domains": ["www.reversebeacon.net"],
+  "relevance": {
+    "interests": ["cw"]
+  },
+  "sharedDependencies": {
+    "@ham2k/lib-callsigns": "^1.0.2",
+    "@ham2k/lib-country-files": "^1.0.202605301",
+    "@ham2k/lib-dxcc-data": "^1.0.1",
+    "@ham2k/lib-format-tools": "^1.2.0",
+    "@ham2k/lib-geo-tools": "^1.1.1",
+    "@ham2k/lib-operation-data": "^1.1.3",
+    "@ham2k/lib-qson-cabrillo": "^1.2.0",
+    "i18next": "^23.16.8",
+    "liquidjs": "^10.28.0"
+  }
+}

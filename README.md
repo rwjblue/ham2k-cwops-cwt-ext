@@ -24,6 +24,15 @@ schedule; check sponsor announcements for cancellations or moved sessions.
 
 ## Install and operate
 
+[RBN · My signal](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) is a
+separate panel extension with a bundled reception map, band filters, and a
+sortable receiver list with tables, phone cards and pagination. It uses
+Ham2K's native SVG scene API, available in the tested published Next
+26.9.0 build 170. Live reports, SNR sorting and pagination work in that app;
+older build 169 shows an update message. See its guide and the
+[verification record](docs/VERIFICATION.md) for installation, compatibility
+and the scope of native testing. The steps below describe the contest extensions.
+
 1. Download the bundle for each extension you want from
    [GitHub releases](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases).
    The matching `.sha256` file lets you verify the download.
@@ -91,6 +100,7 @@ installation and logging tests.
 extensions/contests/n1rwj-cwt/   CWT manifest, source, and tests
 extensions/contests/n1rwj-mst/   MST manifest and configuration
 extensions/contests/n1rwj-sst/   SST manifest and configuration
+extensions/tools/n1rwj-rbn/     RBN reception map, reports, and bundled geography
 packages/n1mm/                 Generic N1MM parsing, callsigns, and downloads
 packages/contest-history/      Shared CWT/MST/SST operation-history adapter
 packages/mini-contest/          Shared MST/SST hooks, history, scoring, and tests
@@ -151,9 +161,9 @@ All extensions and shared workspaces use one synchronized repository version.
 Prepare and validate a release before committing, pushing, and publishing it:
 
 ```sh
-mise run release:prepare 0.2.0
+mise run release:prepare 0.3.0
 mise run format
-mise run release v0.2.0 --dry-run
+mise run release v0.3.0 --dry-run
 ```
 
 `release:prepare` updates the root package, every extension's manifest and

@@ -1,5 +1,285 @@
 # Verification and compatibility
 
+## RBN SVG migration — 2026-09-21
+
+The current RBN implementation returns native `svgScene` content. The HTML
+renderer and its shared hidden basemap machinery have been removed. The
+extension preserves its `n1rwj-rbn` / `my-signal` identities and saved config.
+It builds one selected-band map, native text, native dropdowns, and a paginated
+receiver table/cards. Per-placement choices survive ticks and reset when
+operation/config changes; saved defaults survive runtime restarts.
+
+The updated [published panel contract](https://catalog.ham2k.net/docs/hooks)
+and SDK 0.5.0 support this design. Current host main is
+`cad0bc2cc78ba5f2a8a7e8f34423fa48bfc8a071`; SVG scenes first landed in
+`e4c149e9cf6083b0369c67b39f4988b263508443` on September 19. Existing contest
+and award program UI uses native Markdown/forms/scoring rows. Current
+Radio, Solar and Weather dashboard examples use `svgScene`, which is the
+relevant comparison for this map. The scene API is still experimental.
+
+The current native checks use the unmodified published **Next 26.9.0 build
+170**, installed by the user. Its binary includes `SvgSceneView`, scene
+validation, placement identity, render environment and event handling. The
+extension renders live RBN data and native controls in that app. Its kernel
+SHA-256 is
+`b001f0c0ede236f2dfb5a24788aaaebd49709bb193ff487b90337b115790f743`.
+
+The earlier **build 169** updater initially reported that it was up to date.
+That native binary contains HTML renderer names but no scene renderer symbols.
+The migrated package visibly showed **RBN · App update needed** in an empty
+`K8BTU/TEST` operation, verifying the missing-environment/placement compatibility
+path before any RBN request. Evidence is `dist/rbn-svg-next169-compatibility.png`.
+That temporary placement was removed and the original QSOs / Info / Spots / Map
+layout restored. Build 170 was subsequently installed for the checks below.
+A successful kernel run alone does not certify native scene support; static
+previews deliberately supply an environment and placement identity.
+
+The prior host experiment has been preserved locally as commit **ef546297**
+on **codex/tmp-html-panel-refresh**. Primary `halo` is on `main` at
+`cad0bc2c`, matching `origin/main`, with its pre-existing untracked `mise.lock`
+left alone. The old experimental worktree is detached at the same main commit
+and clean. No host push or PR was made; the Dev app is stopped. Subsequent
+native checks use the published Next application only.
+
+The static preview task executes the actual built ES2020 extension using the
+installed Next kernel, then exports a scene JSON plus an SVG approximation.
+The SVG explicitly says it is a static preview with inactive controls. It
+cannot verify Flutter text measurement, native menus, touch, or semantics.
+Before native build 170 testing, at 16:33 UTC, live public POTA spots listed
+W9MET at US-6298, Crooked Lake Wildlife Area, EL97er. A memory-only `W9MET/TEST` observation
+returned 22 receivers in 735 ms, including RBN's schema-version retry.
+The preview candidate at 16:37 UTC showed 24 receivers. The 1366×900
+scene rendered in 442 ms (118 layers, 72,022 bytes of formatted scene JSON),
+the 390×844 map in 301 ms, and the dark 390×844 list in 337 ms. These are
+Node/kernel timings including live network access, not native frame or CPU
+measurements. Static browser screenshots are `dist/rbn-svg-desktop.png`,
+`dist/rbn-svg-phone-map.png`, and `dist/rbn-svg-phone-list.png`; each carries
+a visible static-preview label. Their scene JSON and provenance are beside them.
+
+`mise run check` passed **372 tests across 28 files**, Biome, all TypeScript
+checks, official builds, and official package validation. The installed-kernel
+verification passed registration and shared-dependency checks against build 170.
+The historical **0.2.0**, **124,081-byte** native-test archive installed in that app has SHA-256
+`0a4531f93d82ae3991fa4097101dbb944b60b5375f2652c07626b92c02d7e106`.
+The earlier build-169 compatibility candidate was 124,067 bytes with SHA-256
+`ab26cd7ac49d738b7f0e2c6a2ae0fba2a2626e8ba3edcf9676ccb084d23a6bc0`;
+its 370-test result predates the final layout regressions.
+
+Release preparation subsequently synchronized all workspace versions to **0.3.0**.
+`mise run release v0.3.0 --dry-run` passed **372 tests across 28 files**,
+lint, TypeScript checks, official builds, package validation, and release
+version/checksum validation. This release check does not add a native test
+of the repackaged 0.3.0 archives; the native evidence below is for the 0.2.0
+archive identified above.
+
+### Published Next 170 native acceptance
+
+The public POTA feed at 17:05 UTC listed W9MET at **US-6298, Crooked Lake
+Wildlife Area, EL97ER**. A clearly labeled `W9MET/TEST` operation watched
+that public callsign through the explicit panel override. The operation
+remained empty with **zero QSOs**; no spots, POTA posts or transmissions
+were made. Native checks established:
+
+- Live reception map and receiver table rendered in a **1437×768** desktop
+  window. The final package showed 26 receivers on two bands, including
+  descending SNR readings of 26, 26, 25, 19 and 18 dB after 17:13 UTC.
+- The native **SNR** sort menu and direction button worked. Earlier live
+  readings sorted as 25, 24, 24, 21 and 21 dB descending, then 2, 3, 4, 4
+  and 4 dB ascending. Next page showed reports **6–10 of 23**.
+- The **30m** filter updated both the map and list to three receivers.
+- An automatic refresh advanced **Checked 17:09:30 → 17:10:30 UTC** while
+  preserving ascending SNR and page 2. This exercises the scene event and
+  tick paths in the published app, without any HTML host patch.
+- Native compact testing used a **448×770** macOS window. Map/List switching,
+  SNR sorting and paging worked; the list displayed **3–4 of 28** on its
+  next page. Report details wrapped into readable text and showed **1/2**
+  pages rather than clipping the longer explanation.
+- Native testing found that an approximately 477-pixel-wide combined pane
+  could allocate a map while leaving no report row. The final change reserves
+  the required list height, including a 20-pixel allowance and a row-capacity
+  floor. When both views cannot fit, it shows receiver cards with a **Map**
+  hint. The final package was retested in the native narrow pane and displayed
+  two cards instead of empty list space.
+
+The following are **screenshots of published Next 170**, separate from the
+static preview artifacts and earlier custom Dev screenshots:
+
+- [Desktop map and table](images/rbn/rbn-next170-desktop.jpg) — 1437×768.
+- [Compact native map](images/rbn/rbn-next170-phone-map.jpg) — 448×770.
+- [Compact native receiver cards](images/rbn/rbn-next170-phone-list.jpg) — 448×770.
+
+The compact screenshots exercise the phone-oriented layout inside the macOS
+app; they do not represent physical phone hardware. Both temporary global
+layout changes were then removed and saved. The compact layout was restored
+to QSOs / Spots / Map and the desktop layout to QSOs / Info / Spots / Map.
+The original desktop divider at 957 and window dimensions of 1437×768 were
+restored. The TEST operation still has zero QSOs and a blank draft.
+
+The design avoids a WebView, contains no animation, and generates only the
+visible map and list page. This removes the HTML/Linux WebView dependency;
+it is not a measured claim about native CPU or battery savings. Tests bound
+scene layers, per-layer strings, total artwork, native controls and menu
+sizes, including 500 receivers and phone dimensions. Physical phone and
+Linux runtime testing remain outstanding. RBN/tooling changes are exempt
+from CWT upstream synchronization; no CWT behavior changed.
+
+See [migration and maintainer notes](RBN-SVG-MIGRATION.md) for reproduction,
+implementation choices, and additional device acceptance steps.
+
+## Earlier RBN HTML prototype — 2026-09-21
+
+The independent `n1rwj-rbn` panel includes bundled Natural Earth vector
+geography, station-centered reception paths, band filters, and sortable
+receiver reports. The list becomes cards at phone widths. There are no
+map-tile requests. Changes to packaging only add optional per-extension
+assets and preserve the existing root notices. These are RBN and general
+monorepo tooling changes, exempt from the CWT upstream synchronization rule;
+no CWT behavior changed.
+
+- `mise run check` passed **359 deterministic tests across 28 files**, lint,
+  TypeScript checks, official builds, and official `.h2kext` validation,
+  including the snapshot-age stability change.
+- `mise run verify-host n1rwj-rbn`: the bundle registers its panel and
+  satisfies shared-library constraints in the installed Ham2K Next
+  26.9.0 build 169 JavaScript kernel.
+- `mise run rbn:preview --call K8BTU --grid EM99DQ --minutes 60`:
+  at 14:27:53 UTC, the actual bundle returned 34 receiver rows in 732 ms
+  using that installed kernel under Node VM. Metadata, the HTTP 400
+  version handshake, and the successful retry were exercised live.
+  POTA's public activator feed listed K8BTU at US-5641, Jesse Owens
+  State Park, EM99dq. The preview operation is `K8BTU/TEST`, titled
+  `RBN TEST — observing K8BTU`; the panel header also says TEST observation.
+- The final live preview at 14:48:08 UTC observed KG2GL at POTA US-0751,
+  Paterson Great Falls National Historical Park, FN20vw. It returned 26
+  receiver rows in 560 ms. This uses the final bundle, whose `.h2kext`
+  SHA-256 is `b8975894b6df23df3e67be7a034b99f4d3a0f7302c554d70fe6e2727617d02d7`.
+- Browser testing of actual extension live-data HTML output at 1366×900,
+  390×844, and 320×740:
+  inspected map/list layout, confirmed no horizontal overflow, changed
+  band and view controls, and verified both SNR sort directions using
+  the visual row positions. Screenshot artifacts are
+  `dist/rbn-desktop.png`, `dist/rbn-phone-map.png`, and
+  `dist/rbn-phone-list.png`. These are browser screenshots of a frozen
+  live-data snapshot, not screenshots from the native Ham2K app.
+- A synthetic actual-bundle benchmark with 500 globally distributed
+  receivers across 11 CW bands rendered in 244–270 ms, with two shared
+  basemap definitions and about 1.56 MB of HTML. Compared with rendering
+  separate geography for every band, this cut render time from 1.7–2.3
+  seconds and HTML size from about 4.95 MB. This was measured on this Mac,
+  not on physical phone hardware.
+
+After the Mac was unlocked, `n1rwj-rbn` installed successfully through the
+native Ham2K Next 26.9.0 build 169 installer. A separate operation was
+created with the clearly labeled station callsign `K8BTU/TEST`, watching
+K8BTU's public reports from EM99DQ. No contacts were logged, and no spotting
+or POTA posting occurred. The native panel remained blank; the diagnostic
+screenshot `dist/rbn-native-initial-load-blocked.png` records that failure,
+not a successful native rendering.
+
+The initial investigation attributed the blank panel to the host cancelling
+the initial `about:blank` navigation. The source supports that mechanism, but
+an independent minimal native reproduction and callback trace are still
+needed to establish it in the installed Next binary. A separate source-level
+defect passes HTML only as `initialData`, without updating the mounted native
+document when an extension returns changed content. The exploratory host
+patch is isolated in `~/src/github/ham2k/halo-html-panel-refresh`, with a
+local artifact at `dist/ham2k-html-panel-refresh.patch`; it includes additional
+state-preservation behavior and is not a ready-to-merge recommendation.
+
+The final host patch passed 17 focused widget/state tests and scoped Dart
+analysis. An earlier revision also passed all 3,568 app tests selected by
+the host's changed-test gate; this is not its full merge gate. A native
+WKWebView harness exercised the actual state-preservation scripts in an
+isolated content world, with both production JavaScript permission flags
+set to false. Sort and scroll survived replacement, explicit changed defaults
+took precedence, and an embedded extension script remained unexecuted.
+Native app testing then exposed the plugin's unterminated print-function
+prelude: prepending an IIFE accidentally invoked print. Both fixed host
+scripts now start with a semicolon, with an executable regression covering
+that exact prelude shape for capture and restore.
+The separate Dev build combines the patched public Dart host sources with
+the installed Next JavaScript kernel, so it is a local hybrid test build,
+not the published Next application.
+
+The Dev app's generated shared-library metadata also matches that exact
+Next kernel. The app artifact sets `HALO_DEV_DATA` through `LSEnvironment`;
+the host ignores a Dart define for this particular flag. Its open database
+was verified under `/private/tmp/ham2k-rbn-test-data/`, with sync disabled.
+An initial launch without that environment created a separate normal Dev
+container and imported existing cloud logs. No contacts or layouts were
+edited there; Next's operator, database, and preferences stayed unchanged.
+The isolated test operation is `KG2GL/TEST`, titled
+`RBN TEST - observing KG2GL`, with zero contacts.
+
+Native verification in that final hybrid Dev app confirmed initial map/list
+rendering and subsequent live-data updates. **Map + list**, **Map**, and
+**List** controls worked; SNR sorting was verified in both directions,
+including descending rows of 31, 27, 26, and 25 dB. The app was checked at
+a 1327×768 desktop window and a 446×834 compact window, the minimum width
+available for this macOS app. The compact layout shows the receiver cards
+and phone map treatment. Browser checks at 390×844 and 320×740 provide
+additional coverage below the native Mac minimum; no physical phone was
+used.
+
+Native screenshots are `dist/rbn-native-desktop.png`,
+`dist/rbn-native-phone-map.png`, and `dist/rbn-native-phone-list.png`.
+They show `KG2GL/TEST` and the panel's **TEST observation** label. The
+desktop capture shows Map + list with descending SNR, data checked at
+15:18:00 UTC, 23 receivers, one band, and a farthest receiver of 5,522 km.
+These captures are separate from the browser snapshot images listed above.
+No contacts were logged and no spots or POTA reports were posted during
+the Dev verification. The original published Next test remained blank;
+the successful checks apply to the local patched hybrid Dev app, not an
+exact-source control for the published Next binary.
+
+Native refresh persistence was then verified with **List** and descending
+**SNR** selected. After scrolling to W5ZN, KD7EFG, TI7W, and AA4PA, an
+automatic update advanced report ages from 8 to 9 minutes and from less
+than 1 to 1 minute while preserving the exact scroll position. Returning
+to the top showed **Data checked 15:17:00 UTC**, advanced from 15:15:51,
+with List and the descending SNR selection still active and leading rows
+of 30 and 29 dB. No print alerts appeared. This establishes view/sort/scroll
+retention in the complete native app; the separate harness additionally
+covers changed defaults and removed-option fallback.
+
+### Follow-up HTML investigation
+
+Current source references were fetched and inspected without changing either
+host checkout: host `cad0bc2cc78ba5f2a8a7e8f34423fa48bfc8a071` and standalone
+extensions `ad875f3b02af417624546a9fdaab52ea01ccc5cd`. The earlier Dev build
+used September 1 host sources; the HTML implementation remains unchanged in
+the September 21 source. Current contests/programs render through native
+scoring rows, Markdown, and forms. Current Radio/Solar/Weather dashboards
+return `svgScene`; their refresh behavior does not exercise the HTML WebView.
+The official `k2hrc-radio` sample does return HTML but is not bundled in Next.
+
+The source audit traced the missing HTML update path through the host,
+vendored plugin, and Flutter platform-view lifecycle. First-load navigation
+cancellation remains a separate, narrower hypothesis for the blank screen.
+The previous patch's sort/scroll retention is an enhancement, not an existing
+HTML contract requirement. Its initial-load error handling and navigation
+allowance also need further review before adoption.
+
+A network-free counter extension (HTML fragment, full HTML document, and
+Markdown control) and the unchanged official HTML sample were built and
+packed. Both registered and returned changing content through the exact
+installed Next JavaScript kernel. Minimal native checks could not yet run
+because computer use reported the Mac locked. The local, ignored report and
+reproduction package are in `dist/html-panel-investigation/`; the report
+explicitly distinguishes source evidence, prior Dev observations, and
+pending native checks. No host commits, pushes, PRs, or external reports
+were made during that investigation. The later user-authorized local backup
+commit is recorded in the SVG migration section above.
+
+That investigation also reproduced an independent RBN bug: the host can omit
+`args.operation` on Home/Logs, but RBN dereferences it. Rendering with an absent
+operation fails both with and without explicit watch/grid overrides; an empty
+operation object or a TEST operation produces visible HTML. The exact-kernel
+reproduction is recorded locally. This is an extension issue requiring a
+defensive empty-context path; it does not explain the original operation-view
+blank. Production extension source was not changed during the investigation.
+The SVG migration subsequently fixed the absent-operation bug and added a regression test.
+
 ## Monorepo release 0.2.0
 
 Verified September 20–21, 2026, using Power Logger 26.9.0 build 169 at
@@ -109,8 +389,8 @@ do not depend on this live service.
 
 ## Installed app
 
-Native verification used `/Applications/Ham2K Mac Logger (Next).app`, whose
-current application identity is **Power Logger 26.9.0, build 169**. The
+Earlier native verification used `/Applications/Ham2K Mac Logger (Next).app`,
+whose identity at that time was **Power Logger 26.9.0, build 169**. The
 installed-kernel compatibility check accepts its shared dependencies and
 registers all eight extension hooks after the manifest's LiquidJS requirement
 was corrected to `^10.28.0`. The verifier selects the running app, or the
