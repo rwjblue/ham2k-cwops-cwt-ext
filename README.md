@@ -22,12 +22,6 @@ and Canada do not also earn country multipliers. See the sponsors' current
 specifies per-band multipliers. Calendar suggestions follow the normal weekly
 schedule; check sponsor announcements for cancellations or moved sessions.
 
-Only the personal CWT extension is temporary, pending
-[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1).
-CWT derives from **Sebastian Delmont, KI2D**, the main Ham2K developer.
-His attribution and MPL-2.0 notices remain in the source. See
-[provenance](docs/PROVENANCE.md), [license](LICENSE), and [notices](NOTICE.md).
-
 ## Install and operate
 
 1. Download the bundle for each extension you want from
@@ -137,6 +131,10 @@ Vitest tests. The repository uses the user's Jujutsu workflow and
 
 ### Keep CWT aligned upstream
 
+The personal CWT extension is temporary, pending
+[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1).
+MST, SST, and future extensions will continue to live in this repository.
+
 While the personal CWT extension is in use, synchronize CWT behavior, fixes,
 tests, translations, and relevant documentation with the source branch of
 [PR #1](https://github.com/ham2k/extensions/pull/1), currently
@@ -173,3 +171,10 @@ refuses to overwrite existing assets. Draft releases do not trigger uploads.
 Keep release immutability disabled while using this workflow because assets
 are attached after publication. After an interrupted upload, inspect the
 existing assets before retrying.
+
+## Credits and license
+
+The CWT extension builds on Sebastian Delmont's (KI2D) original Ham2K CWT
+extension. Its MPL-2.0 license and copyright notices are retained. See
+[provenance](docs/PROVENANCE.md), [license](LICENSE), and [notices](NOTICE.md)
+for source history and attribution.
