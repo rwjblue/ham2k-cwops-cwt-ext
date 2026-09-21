@@ -5,7 +5,7 @@ suggestions, scoring, and ADIF/Cabrillo exports. The extension suggests names
 and CWops numbers or locations from a downloaded call-history file and your
 previous CWT contacts, while preserving what you actually enter.
 
-Part of the [N1RWJ extension family](../../../README.md):
+Part of the [N1RWJ contest extensions](../../../README.md#contest-extensions):
 **CWT** · [MST](../n1rwj-mst/README.md) · [SST](../n1rwj-sst/README.md).
 
 ## The contest at a glance

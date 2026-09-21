@@ -118,6 +118,6 @@ Ham2K's own behavior; the pure resolver's operator argument is not used to
 infer which native fields were touched.
 
 `parseCallHistory`, `resolveCwtExchange`, and their data types are exported from
-`src/history/index.ts`. Tests use small representative source records and
-synthetic conflict, parser-error, suffix, and precedence cases. The downloaded
-full dataset is not committed or bundled.
+`extensions/contests/n1rwj-cwt/src/history/index.ts`. Tests use small
+representative source records and synthetic conflict, parser-error, suffix,
+and precedence cases. The downloaded full dataset is not committed or bundled.

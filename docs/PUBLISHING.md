@@ -2,9 +2,27 @@
 
 GitHub releases remain the archive of installable `.h2kext` files and their
 SHA-256 checksums. After those assets upload successfully, the **Release**
-workflow submits the exact same bundles to the
+workflow attempts to submit the exact same bundles to the
 [Ham2K extension catalog](https://catalog.ham2k.net/docs). The catalog reviews
 each submission before operators can install it from the catalog.
+
+## Current release status
+
+[v0.3.0](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0)
+was published on September 21, 2026. All four extension bundles and their
+four checksum files are available on GitHub. The
+[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35631976696/job/106440097548),
+but the separate
+[catalog job failed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35631976696/job/106440223935)
+on its first upload with HTTP 403 from a Cloudflare challenge. No submission
+was accepted by that run, so this release is **not pending catalog review**.
+Use the GitHub downloads while the catalog API issue is being resolved.
+
+The same failure occurred for v0.2.1. The catalog maintainer needs to resolve
+the API challenge before retrying. Once resolved, use **Re-run failed jobs**
+for the release workflow; the successful GitHub upload job does not need to
+run again. See [verification details](VERIFICATION.md#release-030--2026-09-21)
+for the observed failure and release checks.
 
 ## Configure the token
 
@@ -33,19 +51,21 @@ the already uploaded GitHub release assets remain available.
 
 ## Prepare and publish a release
 
-All extensions and shared workspaces retain one synchronized version:
+All extensions and shared workspaces retain one synchronized version. Choose
+an unused version; **0.3.1 below is an example for a future release**:
 
 ```sh
-mise run release:prepare 0.3.0
+mise run release:prepare 0.3.1
 mise run format
-mise run release v0.3.0 --dry-run
+mise run release v0.3.1 --dry-run
 ```
 
-Commit the prepared files and push them, then publish a GitHub release tagged
-`v0.3.0` at that tested commit. The workflow checks out the release commit,
-runs `check`, and attaches the exact current bundle/checksum pairs. Drafts
-do not trigger it. Keep GitHub release immutability disabled because these
-assets are attached after publication.
+Commit the prepared files using the repository's signed Jujutsu workflow and
+push them, then publish a GitHub release tagged `v0.3.1` at that tested commit.
+The workflow checks out the release commit, runs `check`, and attaches the
+exact current bundle/checksum pairs. Drafts do not trigger it. Keep GitHub
+release immutability disabled because these assets are attached after
+publication.
 
 The separate `catalog` job then downloads the GitHub release assets to a
 temporary directory. It checks synchronized versions and every checksum
@@ -65,7 +85,10 @@ mise run release:catalog v0.3.0 --dry-run
 
 This downloads and validates assets but needs no catalog token and submits
 nothing. Unlike `release --dry-run`, it reads GitHub's published assets rather
-than building the working tree. To submit locally, omit `--dry-run`:
+than building the working tree. After resolving any catalog outage and
+checking for earlier accepted submissions, omit `--dry-run` to submit locally.
+The following are alternative commands; choose the one matching the intended
+scope and channel:
 
 ```sh
 mise run release:catalog v0.3.0
@@ -80,13 +103,12 @@ assets are still validated first. The channel override accepts `stable`,
 ### Catalog documentation discrepancy
 
 As checked on September 21, 2026, the catalog's publishing page and parts of
-its UI still call channels `prod`, `next`, and `dev`. The installed official
-tools use `stable`, `unstable`, and `bleeding`, and the current
-[Ham2K channel migration](https://github.com/Ham2K/halo/commit/2bc24917da9559640437c96c6bcc5d7d915cb8c0)
-explicitly changes the app to request `stable`. This automation follows that
-official publisher contract. Public API probes hit a Cloudflare challenge,
-so authenticated submission and the deployed server's channel acceptance
-still need verification during the first real publication.
+its UI still call channels `prod`, `next`, and `dev`. The pinned official
+tools use `stable`, `unstable`, and `bleeding`; inspected host source also
+requests `stable`. This automation follows the official publisher contract.
+The authenticated v0.2.1 and v0.3.0 upload attempts were blocked by Cloudflare
+before catalog validation. They therefore do not establish whether the
+deployed catalog accepts these channel names; that remains unverified.
 
 ## Review and recovery
 
@@ -102,13 +124,13 @@ If publishing stops midway, earlier submissions remain. Inspect the
 dashboard before retrying; fix notes there if that was the only failure,
 and use the optional extension key to submit only the remaining extensions.
 
-If the catalog job failed before any submissions (for example, because the
-secret was missing), configure the secret and use GitHub Actions' **Re-run
-failed jobs**. This preserves the successful GitHub upload job. Do not rerun
-all jobs blindly: the GitHub uploader deliberately refuses to overwrite
-existing release assets. If an archive was rejected, inspect the reason and
-the version's review history before deciding whether it can be resubmitted
-or needs a new version.
+If the catalog job failed before any submissions, resolve the specific cause
+(for example, a missing secret or the current API challenge) and use GitHub
+Actions' **Re-run failed jobs**. This preserves the successful GitHub upload
+job. Do not rerun all jobs blindly: the GitHub uploader deliberately refuses
+to overwrite existing release assets. If an archive was rejected, inspect
+the reason and the version's review history before deciding whether it can
+be resubmitted or needs a new version.
 
 These are repository release tooling and personal packaging changes, exempt
 from the temporary CWT behavior synchronization with the upstream extension.

@@ -1,5 +1,8 @@
 # RBN native SVG migration and maintainer notes
 
+For installation and everyday use, start with the
+[RBN operator guide](../extensions/tools/n1rwj-rbn/README.md).
+
 ## Result and published-app compatibility
 
 RBN can use the documented native `svgScene` API for its bundled reception
@@ -9,8 +12,11 @@ extension runs in that unmodified app. Native testing with an empty
 `W9MET/TEST` operation observing W9MET at the public POTA grid EL97ER has
 verified live reports, the native sort menu, both SNR directions and
 pagination. No contacts were logged and no spots were posted. The
-[verification record](VERIFICATION.md) records the complete layout, control,
-refresh and screenshot results as those checks are completed.
+[verification record](VERIFICATION.md) records the completed layout, control,
+refresh and screenshot checks. Those native checks used the 0.2.0 test archive
+identified there; release preparation repackaged the implementation as 0.3.0
+and passed the release checks. The 0.3.0 archives were not separately retested
+in the native app.
 
 The earlier build 169 check remains useful compatibility evidence: its
 updater initially reported it up to date, but it does not supply the scene
@@ -25,6 +31,25 @@ The extension intentionally renders a native Markdown upgrade message when
 on that path. SDK types, shared-dependency registration and kernel execution
 are necessary checks, but none prove the native app understands `svgScene`.
 The SDK currently has no manifest minimum-native-build constraint here.
+
+## Operation defaults and saved settings
+
+[Configuration resolution](../extensions/tools/n1rwj-rbn/src/config.ts) uses
+the explicit panel watch callsign first, then the first comma-separated
+`operation.stationCall`. Location resolution uses an explicit grid override,
+then valid operation `lat`/`lon`, then the operation's grid. A watch override
+does not resolve that station's location. Without an origin, reports remain
+usable while map paths, distance and bearing are unavailable. Without a valid
+call, the client returns a configuration message without making an RBN request.
+
+Defaults are 15 minutes, all bands, regional projection, map + list, and
+descending report time. The band does not follow the operation's active band.
+Settings belong to the panel placement, so explicit call/grid overrides remain
+in effect when that layout is used with another operation. Clearing them
+restores inheritance. The [panel](../extensions/tools/n1rwj-rbn/src/panel.ts)
+keeps menu/page state in memory per instance, with a signature based on saved
+config, operation UUID and station callsign. Changed signatures or a runtime
+restart restore the saved defaults.
 
 ## Why the refresh model works
 
@@ -72,10 +97,56 @@ The map needs no animation loop or per-frame JavaScript. Native CPU, battery,
 and cross-platform rendering have not been measured; Node render timings are
 not a substitute for those measurements.
 
+## Development build and static previews
+
+Install dependencies as described in the [root README](../README.md), then
+build an installable RBN package from the repository root:
+
+```sh
+mise run pack n1rwj-rbn
+```
+
+For a reproducible development preview, render the actual bundled extension
+through the installed Ham2K JavaScript kernel:
+
+```sh
+mise run rbn:preview --call K1ABC --grid FN31 --minutes 30
+mise run rbn:preview --call K1ABC --grid FN31 --width 390 --height 844 --view list --sort snr --output dist/rbn-phone.svg
+```
+
+Replace the example call and grid with a station you want to observe. The task
+builds the extension, loads the installed JavaScript kernel and ES2020 bundle,
+and invokes the actual panel with live read-only RBN requests and a synthetic
+render environment. It writes:
+
+- `dist/rbn-preview.svg`: a labeled static approximation of scene artwork and
+  native text; controls and animation are inactive.
+- `dist/rbn-preview.scene.json`: the actual scene document.
+- `dist/rbn-preview.json`: environment, text, timings, hashes, request records
+  and the five-second render budget result.
+
+Use `--output <path.svg>` for another output name, `--width` and `--height` for
+panel dimensions, and `--theme dark` for a dark preview. `--view`, `--band`,
+`--sort` and `--direction` select the initial presentation. Browser SVG text
+measurement differs from Flutter's native text. The synthetic environment
+allows this check even when the installed app lacks the native scene API;
+successful kernel execution does not prove that app can display the scene.
+The task's `/TEST` operation exists only in memory and creates no native
+operation. Run `mise run check` for the repository's automated checks.
+
+The RBN client caches at most eight callsign/window queries with at most 500
+reports each, without disk persistence. Each HTTPS request has a 1.2-second
+timeout. Metadata and reports load concurrently; the endpoint's version
+handshake permits one report retry. The parser reads schema metadata and
+rejects unknown formats. These bounds leave room within the host's five-second
+render deadline; they do not guarantee response times from the public service.
+
 ## Published-app reproduction and acceptance
 
 1. Use the published Next app. Record version/build and run Check for Updates.
-2. Install `dist/n1rwj-rbn-0.3.0.h2kext` through Settings → Features & Extensions.
+2. Install `n1rwj-rbn-0.3.0.h2kext` from the
+   [release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0),
+   or a freshly built package from `dist/`, through Settings → Features & Extensions.
 3. Open a clearly labeled, empty TEST operation. Add RBN · My signal using
    Edit Layout. On older builds, expect the explicit app-update message.
 4. On a scene-capable published build, select a current public POTA CW station.
@@ -123,7 +194,9 @@ changing navigation allowances. Preserve the no-script/no-subresource-network
 and external-navigation policy. Form/scroll retention is a separate enhancement,
 not a requirement to fix basic document refresh.
 
-The exploratory HTML prototype is backed up locally at halo commit `ef546297`
-on `codex/tmp-html-panel-refresh`. Both working checkouts are restored to
-current main; no host code was pushed or proposed as a PR. Detailed historical
-repro artifacts remain under ignored `dist/html-panel-investigation/`.
+The exploratory HTML prototype was backed up locally at halo commit `ef546297`
+on `codex/tmp-html-panel-refresh`. Both working checkouts were restored to
+main at `cad0bc2c` on September 21, 2026; no host code was pushed or proposed
+as a PR. Detailed historical reproduction artifacts remain only in the original
+local workspace's ignored `dist/html-panel-investigation/` directory; they are
+not shipped in the release or available from a fresh clone.

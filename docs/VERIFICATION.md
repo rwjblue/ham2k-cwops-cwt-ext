@@ -1,5 +1,35 @@
 # Verification and compatibility
 
+## Release 0.3.0 — 2026-09-21
+
+[v0.3.0 is published on GitHub](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0)
+from signed commit
+[`5c039254`](https://github.com/rwjblue/ham2k-n1rwj-extensions/commit/5c039254e0d427caebd328a6375b539d5d197110).
+All four extension bundles and their four SHA-256 files were uploaded, and
+the downloaded release assets matched their checksums.
+
+- [Main CI passed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35631933388):
+  **372 tests across 28 files**, lint, TypeScript checks, official builds and
+  package validation.
+- The local release dry run passed the same checks plus synchronized-version
+  and asset/checksum validation. The
+  [release upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35631976696/job/106440097548).
+- The published RBN archive is **124,085 bytes**, with SHA-256
+  `4df0bd93f911c8e76b1d49fe02f39dc0a982807fa5296b233c006a2ea4995a04`.
+- Native RBN acceptance used published **Ham2K Next 26.9.0 build 170** and
+  the candidate archive labeled **0.2.0** identified below. Version
+  synchronization subsequently produced the released 0.3.0 archives; those archives were not
+  separately reinstalled for native acceptance. The screenshots below record
+  the tested 0.2.0 package. Physical phone and Linux testing remain outstanding.
+
+The [catalog job failed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35631976696/job/106440223935)
+on the first `n1rwj-cwt` upload: HTTP **403**, a Cloudflare challenge, at
+`2026-09-21T17:26:41.297Z` (Ray ID `a3eac6bb4a526b25`). No upload was accepted
+by that run and later extensions were not attempted. The earlier v0.2.1
+attempt encountered the same failure. GitHub downloads are available, but
+these attempts do not establish catalog submission, review, or channel
+acceptance. See [publishing and recovery](PUBLISHING.md) before retrying.
+
 ## RBN SVG migration — 2026-09-21
 
 The current RBN implementation returns native `svgScene` content. The HTML
@@ -10,14 +40,14 @@ receiver table/cards. Per-placement choices survive ticks and reset when
 operation/config changes; saved defaults survive runtime restarts.
 
 The updated [published panel contract](https://catalog.ham2k.net/docs/hooks)
-and SDK 0.5.0 support this design. Current host main is
+and SDK 0.5.0 support this design. The host source inspected for this work was
 `cad0bc2cc78ba5f2a8a7e8f34423fa48bfc8a071`; SVG scenes first landed in
 `e4c149e9cf6083b0369c67b39f4988b263508443` on September 19. Existing contest
-and award program UI uses native Markdown/forms/scoring rows. Current
+and award program UI used native Markdown/forms/scoring rows. The
 Radio, Solar and Weather dashboard examples use `svgScene`, which is the
 relevant comparison for this map. The scene API is still experimental.
 
-The current native checks use the unmodified published **Next 26.9.0 build
+The native checks used the unmodified published **Next 26.9.0 build
 170**, installed by the user. Its binary includes `SvgSceneView`, scene
 validation, placement identity, render environment and event handling. The
 extension renders live RBN data and native controls in that app. Its kernel
@@ -34,20 +64,21 @@ layout restored. Build 170 was subsequently installed for the checks below.
 A successful kernel run alone does not certify native scene support; static
 previews deliberately supply an environment and placement identity.
 
-The prior host experiment has been preserved locally as commit **ef546297**
-on **codex/tmp-html-panel-refresh**. Primary `halo` is on `main` at
+The prior host experiment was preserved locally as commit **ef546297**
+on **codex/tmp-html-panel-refresh**. Primary `halo` was restored to `main` at
 `cad0bc2c`, matching `origin/main`, with its pre-existing untracked `mise.lock`
-left alone. The old experimental worktree is detached at the same main commit
-and clean. No host push or PR was made; the Dev app is stopped. Subsequent
-native checks use the published Next application only.
+left alone. The old experimental worktree was detached at the same main commit
+and clean. No host push or PR was made; the Dev app was stopped. Subsequent
+native checks used the published Next application only.
 
 The static preview task executes the actual built ES2020 extension using the
 installed Next kernel, then exports a scene JSON plus an SVG approximation.
 The SVG explicitly says it is a static preview with inactive controls. It
 cannot verify Flutter text measurement, native menus, touch, or semantics.
 Before native build 170 testing, at 16:33 UTC, live public POTA spots listed
-W9MET at US-6298, Crooked Lake Wildlife Area, EL97er. A memory-only `W9MET/TEST` observation
-returned 22 receivers in 735 ms, including RBN's schema-version retry.
+W9MET at US-6298, Crooked Lake Wildlife Area, EL97er. A memory-only
+`W9MET/TEST` observation returned 22 receivers in 735 ms, including RBN's
+schema-version retry.
 The preview candidate at 16:37 UTC showed 24 receivers. The 1366×900
 scene rendered in 442 ms (118 layers, 72,022 bytes of formatted scene JSON),
 the 390×844 map in 301 ms, and the dark 390×844 list in 337 ms. These are
@@ -55,22 +86,23 @@ Node/kernel timings including live network access, not native frame or CPU
 measurements. Static browser screenshots are `dist/rbn-svg-desktop.png`,
 `dist/rbn-svg-phone-map.png`, and `dist/rbn-svg-phone-list.png`; each carries
 a visible static-preview label. Their scene JSON and provenance are beside them.
+Paths under `dist/` in this record identify ignored local evidence, not files
+shipped in the repository. The published Next 170 screenshots linked below
+are stored in `docs/images/` and can be viewed from a fresh checkout.
 
 `mise run check` passed **372 tests across 28 files**, Biome, all TypeScript
 checks, official builds, and official package validation. The installed-kernel
 verification passed registration and shared-dependency checks against build 170.
-The historical **0.2.0**, **124,081-byte** native-test archive installed in that app has SHA-256
+The historical **0.2.0**, **124,081-byte** native-test archive installed in that
+app has SHA-256
 `0a4531f93d82ae3991fa4097101dbb944b60b5375f2652c07626b92c02d7e106`.
 The earlier build-169 compatibility candidate was 124,067 bytes with SHA-256
 `ab26cd7ac49d738b7f0e2c6a2ae0fba2a2626e8ba3edcf9676ccb084d23a6bc0`;
 its 370-test result predates the final layout regressions.
 
-Release preparation subsequently synchronized all workspace versions to **0.3.0**.
-`mise run release v0.3.0 --dry-run` passed **372 tests across 28 files**,
-lint, TypeScript checks, official builds, package validation, and release
-version/checksum validation. This release check does not add a native test
-of the repackaged 0.3.0 archives; the native evidence below is for the 0.2.0
-archive identified above.
+Release preparation subsequently synchronized all workspace versions to
+**0.3.0**. The release results are recorded above; the native evidence below
+is for the 0.2.0 archive identified here.
 
 ### Published Next 170 native acceptance
 
@@ -81,8 +113,8 @@ remained empty with **zero QSOs**; no spots, POTA posts or transmissions
 were made. Native checks established:
 
 - Live reception map and receiver table rendered in a **1437×768** desktop
-  window. The final package showed 26 receivers on two bands, including
-  descending SNR readings of 26, 26, 25, 19 and 18 dB after 17:13 UTC.
+  window. The final native-test package showed 26 receivers on two bands,
+  including descending SNR readings of 26, 26, 25, 19 and 18 dB after 17:13 UTC.
 - The native **SNR** sort menu and direction button worked. Earlier live
   readings sorted as 25, 24, 24, 21 and 21 dB descending, then 2, 3, 4, 4
   and 4 dB ascending. Next page showed reports **6–10 of 23**.
@@ -96,8 +128,8 @@ were made. Native checks established:
   pages rather than clipping the longer explanation.
 - Native testing found that an approximately 477-pixel-wide combined pane
   could allocate a map while leaving no report row. The final change reserves
-  the required list height, including a 20-pixel allowance and a row-capacity
-  floor. When both views cannot fit, it shows receiver cards with a **Map**
+  enough height for a complete receiver card, controls, gaps, and pagination.
+  When both views cannot fit, it shows receiver cards with a **Map**
   hint. The final package was retested in the native narrow pane and displayed
   two cards instead of empty list space.
 
@@ -113,7 +145,7 @@ app; they do not represent physical phone hardware. Both temporary global
 layout changes were then removed and saved. The compact layout was restored
 to QSOs / Spots / Map and the desktop layout to QSOs / Info / Spots / Map.
 The original desktop divider at 957 and window dimensions of 1437×768 were
-restored. The TEST operation still has zero QSOs and a blank draft.
+restored. The TEST operation was left with zero QSOs and a blank draft.
 
 The design avoids a WebView, contains no animation, and generates only the
 visible map and list page. This removes the HTML/Linux WebView dependency;
@@ -471,10 +503,11 @@ representative scoring, native ADIF/Cabrillo exports, and cached suggestions
 after a failed refresh and restart. They also verify current-operation history
 precedence in `0.1.1`. OS-offline operation has not been verified.
 
-SDK 0.5.0/types are the API reference. Native behavior was inspected in public
-HaLo commit [c726266](https://github.com/ham2k/halo/tree/c726266a4ae72117396ce48255611374136fd374),
-which predates some archive behavior. SDK declarations alone do not certify a
-native host build as compatible.
+SDK 0.5.0/types are the API reference. Native behavior for these earlier CWT
+checks was inspected in a local checkout of the private Ham2K host repository
+at commit `c726266a4ae72117396ce48255611374136fd374`, which predates some archive
+behavior. SDK declarations alone do not certify a native host build as
+compatible.
 
 ## Decisions and remaining limits
 

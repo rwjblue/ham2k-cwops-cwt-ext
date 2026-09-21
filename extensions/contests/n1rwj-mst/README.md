@@ -5,7 +5,7 @@ sent serial numbering, name suggestions, scoring, and ADIF/Cabrillo exports.
 The extension suggests names from a downloaded call-history file and your
 previous MST contacts; you copy each received serial from the other station.
 
-Part of the [N1RWJ extension family](../../../README.md):
+Part of the [N1RWJ contest extensions](../../../README.md#contest-extensions):
 [CWT](../n1rwj-cwt/README.md) · **MST** · [SST](../n1rwj-sst/README.md).
 
 ## The contest at a glance

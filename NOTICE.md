@@ -6,15 +6,20 @@ Delmont <sd@ham2k.com>, licensed under the Mozilla Public License 2.0. Its
 copyright and SPDX notices are retained in the adapted source files.
 
 Changes for N1RWJ add contest call-history data, previous-contact suggestions,
-MST and SST extensions, shared N1MM and operation-history adapters, tests, and
-independent packaging. These are independent extensions; Ham2K and Sebastian
-Delmont do not maintain or endorse them.
+MST and SST extensions, an RBN reception panel, shared N1MM and operation-history
+adapters, tests, and independent packaging. These are independent extensions;
+Ham2K and Sebastian Delmont do not maintain or endorse them.
 
 The adapted source is distributed under MPL-2.0; see [LICENSE](LICENSE).
 Source and build instructions are available at
 [ham2k-n1rwj-extensions](https://github.com/rwjblue/ham2k-n1rwj-extensions).
-See [docs/PROVENANCE.md](docs/PROVENANCE.md) for exact upstream sources and
-the original archive checksum.
+See [provenance](https://github.com/rwjblue/ham2k-n1rwj-extensions/blob/main/docs/PROVENANCE.md)
+for exact upstream sources and the original archive checksum.
+
+The RBN extension also bundles Natural Earth map data and projection libraries.
+See its [map attribution](https://github.com/rwjblue/ham2k-n1rwj-extensions/blob/main/extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
+for sources and licenses. The RBN bundle includes that attribution and the
+corresponding library notices under `assets/`.
 
 The bundles include portions of the published `@ham2k/extension-sdk`;
 CWT also includes prefill improvements backported from Ham2K/extensions

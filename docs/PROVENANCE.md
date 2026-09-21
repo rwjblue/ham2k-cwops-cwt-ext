@@ -1,11 +1,11 @@
-# CWT adaptation provenance
+# Extension provenance and attribution
 
 **Primary upstream author: Sebastian Delmont, KI2D**, the main Ham2K developer.
 The setup, scheduling, scoring, exchange controls, translations, ADIF fields,
 and Cabrillo behavior in `extensions/contests/n1rwj-cwt/` derive from his
 official Ham2K CWT extension. This monorepo adds personal exchange suggestions,
-MST and SST extensions, shared code, and independent packaging; it is not an
-official Ham2K release.
+MST and SST extensions, an RBN reception panel, shared code, and independent
+packaging; it is not an official Ham2K release.
 
 ## Original installable archive
 
@@ -18,7 +18,7 @@ official Ham2K release.
 
 ## Maintainable source and licensing
 
-The public [Ham2K HaLo repository](https://github.com/ham2k/halo) supplied
+The private [Ham2K HaLo repository](https://github.com/ham2k/halo) supplied
 maintainable TypeScript at commit
 [`c726266a4ae72117396ce48255611374136fd374`](https://github.com/ham2k/halo/tree/c726266a4ae72117396ce48255611374136fd374/extensions/contests/cwt).
 The CWT sources there use the older path `extensions/contests/cwt/` and
@@ -103,7 +103,16 @@ Only CWT is subject to the temporary upstream-PR synchronization requirement.
 These new contests and the monorepo's personal tooling and release layout do
 not modify the official CWT extension.
 
-### Existing operations and exchanges
+### RBN reception panel
+
+`extensions/tools/n1rwj-rbn/` is an independent panel extension. Reports and
+receiver locations come from the Reverse Beacon Network. The bundled map uses
+Natural Earth geometry and ISC-licensed projection libraries; the
+[map attribution](https://github.com/rwjblue/ham2k-n1rwj-extensions/blob/main/extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
+records their sources and retained notices. RBN does not change CWT behavior
+or participate in its temporary upstream synchronization.
+
+### Existing CWT operations and exchanges
 
 - The activity/ref type remains `cwt`, preserving existing CWT operations and
   received exchanges. The extension key is personal (`n1rwj-cwt`). Disable

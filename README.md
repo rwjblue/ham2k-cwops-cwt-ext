@@ -1,14 +1,68 @@
 # N1RWJ extensions for Ham2K
 
-Independently installable Ham2K extensions, with shared TypeScript code,
-Vitest tests, a mise toolchain, and GitHub releases containing ready-to-install
-`.h2kext` bundles. This repository is a permanent home for new extensions.
+Extensions for Ham2K contest logging and seeing where your CW signal is
+heard. Each extension is available as a ready-to-install `.h2kext` bundle;
+install only the ones you want.
 
-| Extension | Exchange | Weekly sessions, UTC | Scoring |
+| Extension | What it adds |
+| --- | --- |
+| [RBN · My signal](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) | Reception map and sortable Reverse Beacon Network receiver reports, using your operation's callsign and location |
+| [CWops CWT](extensions/contests/n1rwj-cwt/README.md) (`n1rwj-cwt`) | CWT sessions, exchange suggestions, scoring, and exports |
+| [ICWC MST](extensions/contests/n1rwj-mst/README.md) (`n1rwj-mst`) | MST sessions, name suggestions, outgoing serials, scoring, and exports |
+| [K1USN SST](extensions/contests/n1rwj-sst/README.md) (`n1rwj-sst`) | SST sessions, name/location suggestions, scoring, and exports |
+
+## Install
+
+1. Download the bundle for each extension you want from
+   [latest GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/latest).
+   The matching `.sha256` file lets you verify the download.
+2. In Ham2K, choose **Settings → Features & Extensions → Install from file**
+   and select the `.h2kext` file. Each bundle installs separately. The host
+   must support the hooks and shared-library versions declared in its manifest.
+
+Then follow the steps for the extension below. Building from source is
+optional. GitHub downloads and catalog availability are separate; see
+[publishing status and recovery](docs/PUBLISHING.md) for the catalog workflow.
+
+### RBN · My signal
+
+The RBN panel requires native SVG scene support, verified in published
+**Ham2K Next 26.9.0 build 170**. Build 169 displays an update message.
+
+1. Open an operation and choose **Edit Layout → Add a Panel → RBN · My signal**.
+   Turn on **Enable Layout Customization** in app settings if layout editing is
+   unavailable. On narrow screens, **Edit Layout** is under **Tools**.
+2. Leave **Watch callsign** and **Map origin grid** blank to follow the operation.
+   The panel uses its station callsign and latitude/longitude, or its grid
+   when coordinates are unavailable. Set the operation's location for the
+   map, distance, and bearing; the receiver listing works without it.
+3. Save the layout. Reports refresh automatically while the panel is visible.
+   The defaults show the last 15 minutes on all bands, newest first.
+
+Use the panel menus to switch views, filter bands, sort reports, and page
+through receivers. Wide panes show a table; narrow panes use receiver cards.
+Explicit callsign/grid overrides stay with that panel placement until cleared,
+so leave them blank for normal operation. The map geography is bundled; new
+RBN reports need internet access. See the [RBN guide and screenshots](extensions/tools/n1rwj-rbn/README.md)
+for settings, test observations, and device-testing limits.
+
+### Contest extensions
+
+1. **For CWT, disable the original CWops CWT extension.** Both handle `cwt`
+   references, so enabling both creates duplicate handlers. The personal key,
+   saved CWT references, settings, and data-file identity remain compatible
+   with previous releases of this repository.
+2. Refresh the extension's call-history entry under **Settings → Accounts,
+   Services & Data Sources**. Its settings accept an HTTPS N1MM entry or text
+   URL; leaving the source blank discovers the current contest-specific file.
+3. Add the desired session to an operation, configure your sent exchange,
+   and log contacts. Always copy and verify the exchange actually sent.
+
+| Contest | Exchange | Weekly sessions, UTC | Scoring |
 | --- | --- | --- | --- |
-| [CWops CWT](extensions/contests/n1rwj-cwt/) (`n1rwj-cwt`) | Name and CWops number, CWA, or nonmember location | Wednesday 13:00 and 19:00; Thursday 03:00 and 07:00 | QSOs × unique callsigns across the session |
-| [ICWC MST](extensions/contests/n1rwj-mst/) (`n1rwj-mst`) | Name and sequential QSO number | Monday 13:00 and 19:00; Tuesday 03:00 | QSOs × unique callsigns across the session |
-| [K1USN SST](extensions/contests/n1rwj-sst/) (`n1rwj-sst`) | Name and US state, Canadian province, or DX | Monday 00:00; Friday 20:00 | QSOs × state/province/DXCC multipliers counted once per band |
+| CWT | Name and CWops number, CWA, or nonmember location | Wednesday 13:00 and 19:00; Thursday 03:00 and 07:00 | QSOs × unique callsigns across the session |
+| MST | Name and sequential QSO number | Monday 13:00 and 19:00; Tuesday 03:00 | QSOs × unique callsigns across the session |
+| SST | Name and US state, Canadian province, or DX | Monday 00:00; Friday 20:00 | QSOs × state/province/DXCC multipliers counted once per band |
 
 Every session lasts one hour. These contests use CW on 160, 80, 40, 20, 15,
 and 10 meters; each station can be worked once per band. MST encourages
@@ -21,33 +75,6 @@ and Canada do not also earn country multipliers. See the sponsors' current
 [sponsor-linked SST definition](https://n1mmwp.hamdocs.com/mmfiles/k1usnsst-udc/)
 specifies per-band multipliers. Calendar suggestions follow the normal weekly
 schedule; check sponsor announcements for cancellations or moved sessions.
-
-## Install and operate
-
-[RBN · My signal](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) is a
-separate panel extension with a bundled reception map, band filters, and a
-sortable receiver list with tables, phone cards and pagination. It uses
-Ham2K's native SVG scene API, available in the tested published Next
-26.9.0 build 170. Live reports, SNR sorting and pagination work in that app;
-older build 169 shows an update message. See its guide and the
-[verification record](docs/VERIFICATION.md) for installation, compatibility
-and the scope of native testing. The steps below describe the contest extensions.
-
-1. Download the bundle for each extension you want from
-   [GitHub releases](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases).
-   The matching `.sha256` file lets you verify the download.
-2. In Ham2K, choose **Settings → Features & Extensions → Install from file**
-   and select the `.h2kext` file. Each bundle installs separately. The host
-   must support the hooks and shared-library versions declared in its manifest.
-3. **For CWT, disable the original CWops CWT extension.** Both handle `cwt`
-   references, so enabling both creates duplicate handlers. The personal key,
-   saved CWT references, settings, and data-file identity remain compatible
-   with previous releases of this repository.
-4. Refresh the extension's call-history entry under **Settings → Accounts,
-   Services & Data Sources**. Its settings accept an HTTPS N1MM entry or text
-   URL; leaving the source blank discovers the current contest-specific file.
-5. Add the desired session to an operation, configure your sent exchange,
-   and log contacts. Always copy and verify the exchange actually sent.
 
 MST suggests names from history; received serial numbers must be entered for
 each contact and are never reused from history or CWops membership data.
@@ -143,7 +170,7 @@ Vitest tests. The repository uses the user's Jujutsu workflow and
 
 The personal CWT extension is temporary, pending
 [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1).
-MST, SST, and future extensions will continue to live in this repository.
+MST, SST, RBN, and future extensions will continue to live in this repository.
 
 While the personal CWT extension is in use, synchronize CWT behavior, fixes,
 tests, translations, and relevant documentation with the source branch of
@@ -152,18 +179,18 @@ tests, translations, and relevant documentation with the source branch of
 `extensions/contests/ham2k-cwt/`. Verify the current PR branch before editing
 and run upstream checks. This also applies to shared changes affecting CWT.
 Backport relevant upstream fixes here, preserving personal identity and saved
-data. MST, SST, monorepo tooling, and personal packaging are independent of
+data. MST, SST, RBN, monorepo tooling, and personal packaging are independent of
 that CWT synchronization requirement.
 
 ## Release
 
 All extensions and shared workspaces use one synchronized repository version.
-Prepare and validate a release before committing, pushing, and publishing it:
+Choose an unused version; `0.3.1` below is an example for the next release:
 
 ```sh
-mise run release:prepare 0.3.0
+mise run release:prepare 0.3.1
 mise run format
-mise run release v0.3.0 --dry-run
+mise run release v0.3.1 --dry-run
 ```
 
 `release:prepare` updates the root package, every extension's manifest and
@@ -182,9 +209,17 @@ Keep release immutability disabled while using this workflow because assets
 are attached after publication. After an interrupted upload, inspect the
 existing assets before retrying.
 
+After uploading assets, a separate job attempts to submit the same bundles to the
+Ham2K catalog for review. See [Publishing](docs/PUBLISHING.md) for token
+setup, channel selection, submission status, and recovery from failures.
+
 ## Credits and license
 
 The CWT extension builds on Sebastian Delmont's (KI2D) original Ham2K CWT
 extension. Its MPL-2.0 license and copyright notices are retained. See
 [provenance](docs/PROVENANCE.md), [license](LICENSE), and [notices](NOTICE.md)
 for source history and attribution.
+
+The RBN map bundles Natural Earth geometry and projection libraries with
+their notices. See its [map attribution](extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
+for the data source and licenses.

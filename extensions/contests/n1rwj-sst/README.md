@@ -5,7 +5,7 @@ name/location suggestions, scoring, and ADIF/Cabrillo exports. The extension
 suggests exchanges from a downloaded call-history file and your previous SST
 contacts, while preserving what you actually enter.
 
-Part of the [N1RWJ extension family](../../../README.md):
+Part of the [N1RWJ contest extensions](../../../README.md#contest-extensions):
 [CWT](../n1rwj-cwt/README.md) · [MST](../n1rwj-mst/README.md) · **SST**.
 
 ## The contest at a glance

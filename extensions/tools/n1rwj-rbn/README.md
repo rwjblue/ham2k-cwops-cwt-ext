@@ -2,180 +2,136 @@
 
 See where the [Reverse Beacon Network](https://www.reversebeacon.net/) has
 heard your CW signal, with a reception map and sortable receiver reports.
-The extension is a read-only panel: it does not transmit, spot a station,
-post to POTA, or create contacts.
+The panel automatically follows your operation's station callsign and location.
+It is read-only: it does not transmit, spot a station, post to POTA, or create
+contacts.
 
 Part of the [N1RWJ extension family](../../../README.md).
 
 ## Install and open the panel
 
-Build the installable package from the repository root with
-`mise run pack n1rwj-rbn`, then install the resulting
-`n1rwj-rbn-<version>.h2kext` through Ham2K's extension installer. Add
-**RBN · My signal** through an operation's **Edit Layout → Add a Panel**.
-If layout editing is unavailable, enable **Enable Layout Customization**
-in the app's settings first. Narrow layouts put **Edit Layout** under **Tools**.
+1. Use a Ham2K version with native SVG panels. Published **Ham2K Next 26.9.0
+   build 170** supports them; older builds such as 169 show **App update needed**.
+2. Download **`n1rwj-rbn-0.3.0.h2kext`** from the
+   [v0.3.0 release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0).
+3. In Ham2K, open **Settings → Features & Extensions → Install from file**
+   and select the downloaded package.
+4. Open an operation, choose **Edit Layout → Add a Panel → RBN · My signal**,
+   and save the layout. On narrow layouts, **Edit Layout** is under **Tools**.
+   If editing is unavailable, enable **Enable Layout Customization** in settings.
+5. Leave **Watch callsign** and **Map origin grid** blank to follow the operation.
+   Reports load automatically when the panel is visible.
 
-**Host compatibility:** This implementation requires Ham2K's native
-`svgScene` panel API, including a render environment and placement identity.
-Published Ham2K Next 26.9.0 build 170 supplies that API. Live RBN reports,
-the native sort menu, both SNR sort directions and pagination have been
-verified in that unmodified app. See the
-[verification record](../../../docs/VERIFICATION.md) for the complete
-native test results and remaining device coverage.
+No build tools, map accounts, or custom Ham2K build are required.
 
-Build 169 lacks the API and shows **App update needed** without making RBN
-requests. Its updater initially reported that it was up to date during
-the September 21, 2026 check; build 170 was subsequently installed and
-used for the native tests.
+## Configuration is optional
 
-The extension no longer returns HTML or depends on an HTML host patch.
-The earlier custom Dev build is not an installation or testing requirement
-for this implementation. See the [verification record](../../../docs/VERIFICATION.md)
-for the current published-app checks and the limits of earlier HTML testing.
+The operation provides the defaults. Open the panel's settings in **Edit Layout**
+only when you want an override or different display defaults.
 
-The panel follows the operation's station callsign. Set the operation's
-actual location so it can draw paths and calculate receiver distance and
-bearing. The extension uses that location, never a callsign-prefix location
-guess. A **Map origin grid** override accepts a 4, 6, or 8 character
-Maidenhead locator.
+| Setting | With the default settings | Optional change |
+| --- | --- | --- |
+| **Watch callsign** | Uses the operation's station callsign | Watch another exact callsign |
+| **Map origin grid** | Uses the operation's latitude/longitude, otherwise its grid | Use a 4, 6, or 8 character Maidenhead locator |
+| **Report window** | Last 15 minutes | Last 30 or 60 minutes |
+| **Default band** | All bands | Select one band |
+| **Default view** | Map and receivers | Map or receivers only |
+| **Default sort / direction** | Newest reports first | Receiver, SNR, distance, frequency, or CW speed; either direction |
+| **Map projection** | Fit reporting receivers | From my station · distance rings |
+
+The callsign is the operation's **station** callsign, which can differ from the
+operator's callsign. If the operation has multiple comma-separated station
+callsigns, the panel uses the first. Portable suffixes match exactly: `K1ABC`
+and `K1ABC/P` are different watched callsigns. The band selection does not
+automatically follow the operation's active band.
+
+With both overrides blank, switching operations follows the new station and
+location. An explicit override stays with that panel placement until you clear
+it, including when its layout is used for another operation. A callsign override
+does **not** look up or change the map origin; set the corresponding grid when
+watching a station elsewhere.
+
+If the operation has no location, the receiver list still works. The map asks
+for an operation location or grid override, and distance and bearing remain
+unavailable. The extension never substitutes a callsign-prefix location guess.
+If no valid callsign is available, it prompts for one without requesting reports.
+
+Changes made with the panel's view, band, sort and page controls survive normal
+refreshes separately for each placement. They reset when switching operations,
+changing saved panel settings, or restarting the extension. Save preferred
+defaults in panel settings when you want them to survive a restart.
 
 ## Map and receiver list
 
-The map shows the operation location, reception paths, and receiver points.
-Choose **Fit reporting receivers** for a regional view or
-**From my station · distance rings** for an azimuthal view centered on the
-operation. Receivers with no published coordinates remain in the list.
-The map includes the selected band's located receivers, independent of the
-currently visible list page. Only the selected map view and visible report
-page are generated for each scene.
+The map shows your configured origin, reception paths, and receiver points.
+Choose **Fit reporting receivers** in panel settings for a regional view or
+**From my station · distance rings** for a view centered on your station.
+The map includes the selected band's located receivers across all list pages.
+Receivers with no published coordinates remain in the list.
 
-The world geography is bundled inside the extension package as simplified
-vector data. There are no map tiles, map accounts, or map downloads. The map
-remains available without a network connection; new reception reports need
-internet access. See [map attribution and licenses](assets/MAP_ATTRIBUTION.md).
+Use the view menu to choose **Map + list**, **Map**, or **List**, and the band
+menu to select a reported band or **All bands**. The list contains the latest
+report from each receiver on each band: frequency, SNR, CW speed, age, and—when
+locations are known—distance and bearing. The **Sort** menu offers **Heard**,
+**Receiver**, **SNR**, **Distance**, **Frequency**, and **Speed**. The adjacent
+direction button reverses the order; missing measurements stay last. Previous
+and next buttons move between pages, with the visible range and total count
+shown below the reports.
 
-Use the view menu to choose **Map + list**, **Map**, or **List**, and the
-band menu to select a reported band or **All bands**. The list contains
-the latest report from each receiver on each
-band, including frequency, SNR, CW speed, age, and—when locations are
-known—distance and bearing. The **Sort** menu offers **Heard**, **Receiver**,
-**SNR**, **Distance**, **Frequency**, and **Speed**. Use the adjacent direction
-button to reverse the order. Missing measurements sort last. The previous
-and next buttons move between pages; the footer identifies the visible
-range and total report count.
+Narrow panels show receiver cards; sufficiently wide panels put the map and
+table side by side. Page size follows the available height and text size.
+In a short pane, choose **Map** or **List** to give that view more room. The
+information button opens **Report details** with timestamps, origin, source
+attribution and warnings. Long details are paginated too.
 
-On narrow screens, receiver rows become cards with labeled measurements.
-On sufficiently wide screens, the map and list sit side by side. Page size
-responds to the available height and text size. In a short pane, choose
-**Map** or **List** to give that view more room. The information button opens
-**Report details**, with timestamps, origin, source attribution and warnings;
-long details are paginated too.
+![RBN map and receiver table in published Ham2K Next build 170](../../../docs/images/rbn/rbn-next170-desktop.jpg)
 
-Ham2K renders artwork, text, menu controls and accessibility semantics
-natively. The extension receives deliberate button/menu events through
-`onEvent`; Ham2K requests a new scene after the action. Sorting rebuilds
-the report text in the selected order. View, band, sorting, page and details
-choices remain separate for each panel placement across ordinary refreshes.
-Session state is bounded to 32 placements and resets when the operation,
-panel settings or extension runtime changes. Save preferred view, band,
-sort and direction in panel settings for defaults that survive a restart.
+Also see the [compact map](../../../docs/images/rbn/rbn-next170-phone-map.jpg)
+and [compact receiver cards](../../../docs/images/rbn/rbn-next170-phone-list.jpg).
+These are native macOS captures; the compact examples use a 448×770 window.
+Physical phone and Linux runtime checks remain outstanding. Exact package
+versions and test coverage are in the [verification record](../../../docs/VERIFICATION.md).
 
-Native scenes avoid the HTML panel's WebView and are not subject to its
-Linux WebView availability restriction. This is an architectural benefit,
-not a measured CPU or battery improvement. Native macOS checks do not
-establish Linux or physical-phone behavior, screen-reader acceptance, or
-cross-platform performance.
+## Refreshes and interpreting reports
 
-## Reports, refreshes, and offline behavior
+While visible, the panel checks RBN at most once per minute for each
+callsign/report-window combination. Multiple panels watching the same query
+share results. A failed refresh retains cached reports within the selected
+time window and marks the failure. Reports expire as they age; the in-memory
+cache does not survive an extension restart. A successful check with no reports
+is different from a failed check. **Checked** and **Heard** show when data was
+fetched and when your signal was last reported.
 
-Choose a **15, 30, or 60 minute** report window. While the panel is visible,
-Ham2K requests updates periodically; repeated renders share a cache and
-check RBN at most once per minute for each callsign/window combination.
-Concurrent requests for the same view share one request. The client keeps
-at most eight cached views, each containing at most 500 reports, in memory.
-The cache does not survive an extension runtime restart.
+The simplified world geography is bundled in the package, so the map needs no
+tile downloads or internet connection. New reception reports need internet
+access. See [map attribution and licenses](assets/MAP_ATTRIBUTION.md).
 
-Each HTTPS request has a 1.2-second timeout so a slow RBN response leaves
-time for the host to render the panel. A failed refresh retains cached
-reports still inside the selected time window and clearly marks the
-refresh failure. Reports expire as they age; an offline panel can therefore
-eventually show no remaining reports. **Data checked** and **last heard**
-are separate timestamps. A successful request with no reports is different
-from a failed request.
+Reports come from the RBN website's undocumented `spots.php` endpoint, which
+can change or become unavailable. If its 500-report limit is reached, the panel
+warns that reports may be missing. Receiver coordinates come from the exact
+receiver's RBN metadata and are approximate reception locations.
 
-The data source is the RBN website's undocumented
-[`spots.php` endpoint](https://www.reversebeacon.net/spots.php?meta=1),
-queried for the exact watched callsign and CW reports. The client reads the
-endpoint's schema metadata, handles its version handshake with one retry,
-and rejects unknown formats. This endpoint can change or become unavailable.
-If the server returns the full 500-report limit, the panel warns that some
-reports may be missing. Portable suffixes are matched exactly; `K1ABC`
-and `K1ABC/P` are different watched callsigns.
-
-Receiver coordinates come only from the exact receiver's RBN metadata.
-They are approximate reception locations, not precise antenna positions.
-SNR depends on the receiver's antennas and noise environment; compare
-changes at the same receiver and band. Empty regions do not establish a
-lack of coverage, and no recent reports do not establish a transmitter
-problem. This first version focuses on your signal; it does not add a
-hunting feed or native Spots source.
+SNR depends on each receiver's antenna and noise environment; comparisons at
+the same receiver and band are most useful. Reception paths do not outline a
+coverage boundary, and no recent reports do not establish a transmitter problem.
+This version focuses on your CW signal; it does not add a hunting feed or a
+native Spots source.
 
 ## Try it without transmitting
 
 1. Choose a currently active CW station from the public
-   [POTA spots](https://pota.app/) and note its reported grid or operation
-   location. An active POTA spot does not guarantee a recent RBN report.
-2. Create a separate local operation clearly labeled as a test, using a
-   station callsign such as `K1ABC/TEST` and a title such as
-   **RBN TEST — observing K1ABC**. Use the observed station's reported
-   location, not your home location, for this test operation.
-3. In the RBN panel settings, set **Watch callsign** to the real public
-   callsign, such as `K1ABC`. Keep the operation's `/TEST` marker; the panel
-   displays a test notice identifying whose reports it is observing.
-4. Inspect the map and list at desktop and narrow phone widths. Leave the
-   operation empty: do not log fictitious contacts or use any spot/CQ
-   posting controls.
+   [POTA spots](https://pota.app/) and note its reported grid or location.
+   An active POTA spot does not guarantee a recent RBN report.
+2. Create a separate, empty test operation with a station callsign such as
+   `K1ABC/TEST` and a title such as **RBN TEST — observing K1ABC**.
+3. Add the panel and set **Watch callsign** to the real public callsign, such
+   as `K1ABC`. Set **Map origin grid** to that station's reported grid, or give
+   the test operation that location. Keep the operation's `/TEST` marker; the
+   panel displays a test notice identifying whose reports it is observing.
+4. Inspect the map and list. Keep this observation operation empty, without
+   logging fictitious contacts or using spot/CQ posting controls.
 
-The examples above are placeholders; select a real station active at the
-time of the test. Native testing on published build 170 uses an empty
-`W9MET/TEST` operation observing the public POTA station W9MET at EL97ER.
-Live reports, SNR ordering in both directions and paging were verified
-without logging contacts or posting spots. See the repository's
-[verification record](../../../docs/VERIFICATION.md) for the complete
-native checks, screenshots and their limits. Unit, bundle and packaging
-checks alone do not establish that an installed Ham2K version renders
-every control correctly.
-
-Published Next 170 screenshots: [desktop map and table](../../../docs/images/rbn/rbn-next170-desktop.jpg),
-[compact map](../../../docs/images/rbn/rbn-next170-phone-map.jpg), and
-[compact receiver cards](../../../docs/images/rbn/rbn-next170-phone-list.jpg). The
-compact captures use a 448×770 macOS window, not a physical phone.
-
-For a reproducible desktop development check, render the actual bundled
-extension through the installed Ham2K JavaScript kernel:
-
-```sh
-mise run rbn:preview --call K1ABC --grid FN31 --minutes 30
-mise run rbn:preview --call K1ABC --grid FN31 --width 390 --height 844 --view list --sort snr --output dist/rbn-phone.svg
-```
-
-Replace the example call and grid with the observed station. The task
-builds the extension, loads the installed JavaScript kernel and ES2020
-bundle, and invokes the actual panel with live read-only RBN requests and
-a synthetic render environment. It writes:
-
-- `dist/rbn-preview.svg`: a labeled static approximation of scene artwork
-  and native text; controls and animation are inactive.
-- `dist/rbn-preview.scene.json`: the actual scene document.
-- `dist/rbn-preview.json`: environment, text, timings, hashes, request
-  records and the five-second render budget result.
-
-Use `--output <path.svg>` for another output name, `--width` and `--height`
-for panel dimensions, and `--theme dark` for a dark preview. `--view`,
-`--band`, `--sort` and `--direction` select the initial presentation.
-Browser SVG text measurement differs from Flutter's native text. The
-synthetic environment allows this development check even when the installed
-app lacks the native scene API; successful kernel execution does not prove
-that app can display the scene. The task's `/TEST` operation exists only
-in memory and creates no native operation.
+The examples are placeholders; choose a station active at the time of testing.
+For building from source, static previews, native acceptance steps and the
+earlier HTML investigation, see the
+[development and migration notes](../../../docs/RBN-SVG-MIGRATION.md).
