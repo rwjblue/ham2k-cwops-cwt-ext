@@ -3,14 +3,14 @@
   "name": "N1RWJ RBN · My signal",
   "shortName": "RBN",
   "version": "0.3.2",
-  "description": "See where your signal is heard across all RBN modes: a bundled world map and sortable Reverse Beacon Network receiver reports.",
+  "description": "See where your CW, RTTY, FT8, and FT4 signals are heard, with a bundled world map and Reverse Beacon Network reports provided by Vail ReRBN.",
   "category": "dashboard",
   "icon": "radar",
   "accentColor": "#245FC2",
   "api": 1,
-  "keywords": ["rbn", "reverse-beacon", "cw", "map", "propagation", "signal"],
+  "keywords": ["rbn", "reverse-beacon", "cw", "rtty", "ft8", "ft4", "map", "propagation", "signal"],
   "hooks": ["panel"],
-  "domains": ["www.reversebeacon.net"],
+  "domains": ["vailrerbn.com"],
   "relevance": {
     "interests": ["cw"]
   },

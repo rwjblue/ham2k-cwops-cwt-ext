@@ -1,7 +1,8 @@
 # N1RWJ RBN · My signal
 
 See where the [Reverse Beacon Network](https://www.reversebeacon.net/) has
-heard your signal across all its modes, with a reception map and sortable receiver reports.
+heard your CW, RTTY, FT8, and FT4 signals, with a reception map and sortable
+receiver reports provided by [Vail ReRBN](https://vailrerbn.com/).
 The panel automatically follows your operation's station callsign and location.
 It is read-only: it does not transmit, spot a station, post to POTA, or create
 contacts.
@@ -43,8 +44,10 @@ Narrow layouts can show the map or receiver cards separately:
 | --- | --- |
 | ![RBN map in a compact Ham2K window](../../../docs/images/rbn/rbn-compact-map.jpg) | ![RBN receiver cards in a compact Ham2K window](../../../docs/images/rbn/rbn-compact-list.jpg) |
 
-These screenshots show the published extension running in the native macOS app;
-the compact examples use a narrow desktop window. See the
+These screenshots are historical records of earlier published versions running
+in the native macOS app, before the switch to Vail ReRBN. They illustrate the
+panel layout, not runtime verification of the current backend. The compact
+examples use a narrow desktop window. See the
 [screenshot record](../../../docs/images/README.md) for capture versions and
 the [verification record](../../../docs/VERIFICATION.md) for runtime coverage.
 Physical phone and Linux runtime checks remain outstanding.
@@ -96,13 +99,14 @@ callsigns taking priority over geographic captions.
 Choose **Fit reporting receivers** in panel settings for a regional view or
 **From my station · distance rings** for a view centered on your station.
 The map includes the selected band's located receivers across all list pages.
-Receivers with no published coordinates remain in the list.
+Receiver positions come from registered grids and may differ from the actual
+skimmer location. Receivers without a valid grid remain in the list.
 
 Use the view menu to choose **Map + list**, **Map**, or **List**, and the band
 menu to select a reported band or **All bands**. The list contains the latest
 report from each receiver on each band and mode: mode, frequency, SNR, CW speed
 (for CW only), age, and—when
-locations are known—distance and bearing. The **Sort** menu offers **Heard**,
+locations are available—estimated distance and bearing. The **Sort** menu offers **Heard**,
 **Receiver**, **SNR**, **Distance**, **Frequency**, and **CW speed**. The adjacent
 direction button reverses the order; missing measurements stay last. Previous
 and next buttons move between pages, with the visible range and total count
@@ -116,7 +120,7 @@ attribution and warnings. Long details are paginated too.
 
 ## Refreshes and interpreting reports
 
-While visible, the panel checks RBN at most once per minute for each
+While visible, the panel checks Vail ReRBN at most once per minute for each
 callsign/report-window combination. Multiple panels watching the same query
 share results. A failed refresh retains cached reports within the selected
 time window and marks the failure. Reports expire as they age; the in-memory
@@ -128,16 +132,29 @@ The simplified world geography is bundled in the package, so the map needs no
 tile downloads or internet connection. New reception reports need internet
 access. See [map attribution and licenses](assets/MAP_ATTRIBUTION.md).
 
-Reports come from the RBN website's undocumented `spots.php` endpoint, which
-can change or become unavailable. If its 500-report limit is reached, the panel
-warns that reports may be missing. Receiver coordinates come from the exact
-receiver's RBN metadata and are approximate reception locations.
+Reports come from the documented [Vail ReRBN HTTP API](https://vailrerbn.com/docs/endpoints)
+at `https://vailrerbn.com/api/v1/spots`. Vail ReRBN receives both RBN streams:
+CW/RTTY and FT8/FT4. Each check requests up to 500 recent reports within the
+selected time window. The API searches partial callsigns; the panel keeps only
+exact matches, including portable suffixes. If the API reports additional
+matches beyond the returned rows, the panel warns that reports may be missing.
+Band filtering and sorting reuse the fetched reports. If the service is
+unavailable, the panel shows the failure and any unexpired cached reports.
+Rate-limit responses pause requests across all panels until the retry delay
+has passed.
+
+Receiver positions use the `spotter_grid` supplied by Vail ReRBN, which comes
+from the callsign's HamDB registered grid. It can differ from the skimmer's
+actual receiving location, especially for remote receivers. Map positions,
+distances, and bearings are estimates. Missing or invalid grids leave receivers
+in the list without a map point, distance, or bearing; the extension never
+substitutes a callsign-prefix location.
 
 SNR depends on each receiver's antenna and noise environment; comparisons at
 the same receiver, band, and mode are most useful. Reception paths do not outline a
 coverage boundary, and no recent reports do not establish a transmitter problem.
-All RBN modes are included without a mode filter, including CW, PSK31, RTTY,
-FT8, and FT4. Unrecognized mode codes remain visible with a numeric label.
+CW, RTTY, FT8, and FT4 reports are included without a mode filter. WSPR is not
+provided by this source.
 This version focuses on your signal; it does not add a hunting feed or a
 native Spots source.
 

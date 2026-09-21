@@ -80,12 +80,13 @@ export function panelModel(
       ? `TEST OPERATION — observing ${snapshot.call}; these reports belong to that station.`
       : '',
     snapshot.error ?? '',
-    `Last ${config.windowMinutes} minutes of reports across all modes. Checks at most once a minute while this panel is visible.`,
+    `Last ${config.windowMinutes} minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Checks at most once a minute while this panel is visible.`,
+    'Receiver locations use HamDB registered grids supplied by Vail ReRBN and may differ from the actual skimmer location. Distances and bearings are estimates.',
     snapshot.capped
-      ? 'The RBN response reached its 500-report limit; additional reports may be missing.'
+      ? 'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.'
       : '',
     reports.some((report) => !receiverCoordinates(report))
-      ? 'Receivers without a published location remain in the list.'
+      ? 'Receivers without a valid registered grid remain in the list.'
       : '',
   ].filter(Boolean)
   const themeMode = settings.themeMode
@@ -107,7 +108,7 @@ export function panelModel(
           ? 'No recent reports'
           : snapshot.status === 'stale'
             ? 'Cached · refresh unavailable'
-            : 'RBN unavailable',
+            : 'Vail ReRBN unavailable',
     statusKind:
       snapshot.status === 'ready'
         ? 'live'
@@ -179,7 +180,7 @@ export function createRbnPanel(
           title: 'RBN · My signal',
           icon: 'radar',
           description:
-            'Where your signal is heard, with a map and sortable receiver reports across all RBN modes.',
+            'Where your CW, RTTY, FT8, and FT4 signals are heard, with a map and RBN receiver reports provided by Vail ReRBN.',
           on: ['operation', 'tick:30'],
           multiple: true,
           form: configFields,

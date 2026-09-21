@@ -501,7 +501,7 @@ export function renderRbnScene(
       text('list-compact', 'Enlarge this panel to display reports.', listX, listY, listWidth)
       text(
         'source',
-        `RBN · ${receivers} receivers · ${model.fetchedAt ?? model.status ?? 'No recent reports'}`,
+        `RBN via Vail · ${receivers} receivers · ${model.fetchedAt ?? model.status ?? 'No recent reports'}`,
         left,
         footerTop,
         w,
@@ -734,7 +734,7 @@ export function renderRbnScene(
     )
   text(
     'source',
-    `RBN · All modes · Ages as of ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
+    `RBN via Vail · Ages as of ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
     left,
     footerTop + (footerLines > 1 ? labelLine : 0),
     w,

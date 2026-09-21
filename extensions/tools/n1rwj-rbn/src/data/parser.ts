@@ -1,15 +1,7 @@
+import { gridToLocation } from '@ham2k/lib-geo-tools'
+import { bandForExactFrequencyInMHz } from '@ham2k/lib-operation-data'
 import type { RbnReport } from '../model.ts'
 import { isValidCall, normalizeCall } from '../model.ts'
-
-const requiredSpotFields = ['de', 'freq', 'dx', 'db', 'wpm', 'band', 'mode', 'epoch'] as const
-const requiredCallFields = ['country', 'lat', 'long'] as const
-
-export interface RbnMetadata {
-  spotFields: Record<(typeof requiredSpotFields)[number], number>
-  callFields: Record<(typeof requiredCallFields)[number], number>
-  bands: Record<string, string>
-  modes: Record<string, string>
-}
 
 export function record(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -17,16 +9,15 @@ export function record(value: unknown): Record<string, unknown> | null {
     : null
 }
 
-function finite(value: unknown): number | null {
+function bounded(value: unknown, min: number, max: number): number | null {
   if (typeof value !== 'number' && typeof value !== 'string') return null
   if (typeof value === 'string' && value.trim() === '') return null
   const number = Number(value)
-  return Number.isFinite(number) ? number : null
+  return Number.isFinite(number) && number >= min && number <= max ? number : null
 }
 
-function bounded(value: unknown, min: number, max: number): number | null {
-  const number = finite(value)
-  return number !== null && number >= min && number <= max ? number : null
+function isCount(value: unknown, minimum = 0): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= minimum
 }
 
 /** RBN receiver IDs can append a skimmer suffix, such as KM3T-5. */
@@ -38,85 +29,71 @@ function isValidReceiver(value: string): boolean {
   )
 }
 
-function fieldIndexes<T extends string>(value: unknown, required: readonly T[]): Record<T, number> {
-  if (!Array.isArray(value)) throw new Error('RBN returned an unsupported data format.')
-  const result = {} as Record<T, number>
-  for (const field of required) {
-    const index = value.indexOf(field)
-    if (index < 0) throw new Error('RBN returned an unsupported data format.')
-    result[field] = index
-  }
-  return result
-}
-
-export function parseRbnMetadata(value: unknown): RbnMetadata {
-  const data = record(value)
-  if (!data || !Array.isArray(data.bands) || !record(data.modes)) {
-    throw new Error('RBN returned an unsupported data format.')
-  }
-  const bands: Record<string, string> = {}
-  for (const item of data.bands) {
-    const band = record(item)
-    const code = finite(band?.code)
-    const meters = bounded(band?.meters, 1, 1000)
-    if (code !== null && meters !== null) bands[String(code)] = `${meters}m`
-  }
-  const modes: Record<string, string> = {}
-  for (const [code, item] of Object.entries(record(data.modes) ?? {})) {
-    const mode = record(item)?.mode
-    if (typeof mode === 'string' && mode.trim() && mode.length <= 32)
-      modes[code] = mode.trim().toUpperCase()
-  }
-  if (!Object.keys(bands).length) {
-    throw new Error('RBN returned an unsupported data format.')
-  }
-  return {
-    spotFields: fieldIndexes(data.spot_fields, requiredSpotFields),
-    callFields: fieldIndexes(data.call_info_fields, requiredCallFields),
-    bands,
-    modes,
-  }
+function receiverLocation(value: unknown): [number | null, number | null] {
+  const grid = typeof value === 'string' ? value.trim().toUpperCase() : ''
+  if (!/^[A-R]{2}\d{2}(?:[A-X]{2}(?:\d{2})?)?$/.test(grid)) return [null, null]
+  // Vail enriches this grid from HamDB. It is an approximate lookup location,
+  // not necessarily the skimmer's current physical location.
+  return gridToLocation(grid)
 }
 
 export function parseRbnPayload(
   value: unknown,
-  metadata: RbnMetadata,
   call: string,
   windowMinutes: number,
   now: number,
   limit = 500,
 ): { reports: RbnReport[]; capped: boolean } {
   const data = record(value)
-  if (!data || data.error !== undefined || bounded(data.now, 1, 1e12) === null) {
-    throw new Error('RBN returned an unsupported data format.')
+  if (
+    !data ||
+    data.error !== undefined ||
+    !Array.isArray(data.spots) ||
+    !isCount(data.total) ||
+    !isCount(data.offset) ||
+    !isCount(data.limit, 1)
+  ) {
+    throw new Error('Vail ReRBN returned an unsupported data format.')
   }
-  const spots = data.spots === undefined ? {} : record(data.spots)
-  if (!spots) throw new Error('RBN returned an unsupported data format.')
-  const callInfo = record(data.call_info) ?? {}
-  const fields = metadata.spotFields
   const reports: RbnReport[] = []
-  const entries = Object.entries(spots)
   const cutoff = now - windowMinutes * 60_000
-  for (const [id, row] of entries.slice(0, limit)) {
-    if (!Array.isArray(row)) continue
-    const spotCall = typeof row[fields.dx] === 'string' ? normalizeCall(row[fields.dx]) : ''
-    const receiver = typeof row[fields.de] === 'string' ? normalizeCall(row[fields.de]) : ''
-    // Even if the site's undocumented filter changes, never show a global feed.
-    if (spotCall !== call || !isValidReceiver(receiver)) continue
-    const frequencyKhz = bounded(row[fields.freq], 100, 1_000_000)
-    const epoch = bounded(row[fields.epoch], 1, 1e12)
-    const band = metadata.bands[String(row[fields.band])]
-    const modeCode = finite(row[fields.mode])
+  const watchedCall = normalizeCall(call)
+  const rowLimit = Number.isSafeInteger(limit) && limit > 0 ? limit : 500
+  const entries = data.spots.slice(0, rowLimit)
+  let recognizable = false
+  for (const value of entries) {
+    const row = record(value)
+    if (
+      !row ||
+      !('callsign' in row && 'spotter' in row && 'frequency' in row && 'timestamp' in row)
+    )
+      continue
+    recognizable = true
+    const spotCall = typeof row.callsign === 'string' ? normalizeCall(row.callsign) : ''
+    const receiver = typeof row.spotter === 'string' ? normalizeCall(row.spotter) : ''
+    // The API call filter is a partial match: keep portable suffixes distinct.
+    if (spotCall !== watchedCall || !isValidCall(spotCall) || !isValidReceiver(receiver)) continue
+    const id =
+      isCount(row.id, 1) || (typeof row.id === 'string' && /^[1-9]\d{0,19}$/.test(row.id))
+        ? String(row.id)
+        : null
+    const frequencyKhz = bounded(row.frequency, 100, 1_000_000)
+    const timestamp =
+      typeof row.timestamp === 'string' &&
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(row.timestamp)
+        ? Date.parse(row.timestamp)
+        : Number.NaN
+    if (!id || !frequencyKhz || !Number.isFinite(timestamp)) continue
+    // Despite its name, the shared library's exact helper takes kHz. Its general
+    // helper also tries MHz, which would misclassify an invalid 144 kHz as 2m.
+    const band = bandForExactFrequencyInMHz(frequencyKhz)
+    if (!band) continue
+    if (timestamp < cutoff || timestamp > now + 300_000) continue
     const mode =
-      metadata.modes[String(modeCode)] ?? (modeCode === null ? 'Unknown' : `Mode ${modeCode}`)
-    if (!frequencyKhz || !epoch || !band) continue
-    const timeMs = epoch * 1000
-    if (timeMs < cutoff || timeMs > now + 300_000) continue
-    const info = callInfo[receiver]
-    const coordinates = Array.isArray(info) ? info : []
-    const latitude = bounded(coordinates[metadata.callFields.lat], -90, 90)
-    const longitude = bounded(coordinates[metadata.callFields.long], -180, 180)
-    const country = coordinates[metadata.callFields.country]
+      typeof row.mode === 'string' && row.mode.trim() && row.mode.length <= 32
+        ? row.mode.trim().toUpperCase()
+        : 'Unknown'
+    const [receiverLatitude, receiverLongitude] = receiverLocation(row.spotter_grid)
     reports.push({
       id,
       call: spotCall,
@@ -124,22 +101,21 @@ export function parseRbnPayload(
       frequencyKhz,
       band,
       mode,
-      snrDb: bounded(row[fields.db], -100, 150),
-      // RBN reuses this field for digital speeds; only CW measurements are WPM.
-      wpm: mode === 'CW' ? bounded(row[fields.wpm], 1, 100) : null,
-      timeMs,
-      receiverLatitude: latitude !== null && longitude !== null ? latitude : null,
-      receiverLongitude: latitude !== null && longitude !== null ? longitude : null,
-      country: typeof country === 'string' && country.length <= 100 ? country : null,
+      snrDb: bounded(row.snr, -100, 150),
+      wpm: mode === 'CW' ? bounded(row.wpm, 1, 100) : null,
+      timeMs: timestamp,
+      receiverLatitude,
+      receiverLongitude,
+      country: null,
     })
   }
-  // A nonempty response with no recognizable row structure must not look like silence.
-  if (
-    entries.length &&
-    !entries.some(([, row]) => Array.isArray(row) && row.length > fields.epoch)
-  ) {
-    throw new Error('RBN returned an unsupported data format.')
+  // A changed row schema must not look like a successful search with no reports.
+  if (entries.length && !recognizable) {
+    throw new Error('Vail ReRBN returned an unsupported data format.')
   }
   reports.sort((a, b) => b.timeMs - a.timeMs || a.id.localeCompare(b.id))
-  return { reports, capped: entries.length >= limit }
+  return {
+    reports,
+    capped: data.spots.length > rowLimit || data.total > data.offset + data.spots.length,
+  }
 }

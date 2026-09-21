@@ -1,5 +1,42 @@
 # Verification and compatibility
 
+## Vail ReRBN HTTP migration — 2026-09-21 (unreleased)
+
+The RBN panel now requests CW, RTTY, FT8, and FT4 reports through the
+[Vail ReRBN HTTP API](https://vailrerbn.com/docs/endpoints). Each visible query
+fetches one bounded snapshot per minute; exact callsign filtering, portable
+suffixes, expiry, failed-refresh caching, response limits, and shared rate-limit
+backoff are covered by deterministic tests. Receiver coordinates use Vail's
+HamDB grids and are explicitly described as approximate lookup locations.
+The `n1rwj-rbn` extension and `my-signal` panel identities are unchanged.
+
+`mise run check` passed **392 tests across 30 files**, lint, TypeScript checks,
+official builds, and package validation. This working-tree build retains the
+**0.3.2** version label; it is not a published release artifact. The local RBN
+archive is **262,131 bytes**, with SHA-256
+`5fd4bc44f751f73692bb47749e7d8561e27de4e6e4cf2b3ccd04654420317800`.
+
+At 23:25 UTC, the built ES2020 bundle ran through the installed **Ham2K Next
+26.9.0 build 170** JavaScript kernel with a synthetic 1280×800 panel environment:
+
+| Observed call | Visible mode | Scene reports | HTTP request | Complete render |
+| --- | --- | --- | --- | --- |
+| WG1V | FT4 | 14 receivers, 1 band | 200, 230 ms, 2,785 bytes | 384 ms |
+| VE3KI | FT8 | 14 receivers, 2 bands, 19 receiver/band/mode rows | 200, 189 ms, 3,534 bytes | 342 ms |
+
+Each render made one request to `/api/v1/spots` with `call`, Unix-second
+`since`, and `limit=500`. Both stayed below the five-second host budget.
+The memory-only `/TEST` operations used explicit origin grids returned by
+Vail (FN42FK and EM77UR); these lookup grids do not verify transmitter
+locations. No native operation, QSO, or spot was created.
+
+Local evidence is `dist/rbn-vail-ft4.svg` and `dist/rbn-vail-ft8.svg`, with
+matching scene and provenance JSON files. Kernel execution establishes bundle
+compatibility and live HTTP parsing, not native UI rendering or interaction.
+The changed package has not been installed in the native app for this check.
+This change is confined to RBN and its preview tooling; CWT behavior is
+unchanged, so no CWT upstream synchronization is required.
+
 ## Published 0.3.1 native screenshot refresh — 2026-09-21
 
 Downloaded all four `.h2kext` bundles and their checksum files directly from

@@ -1,113 +1,87 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createRbnClient } from '../../src/data/client.ts'
-import { metadata, NOW, payload } from './fixtures.ts'
+import { NOW, payload, spotPayload } from './fixtures.ts'
 
 const query = { call: ' n1rwj ', windowMinutes: 30 }
 const response = (data: unknown, status = 200) => ({ status, body: JSON.stringify(data) })
 
-describe('RBN client', () => {
-  it('uses the supplied real wall clock for live reports, cooldowns, and expiry during developer time travel', async () => {
-    let developerTime = NOW + 7 * 24 * 60 * 60_000
-    const fetch = vi.fn(async (url: string) =>
-      response(url.includes('meta=1') ? metadata : payload()),
+describe('Vail ReRBN client', () => {
+  it('uses one bounded HTTP snapshot across modes and preserves exact portable calls', async () => {
+    const fetch = vi.fn(async (_url: string) =>
+      response(
+        payload({
+          spots: [
+            spotPayload({ callsign: 'N1RWJ/P', mode: 'FT8' }),
+            spotPayload({ callsign: 'N1RWJ/P', mode: 'FT4', id: 124 }),
+            spotPayload({ callsign: 'N1RWJ/P2', id: 125 }),
+          ],
+          total: 3,
+        }),
+      ),
     )
+    const client = createRbnClient({ fetch, now: () => NOW })
+    const snapshot = await client.getSnapshot({ ...query, call: ' n1rwj/p ' })
+    expect(snapshot).toMatchObject({ status: 'ready', call: 'N1RWJ/P', lastSuccessMs: NOW })
+    expect(snapshot.reports.map((report) => report.mode).sort()).toEqual(['FT4', 'FT8'])
+    expect(fetch).toHaveBeenCalledExactlyOnceWith(
+      `https://vailrerbn.com/api/v1/spots?call=N1RWJ%2FP&since=${NOW / 1000 - 1800}&limit=500`,
+      { timeout: 3000 },
+    )
+  })
+
+  it('uses the supplied real clock for report windows, cooldowns, and expiry during time travel', async () => {
+    let developerTime = NOW + 7 * 24 * 60 * 60_000
+    const fetch = vi.fn(async (_url: string) => response(payload()))
     const client = createRbnClient({ fetch, now: () => developerTime })
     const initial = await client.getSnapshot(query, { realNowMillis: NOW })
     expect(initial).toMatchObject({ status: 'ready', lastSuccessMs: NOW, lastAttemptMs: NOW })
     expect(initial.reports).toHaveLength(1)
-
-    // Accelerating the app clock must not accelerate requests to RBN.
+    expect(new URL(fetch.mock.calls[0][0]).searchParams.get('since')).toBe(
+      String(NOW / 1000 - 1800),
+    )
     developerTime += 365 * 24 * 60 * 60_000
     await client.getSnapshot(query, { realNowMillis: NOW + 10_000 })
-    expect(fetch).toHaveBeenCalledTimes(2)
-
-    // A frozen app clock must not stop ordinary real-time refresh and expiry.
+    expect(fetch).toHaveBeenCalledTimes(1)
     developerTime = NOW - 7 * 24 * 60 * 60_000
     const refreshed = await client.getSnapshot(query, { realNowMillis: NOW + 60_000 })
-    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(fetch).toHaveBeenCalledTimes(2)
     expect(refreshed.lastSuccessMs).toBe(NOW + 60_000)
-    const expired = await client.getSnapshot(query, {
-      online: false,
-      realNowMillis: NOW + 31 * 60_000,
-    })
-    expect(expired).toMatchObject({ status: 'stale', reports: [] })
+    expect(
+      await client.getSnapshot(query, { online: false, realNowMillis: NOW + 31 * 60_000 }),
+    ).toMatchObject({ status: 'stale', reports: [] })
   })
 
   it('retains the injected clock fallback for older hosts and invalid optional clock values', async () => {
-    const fetch = vi.fn(async (url: string) =>
-      response(url.includes('meta=1') ? metadata : payload()),
-    )
-    const client = createRbnClient({ fetch, now: () => NOW })
+    const client = createRbnClient({ fetch: async () => response(payload()), now: () => NOW })
     expect(await client.getSnapshot(query, { realNowMillis: Number.NaN })).toMatchObject({
       status: 'ready',
       lastSuccessMs: NOW,
     })
   })
 
-  it('discovers metadata and retries the dynamic version handshake exactly once', async () => {
-    const fetch = vi.fn(async (url: string) => {
-      if (url.includes('meta=1')) return response(metadata)
-      if (!url.includes('&h=')) return response({ error: 888, ver_h: 'new123' }, 400)
-      expect(url).toContain('&h=new123')
-      return response(payload())
-    })
-    const client = createRbnClient({ fetch, now: () => NOW })
-    expect(await client.getSnapshot(query)).toMatchObject({
-      status: 'ready',
-      call: 'N1RWJ',
-      lastSuccessMs: NOW,
-    })
-    expect(fetch).toHaveBeenCalledTimes(3)
-    expect(fetch).toHaveBeenNthCalledWith(1, expect.any(String), { timeout: 1200 })
-    expect(fetch).toHaveBeenNthCalledWith(2, expect.any(String), { timeout: 1200 })
-    expect(fetch).toHaveBeenNthCalledWith(3, expect.any(String), { timeout: 1200 })
-    const spotQueries = fetch.mock.calls
-      .map(([url]) => new URL(url).searchParams)
-      .filter((params) => !params.has('meta'))
-    expect(spotQueries).toHaveLength(2)
-    for (const params of spotQueries) {
-      expect(Object.fromEntries(params)).toMatchObject({ cdx: 'N1RWJ', ma: '1800', r: '500' })
-      expect(params.has('m')).toBe(false)
-    }
-  })
-
-  it('does not loop on repeated or malicious version challenges', async () => {
-    for (const hash of ['abc123', '../untrusted?x=y']) {
-      const fetch = vi.fn(async (url: string) =>
-        response(url.includes('meta=1') ? metadata : { error: 888, ver_h: hash }),
-      )
-      expect(await createRbnClient({ fetch, now: () => NOW }).getSnapshot(query)).toMatchObject({
-        status: 'error',
-      })
-      expect(fetch.mock.calls.length).toBe(hash === 'abc123' ? 3 : 2)
-    }
-  })
-
-  it('deduplicates in-flight queries and enforces a 30-second minimum even for forced refreshes', async () => {
+  it('deduplicates concurrent queries and enforces cooldowns including forced refreshes', async () => {
     let clock = NOW
-    const fetch = vi.fn(async (url: string) =>
-      response(url.includes('meta=1') ? metadata : payload()),
-    )
+    const fetch = vi.fn(async () => response(payload()))
     const client = createRbnClient({ fetch, now: () => clock })
     const [a, b] = await Promise.all([client.getSnapshot(query), client.getSnapshot(query)])
     expect(a).toEqual(b)
-    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(fetch).toHaveBeenCalledTimes(1)
     clock += 29_999
     await client.getSnapshot(query, { force: true })
-    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(fetch).toHaveBeenCalledTimes(1)
     clock += 1
     await client.getSnapshot(query)
-    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(fetch).toHaveBeenCalledTimes(1)
     await client.getSnapshot(query, { force: true })
-    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(fetch).toHaveBeenCalledTimes(2)
   })
 
-  it('keeps cached reports and success time on a refresh failure; retries wait for cooldown', async () => {
+  it('keeps cached reports and success time on failure; expires old reports and waits to retry', async () => {
     let clock = NOW
     let online = true
-    const fetch = vi.fn(async (url: string) => {
+    const fetch = vi.fn(async () => {
       if (!online) throw new Error('socket failed')
-      return response(url.includes('meta=1') ? metadata : payload())
+      return response(payload())
     })
     const client = createRbnClient({ fetch, now: () => clock })
     await client.getSnapshot(query)
@@ -117,15 +91,13 @@ describe('RBN client', () => {
     expect(stale).toMatchObject({ status: 'stale', lastSuccessMs: NOW, lastAttemptMs: clock })
     expect(stale.reports).toHaveLength(1)
     await client.getSnapshot(query)
-    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(fetch).toHaveBeenCalledTimes(2)
     clock += 30 * 60_000
     expect((await client.getSnapshot(query)).reports).toEqual([])
   })
 
   it('honors host offline state without making requests', async () => {
-    const fetch = vi.fn(async (url: string) =>
-      response(url.includes('meta=1') ? metadata : payload()),
-    )
+    const fetch = vi.fn(async () => response(payload()))
     const client = createRbnClient({ fetch, now: () => NOW })
     expect(await client.getSnapshot(query, { online: false })).toMatchObject({
       status: 'error',
@@ -136,55 +108,111 @@ describe('RBN client', () => {
     const offline = await client.getSnapshot(query, { online: false, force: true })
     expect(offline).toMatchObject({ status: 'stale', lastSuccessMs: NOW })
     expect(offline.reports).toHaveLength(1)
-    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('separates stations and time windows and rejects invalid calls without fetching', async () => {
-    const fetch = vi.fn(async (url: string) =>
-      response(url.includes('meta=1') ? metadata : payload()),
-    )
+    const fetch = vi.fn(async () => response(payload()))
     const client = createRbnClient({ fetch, now: () => NOW })
     await client.getSnapshot(query)
     expect((await client.getSnapshot({ ...query, call: 'K1ABC' })).reports).toEqual([])
     await client.getSnapshot({ ...query, windowMinutes: 60 })
-    expect(fetch).toHaveBeenCalledTimes(4)
-    expect(await client.getSnapshot({ ...query, call: '*&bad=1' })).toMatchObject({
-      status: 'error',
-    })
-    expect(await client.getSnapshot({ ...query, call: 'N1RWJ-5' })).toMatchObject({
-      status: 'error',
-    })
-    expect(fetch).toHaveBeenCalledTimes(4)
+    expect(fetch).toHaveBeenCalledTimes(3)
+    for (const call of ['*&bad=1', 'N1RWJ-5']) {
+      expect(await client.getSnapshot({ ...query, call })).toMatchObject({ status: 'error' })
+    }
+    expect(fetch).toHaveBeenCalledTimes(3)
   })
 
-  it('marks a successful empty response separately from HTTP and malformed JSON failures', async () => {
-    const fetch = vi.fn(async (url: string) =>
-      response(url.includes('meta=1') ? metadata : { now: NOW / 1000 }),
-    )
+  it('distinguishes empty results from HTTP, malformed, and oversized failures', async () => {
+    const fetch = async () => response(payload({ spots: [], total: 0 }))
     expect(await createRbnClient({ fetch, now: () => NOW }).getSnapshot(query)).toMatchObject({
       status: 'empty',
       error: null,
     })
     for (const result of [
-      { status: 400, body: JSON.stringify({ error: 'unexpected failure' }) },
+      response({ error: 'unexpected failure' }, 400),
       { status: 503, body: '' },
       { status: 200, body: '<html>oops</html>' },
+      { status: 200, body: ' '.repeat(1_000_001) },
+      response({ spots: 'changed schema' }),
     ]) {
-      const failing = async (url: string) => (url.includes('meta=1') ? response(metadata) : result)
+      const failing = vi.fn(async () => result)
       expect(
         await createRbnClient({ fetch: failing, now: () => NOW }).getSnapshot(query),
-      ).toMatchObject({ status: 'error' })
+      ).toMatchObject({ status: 'error', lastSuccessMs: null, reports: [] })
+      expect(failing).toHaveBeenCalledTimes(1)
+    }
+  })
+
+  it('replaces snapshots and detects server truncation before filtering partial calls', async () => {
+    let clock = NOW
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(response(payload({ total: 700 })))
+      .mockResolvedValueOnce(response(payload({ spots: [spotPayload({ callsign: 'N1RWJ/P' })] })))
+    const client = createRbnClient({ fetch, now: () => clock })
+    expect(await client.getSnapshot(query)).toMatchObject({ status: 'ready', capped: true })
+    clock += 60_000
+    expect(await client.getSnapshot(query)).toMatchObject({
+      status: 'empty',
+      capped: false,
+      reports: [],
+    })
+  })
+
+  it('honors Vail retryAfter across queries and forced refreshes while retaining cached data', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(response(payload()))
+      .mockResolvedValueOnce(
+        response({ error: { code: 'RATE_LIMIT_EXCEEDED', retryAfter: 120 } }, 429),
+      )
+      .mockResolvedValue(response(payload()))
+    const client = createRbnClient({ fetch, now: () => NOW + 365 * 24 * 60 * 60_000 })
+    await client.getSnapshot(query, { realNowMillis: NOW })
+    const limited = await client.getSnapshot(query, { realNowMillis: NOW + 60_000 })
+    expect(limited).toMatchObject({ status: 'stale', lastSuccessMs: NOW })
+    expect(limited.error).toContain('rate limit')
+    expect(limited.reports).toHaveLength(1)
+    for (const call of ['N1RWJ', 'K1ABC']) {
+      const waiting = await client.getSnapshot(
+        { ...query, call },
+        { force: true, realNowMillis: NOW + 182_999 },
+      )
+      expect(waiting.error).toContain('rate limit')
+    }
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(await client.getSnapshot(query, { realNowMillis: NOW + 183_000 })).toMatchObject({
+      status: 'ready',
+    })
+    expect(fetch).toHaveBeenCalledTimes(3)
+  })
+
+  it('backs off even when a 429 has no usable JSON retryAfter', async () => {
+    for (const body of [
+      '<html>Too many requests</html>',
+      JSON.stringify({ error: { retryAfter: -1 } }),
+    ]) {
+      let clock = NOW
+      const fetch = vi.fn(async () => ({ status: 429, body }))
+      const client = createRbnClient({ fetch, now: () => clock })
+      expect((await client.getSnapshot(query)).error).toContain('rate limit')
+      clock += 62_999
+      await client.getSnapshot({ ...query, call: 'K1ABC' }, { force: true })
+      expect(fetch).toHaveBeenCalledTimes(1)
+      clock += 1
+      await client.getSnapshot(query)
+      expect(fetch).toHaveBeenCalledTimes(2)
     }
   })
 
   it('evicts old queries to bound the cache', async () => {
-    const fetch = vi.fn(async (url: string) =>
-      response(url.includes('meta=1') ? metadata : { now: NOW / 1000 }),
-    )
+    const fetch = vi.fn(async () => response(payload({ spots: [], total: 0 })))
     const client = createRbnClient({ fetch, now: () => NOW })
     for (let i = 0; i < 9; i++) await client.getSnapshot({ ...query, call: `K${i}ABC` })
-    expect(fetch).toHaveBeenCalledTimes(10)
+    expect(fetch).toHaveBeenCalledTimes(9)
     await client.getSnapshot({ ...query, call: 'K0ABC' })
-    expect(fetch).toHaveBeenCalledTimes(11)
+    expect(fetch).toHaveBeenCalledTimes(10)
   })
 })

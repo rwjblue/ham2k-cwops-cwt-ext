@@ -105,8 +105,13 @@ not modify the official CWT extension.
 
 ### RBN reception panel
 
-`extensions/tools/n1rwj-rbn/` is an independent panel extension. Reports and
-receiver locations come from the Reverse Beacon Network. The bundled map uses
+`extensions/tools/n1rwj-rbn/` is an independent panel extension. Reception
+reports originate from the [Reverse Beacon Network](https://www.reversebeacon.net/)
+and are delivered by the [Vail ReRBN HTTP API](https://vailrerbn.com/docs/endpoints),
+which receives the CW/RTTY and FT8/FT4 streams. Vail ReRBN supplies receiver
+locations from HamDB registered callsign grids; these can differ from the actual
+skimmer locations, so map paths, distances, and bearings are estimates.
+Receivers without valid grids remain in the list. The bundled map uses
 Natural Earth geometry and ISC-licensed projection libraries; the
 [map attribution](https://github.com/rwjblue/ham2k-n1rwj-extensions/blob/main/extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
 records their sources and retained notices. RBN does not change CWT behavior

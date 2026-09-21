@@ -72,7 +72,7 @@ const model: UiModel = {
   status: 'Recent reports',
   statusKind: 'live',
   locationLabel: 'Map origin FN20VW · 40.938°, -74.208°',
-  note: 'TEST OPERATION — observing KG2GL; these reports belong to that station. Last 30 minutes of reports across all modes. Checks at most once a minute while this panel is visible.',
+  note: 'TEST OPERATION — observing KG2GL; these reports belong to that station. Last 30 minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Checks at most once a minute while this panel is visible.',
   bands: ['all', '20m', '40m'],
   rows,
   mapOptions: {
@@ -141,7 +141,7 @@ describe('RBN native scene', () => {
   it.each([390, 1366])('shows modes and CW-only WPM at width %i', (width) => {
     const source = {
       ...model,
-      rows: ['CW', 'PSK31', 'RTTY', 'FT8', 'FT4'].map((mode) => ({
+      rows: ['CW', 'RTTY', 'FT8', 'FT4'].map((mode) => ({
         ...rows[0],
         mode,
         wpm: mode === 'CW' ? 25 : undefined,
@@ -177,6 +177,7 @@ describe('RBN native scene', () => {
     expect(pageSize).toBeLessThanOrEqual(7)
     expect(text(scene)).toContain('TEST · KG2GL')
     expect(text(scene)).toContain('Checked 14:48:08 UTC · Heard 1 min ago')
+    expect(text(scene)).toContain('RBN via Vail')
     expect(scene.layers.find((layer) => layer.id === 'title')?.text?.fontFamily).toBe('Host font')
     assertSceneBounds(scene)
   })
@@ -307,7 +308,7 @@ describe('RBN native scene', () => {
 
   it('shows all provenance and warning text in paginated details on a phone', () => {
     const warning =
-      'The RBN response reached its 500-report limit; additional reports may be missing.'
+      'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.'
     const source = { ...model, warnings: [warning] }
     const first = renderRbnScene(source, environment(320, 580), { details: true })
     const details: string[] = []
@@ -318,7 +319,7 @@ describe('RBN native scene', () => {
     }
     const displayed = details.join(' ').replace(/\s+/g, ' ')
     expect(displayed).toContain(
-      'The RBN response reached its 500-report limit; additional reports may be missing.',
+      'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.',
     )
     expect(displayed).toContain('these reports belong to that station.')
     expect(displayed).toContain('No map tiles are downloaded.')

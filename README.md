@@ -6,7 +6,7 @@ install only the ones you want.
 
 | Extension | What it adds |
 | --- | --- |
-| [RBN · My signal](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) | Reception map and sortable Reverse Beacon Network receiver reports, using your operation's callsign and location |
+| [RBN · My signal](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) | Reception map and sortable CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN, using your operation's callsign and location |
 | [CWops CWT](extensions/contests/n1rwj-cwt/README.md) (`n1rwj-cwt`) | CWT sessions, exchange suggestions, scoring, and exports |
 | [ICWC MST](extensions/contests/n1rwj-mst/README.md) (`n1rwj-mst`) | MST sessions, name suggestions, outgoing serials, scoring, and exports |
 | [K1USN SST](extensions/contests/n1rwj-sst/README.md) (`n1rwj-sst`) | SST sessions, name/location suggestions, scoring, and exports |
@@ -52,7 +52,9 @@ Use the panel menus to switch views, filter bands, sort reports, and page
 through receivers. Wide panes show a table; narrow panes use receiver cards.
 Explicit callsign/grid overrides stay with that panel placement until cleared,
 so leave them blank for normal operation. The map geography is bundled; new
-RBN reports need internet access. See the [RBN guide and screenshots](extensions/tools/n1rwj-rbn/README.md)
+RBN reports are provided by Vail ReRBN and need internet access. Receiver positions
+use registered grids, so map paths, distances, and bearings are estimates.
+See the [RBN guide and historical screenshots](extensions/tools/n1rwj-rbn/README.md)
 for settings, test observations, and device-testing limits.
 
 ### Contest extensions

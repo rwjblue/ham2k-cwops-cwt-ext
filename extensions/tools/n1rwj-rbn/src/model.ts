@@ -21,7 +21,7 @@ export interface RbnSnapshot {
   lastAttemptMs: number | null
   lastSuccessMs: number | null
   error: string | null
-  /** The server returned the full row limit; there may be additional reports. */
+  /** The response omitted matching rows, or exceeded the defensive row limit. */
   capped: boolean
 }
 

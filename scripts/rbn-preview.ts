@@ -260,13 +260,13 @@ export async function previewRbn(root: string, options: PreviewOptions): Promise
     const url = new URL(message.params?.url ?? '')
     if (
       url.protocol !== 'https:' ||
-      url.hostname !== 'www.reversebeacon.net' ||
-      url.pathname !== '/spots.php' ||
+      url.hostname !== 'vailrerbn.com' ||
+      url.pathname !== '/api/v1/spots' ||
       (message.params?.method ?? 'GET') !== 'GET'
     ) {
-      throw new Error('Preview only permits read-only HTTPS RBN spot requests.')
+      throw new Error('Preview only permits read-only HTTPS Vail ReRBN spot requests.')
     }
-    const timeoutMs = Math.min(1500, Math.max(1, message.params?.timeout ?? 1200))
+    const timeoutMs = Math.min(3000, Math.max(1, message.params?.timeout ?? 3000))
     const started = performance.now()
     const record: FetchRecord = { url: url.href, durationMs: 0, timeoutMs }
     fetches.push(record)

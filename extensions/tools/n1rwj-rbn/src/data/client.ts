@@ -1,16 +1,15 @@
 import type { FetchOptions, FetchResponse } from '@ham2k/extension-sdk'
 import type { RbnSnapshot } from '../model.ts'
 import { isValidCall, normalizeCall } from '../model.ts'
-import type { RbnMetadata } from './parser.ts'
-import { parseRbnMetadata, parseRbnPayload, record } from './parser.ts'
+import { parseRbnPayload, record } from './parser.ts'
 
-const endpoint = 'https://www.reversebeacon.net/spots.php'
+const endpoint = 'https://vailrerbn.com/api/v1/spots'
 const maxReports = 500
 const maxEntries = 8
 const maxResponseLength = 1_000_000
-// A cold load runs metadata in parallel with at most two spot requests.
-// Keep their combined network budget below the host's five-second panel deadline.
-const requestTimeoutMs = 1200
+// One bounded snapshot request leaves time to render within the host's five-second deadline.
+const requestTimeoutMs = 3000
+const rateLimitMessage = 'Vail ReRBN rate limit reached. Waiting before retrying.'
 
 export interface RbnQuery {
   call: string
@@ -39,58 +38,48 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
   const now = options.now ?? Date.now
   const refreshIntervalMs = Math.max(30_000, options.refreshIntervalMs ?? 60_000)
   const cache = new Map<string, Entry>()
-  let metadata: Promise<RbnMetadata> | undefined
-  let version: string | undefined
+  let rateLimitedUntil = 0
 
-  async function getJson(url: string, allowVersionChallenge = false): Promise<unknown> {
+  async function getJson(url: string, requestNow: () => number): Promise<unknown> {
     const response = await options.fetch(url, { timeout: requestTimeoutMs })
+    if (response.status === 429) {
+      let retryAfter: unknown
+      // The host does not expose Retry-After headers; Vail documents this JSON field.
+      if (response.body.length <= maxResponseLength) {
+        try {
+          retryAfter = record(record(JSON.parse(response.body))?.error)?.retryAfter
+        } catch {
+          // Non-JSON rate-limit responses still pause every panel using this client.
+        }
+      }
+      const delay =
+        typeof retryAfter === 'number' && Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.max(30_000, retryAfter * 1000)
+          : 60_000
+      // Supplied panel clocks are frozen at render start. Allow the whole request
+      // budget so the response's retryAfter period cannot expire early.
+      rateLimitedUntil = Math.max(rateLimitedUntil, requestNow() + requestTimeoutMs + delay)
+      throw new Error(rateLimitMessage)
+    }
     const success = response.status >= 200 && response.status < 300
-    if (!success && !(allowVersionChallenge && response.status === 400))
-      throw new Error(`RBN request failed (${response.status}).`)
-    if (response.body.length > maxResponseLength) throw new Error('RBN response was too large.')
-    let data: unknown
+    if (!success) throw new Error(`Vail ReRBN request failed (${response.status}).`)
+    if (response.body.length > maxResponseLength)
+      throw new Error('Vail ReRBN response was too large.')
     try {
-      data = JSON.parse(response.body) as unknown
+      return JSON.parse(response.body) as unknown
     } catch {
-      throw new Error('RBN returned an unsupported data format.')
+      throw new Error('Vail ReRBN returned an unsupported data format.')
     }
-    // RBN uses HTTP 400 for its normal website-version handshake.
-    if (!success && record(data)?.error !== 888)
-      throw new Error(`RBN request failed (${response.status}).`)
-    return data
   }
 
-  function getMetadata(): Promise<RbnMetadata> {
-    if (!metadata) {
-      metadata = getJson(`${endpoint}?meta=1`)
-        .then(parseRbnMetadata)
-        .catch((error: unknown) => {
-          metadata = undefined
-          throw error
-        })
-    }
-    return metadata
-  }
-
-  async function getReports(query: RbnQuery): Promise<unknown> {
-    const queryString = `cdx=${encodeURIComponent(query.call)}&ma=${query.windowMinutes * 60}&r=${maxReports}`
-    const request = () =>
-      getJson(
-        `${endpoint}?${queryString}${version ? `&h=${encodeURIComponent(version)}` : ''}`,
-        true,
-      )
-    let data = await request()
-    const challenge = record(data)
-    if (
-      challenge?.error === 888 &&
-      typeof challenge.ver_h === 'string' &&
-      /^[a-z0-9]{1,64}$/i.test(challenge.ver_h)
-    ) {
-      version = challenge.ver_h
-      // The site's version handshake is retried once, never in a loop.
-      data = await request()
-    }
-    return data
+  function getReports(query: RbnQuery, requestNow: () => number): Promise<unknown> {
+    const since = Math.floor(requestNow() / 1000) - query.windowMinutes * 60
+    // Vail's call search is partial; the parser enforces an exact callsign match.
+    // Fetch a fresh, bounded window across modes instead of accumulating a stream.
+    return getJson(
+      `${endpoint}?call=${encodeURIComponent(query.call)}&since=${since}&limit=${maxReports}`,
+      requestNow,
+    )
   }
 
   function clip(snapshot: RbnSnapshot, at: number): RbnSnapshot {
@@ -155,6 +144,17 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
         requestNow(),
       )
     }
+    if (time < rateLimitedUntil) {
+      const previous = entry?.snapshot ?? initial
+      return clip(
+        {
+          ...previous,
+          status: previous.lastSuccessMs === null ? 'error' : 'stale',
+          error: rateLimitMessage,
+        },
+        requestNow(),
+      )
+    }
     if (entry) {
       cache.delete(key)
       cache.set(key, entry)
@@ -179,15 +179,8 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
     const current = entry
     current.inFlight = (async () => {
       try {
-        const [schema, payload] = await Promise.all([getMetadata(), getReports(normalized)])
-        const result = parseRbnPayload(
-          payload,
-          schema,
-          call,
-          windowMinutes,
-          requestNow(),
-          maxReports,
-        )
+        const payload = await getReports(normalized, requestNow)
+        const result = parseRbnPayload(payload, call, windowMinutes, requestNow(), maxReports)
         current.snapshot = {
           ...normalized,
           ...result,
@@ -202,9 +195,9 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
           status: current.snapshot.lastSuccessMs === null ? 'error' : 'stale',
           lastAttemptMs: time,
           error:
-            error instanceof Error && error.message.startsWith('RBN ')
+            error instanceof Error && error.message.startsWith('Vail ReRBN ')
               ? error.message
-              : 'Unable to refresh RBN. Check your connection.',
+              : 'Unable to refresh Vail ReRBN. Check your connection.',
         }
       } finally {
         current.inFlight = undefined
