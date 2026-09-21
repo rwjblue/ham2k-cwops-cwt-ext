@@ -156,6 +156,25 @@ describe('RBN native panel integration', () => {
     expect(model.bands).toEqual(['all', '40m'])
     expect(model.mapOptions?.origin?.label).toBe('K8BTU')
   })
+  it('passes all modes to the list while mapping a receiver only once', () => {
+    const reports = ['CW', 'PSK31', 'RTTY', 'FT8', 'FT4'].map((mode, index) => ({
+      ...snapshot.reports[0],
+      id: String(index),
+      mode,
+      wpm: mode === 'CW' ? 20 : null,
+    }))
+    const model = panelModel(args, { ...snapshot, reports }, now)
+    expect(model.rows.map((row) => row.mode)).toEqual(reports.map((report) => report.mode))
+    expect(model.rows.map((row) => row.wpm)).toEqual([
+      20,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ])
+    expect(model.mapOptions?.receivers).toHaveLength(1)
+    expect(model.note).toContain('reports across all modes')
+  })
   it('handles Home with no operation, keeps explicit overrides, and exposes error provenance', async () => {
     const home = { ...args, operation: undefined } as unknown as PanelRenderArgs
     const model = panelModel(

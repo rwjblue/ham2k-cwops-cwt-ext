@@ -5,6 +5,7 @@ export interface UiReport {
   receiver: string
   country?: string
   band: string
+  mode: string
   frequencyKhz?: number
   snrDb?: number
   wpm?: number

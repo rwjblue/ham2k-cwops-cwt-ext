@@ -73,7 +73,7 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
   }
 
   async function getReports(query: RbnQuery): Promise<unknown> {
-    const queryString = `cdx=${encodeURIComponent(query.call)}&ma=${query.windowMinutes * 60}&m=1&r=${maxReports}`
+    const queryString = `cdx=${encodeURIComponent(query.call)}&ma=${query.windowMinutes * 60}&r=${maxReports}`
     const request = () =>
       getJson(
         `${endpoint}?${queryString}${version ? `&h=${encodeURIComponent(version)}` : ''}`,

@@ -64,9 +64,10 @@ export function parseRbnMetadata(value: unknown): RbnMetadata {
   const modes: Record<string, string> = {}
   for (const [code, item] of Object.entries(record(data.modes) ?? {})) {
     const mode = record(item)?.mode
-    if (typeof mode === 'string' && /^[a-z0-9]+$/i.test(mode)) modes[code] = mode.toUpperCase()
+    if (typeof mode === 'string' && mode.trim() && mode.length <= 32)
+      modes[code] = mode.trim().toUpperCase()
   }
-  if (!Object.keys(bands).length || modes['1'] !== 'CW') {
+  if (!Object.keys(bands).length) {
     throw new Error('RBN returned an unsupported data format.')
   }
   return {
@@ -105,8 +106,10 @@ export function parseRbnPayload(
     const frequencyKhz = bounded(row[fields.freq], 100, 1_000_000)
     const epoch = bounded(row[fields.epoch], 1, 1e12)
     const band = metadata.bands[String(row[fields.band])]
-    const mode = metadata.modes[String(row[fields.mode])]
-    if (!frequencyKhz || !epoch || !band || mode !== 'CW') continue
+    const modeCode = finite(row[fields.mode])
+    const mode =
+      metadata.modes[String(modeCode)] ?? (modeCode === null ? 'Unknown' : `Mode ${modeCode}`)
+    if (!frequencyKhz || !epoch || !band) continue
     const timeMs = epoch * 1000
     if (timeMs < cutoff || timeMs > now + 300_000) continue
     const info = callInfo[receiver]
@@ -122,7 +125,8 @@ export function parseRbnPayload(
       band,
       mode,
       snrDb: bounded(row[fields.db], -100, 150),
-      wpm: bounded(row[fields.wpm], 1, 100),
+      // RBN reuses this field for digital speeds; only CW measurements are WPM.
+      wpm: mode === 'CW' ? bounded(row[fields.wpm], 1, 100) : null,
       timeMs,
       receiverLatitude: latitude !== null && longitude !== null ? latitude : null,
       receiverLongitude: latitude !== null && longitude !== null ? longitude : null,

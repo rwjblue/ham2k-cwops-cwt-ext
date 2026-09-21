@@ -7,7 +7,13 @@ export const metadata = {
     { code: 22, meters: 20 },
     { code: 12, meters: 40 },
   ],
-  modes: { '1': { mode: 'cw' }, '34': { mode: 'ft8' } },
+  modes: {
+    '1': { mode: 'cw' },
+    '10': { mode: 'psk31' },
+    '11': { mode: 'rtty' },
+    '34': { mode: 'ft8' },
+    '45': { mode: 'ft4' },
+  },
 }
 
 export function payload(overrides: Record<string, unknown> = {}): Record<string, unknown> {

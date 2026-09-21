@@ -46,7 +46,7 @@ export function isValidCall(value: string): boolean {
   )
 }
 
-/** Keep a receiver's latest report on each band, never its maximum SNR. */
+/** Keep a receiver's latest report on each band and mode, never its maximum SNR. */
 export function latestReports(reports: readonly RbnReport[]): RbnReport[] {
   const latest = new Map<string, RbnReport>()
   for (const report of reports) {

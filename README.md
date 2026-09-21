@@ -1,6 +1,6 @@
 # N1RWJ extensions for Ham2K
 
-Extensions for Ham2K contest logging and seeing where your CW signal is
+Extensions for Ham2K contest logging and seeing where your signal is
 heard. Each extension is available as a ready-to-install `.h2kext` bundle;
 install only the ones you want.
 

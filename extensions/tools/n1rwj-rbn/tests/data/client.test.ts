@@ -61,7 +61,14 @@ describe('RBN client', () => {
     expect(fetch).toHaveBeenNthCalledWith(1, expect.any(String), { timeout: 1200 })
     expect(fetch).toHaveBeenNthCalledWith(2, expect.any(String), { timeout: 1200 })
     expect(fetch).toHaveBeenNthCalledWith(3, expect.any(String), { timeout: 1200 })
-    expect(fetch.mock.calls.some(([url]) => url.includes('cdx=N1RWJ&ma=1800&m=1&r=500'))).toBe(true)
+    const spotQueries = fetch.mock.calls
+      .map(([url]) => new URL(url).searchParams)
+      .filter((params) => !params.has('meta'))
+    expect(spotQueries).toHaveLength(2)
+    for (const params of spotQueries) {
+      expect(Object.fromEntries(params)).toMatchObject({ cdx: 'N1RWJ', ma: '1800', r: '500' })
+      expect(params.has('m')).toBe(false)
+    }
   })
 
   it('does not loop on repeated or malicious version challenges', async () => {

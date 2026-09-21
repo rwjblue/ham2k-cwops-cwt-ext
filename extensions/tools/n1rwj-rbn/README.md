@@ -1,7 +1,7 @@
 # N1RWJ RBN · My signal
 
 See where the [Reverse Beacon Network](https://www.reversebeacon.net/) has
-heard your CW signal, with a reception map and sortable receiver reports.
+heard your signal across all its modes, with a reception map and sortable receiver reports.
 The panel automatically follows your operation's station callsign and location.
 It is read-only: it does not transmit, spot a station, post to POTA, or create
 contacts.
@@ -100,9 +100,10 @@ Receivers with no published coordinates remain in the list.
 
 Use the view menu to choose **Map + list**, **Map**, or **List**, and the band
 menu to select a reported band or **All bands**. The list contains the latest
-report from each receiver on each band: frequency, SNR, CW speed, age, and—when
+report from each receiver on each band and mode: mode, frequency, SNR, CW speed
+(for CW only), age, and—when
 locations are known—distance and bearing. The **Sort** menu offers **Heard**,
-**Receiver**, **SNR**, **Distance**, **Frequency**, and **Speed**. The adjacent
+**Receiver**, **SNR**, **Distance**, **Frequency**, and **CW speed**. The adjacent
 direction button reverses the order; missing measurements stay last. Previous
 and next buttons move between pages, with the visible range and total count
 shown below the reports.
@@ -133,9 +134,11 @@ warns that reports may be missing. Receiver coordinates come from the exact
 receiver's RBN metadata and are approximate reception locations.
 
 SNR depends on each receiver's antenna and noise environment; comparisons at
-the same receiver and band are most useful. Reception paths do not outline a
+the same receiver, band, and mode are most useful. Reception paths do not outline a
 coverage boundary, and no recent reports do not establish a transmitter problem.
-This version focuses on your CW signal; it does not add a hunting feed or a
+All RBN modes are included without a mode filter, including CW, PSK31, RTTY,
+FT8, and FT4. Unrecognized mode codes remain visible with a numeric label.
+This version focuses on your signal; it does not add a hunting feed or a
 native Spots source.
 
 ## Try it without transmitting

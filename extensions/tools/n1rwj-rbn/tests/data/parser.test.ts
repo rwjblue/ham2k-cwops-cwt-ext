@@ -117,7 +117,40 @@ describe('RBN website data parsing', () => {
     })
   })
 
-  it('filters mismatched calls, expired reports, future reports, and non-CW modes', () => {
+  it('keeps all modes, including new metadata names and unrecognized mode codes', () => {
+    const source = parseRbnMetadata({
+      ...metadata,
+      modes: { ...metadata.modes, '101': { mode: 'new-mode' } },
+    })
+    const original = (payload().spots as Record<string, unknown[]>)['123']
+    const codes = [1, 10, 11, 34, 45, 101, 102, 103]
+    const spots = Object.fromEntries(
+      codes.map((code, index) => {
+        const row = [...original]
+        row[9] = code
+        return [String(index), row]
+      }),
+    )
+    const reports = parseRbnPayload(payload({ spots }), source, 'N1RWJ', 30, NOW).reports
+    expect(reports.map(({ mode, wpm }) => ({ mode, wpm }))).toEqual([
+      { mode: 'CW', wpm: 20 },
+      { mode: 'PSK31', wpm: null },
+      { mode: 'RTTY', wpm: null },
+      { mode: 'FT8', wpm: null },
+      { mode: 'FT4', wpm: null },
+      { mode: 'NEW-MODE', wpm: null },
+      { mode: 'Mode 102', wpm: null },
+      { mode: 'Mode 103', wpm: null },
+    ])
+  })
+
+  it('does not require CW in the mode metadata', () => {
+    expect(parseRbnMetadata({ ...metadata, modes: { '34': { mode: 'ft8' } } }).modes).toEqual({
+      '34': 'FT8',
+    })
+  })
+
+  it('filters mismatched calls, expired reports, and future reports in every mode', () => {
     const original = (payload().spots as Record<string, unknown[]>)['123']
     const other = [...original]
     other[2] = 'N1RWJ/P'
@@ -125,11 +158,10 @@ describe('RBN website data parsing', () => {
     expired[10] = NOW / 1000 - 1801
     const future = [...original]
     future[10] = NOW / 1000 + 301
-    const ft8 = [...original]
-    ft8[9] = 34
-    expect(parse(payload({ spots: { a: other, b: expired, c: future, d: ft8 } })).reports).toEqual(
-      [],
-    )
+    for (const mode of [1, 10, 11, 34, 45]) {
+      for (const row of [other, expired, future]) row[9] = mode
+      expect(parse(payload({ spots: { a: other, b: expired, c: future } })).reports).toEqual([])
+    }
   })
 
   it('treats the server normal empty response as no reports', () => {

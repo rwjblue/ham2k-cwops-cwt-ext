@@ -53,6 +53,7 @@ const rows: UiReport[] = Array.from({ length: 24 }, (_, index) => ({
   receiver: `K${index % 10}RX${String(index).padStart(2, '0')}`,
   country: index === 23 ? undefined : 'United States',
   band: index % 2 ? '40m' : '20m',
+  mode: 'CW',
   frequencyKhz: index % 2 ? 7033 : 14055.5,
   snrDb: index === 23 ? undefined : index,
   wpm: 20 + (index % 10),
@@ -71,7 +72,7 @@ const model: UiModel = {
   status: 'Recent reports',
   statusKind: 'live',
   locationLabel: 'Map origin FN20VW · 40.938°, -74.208°',
-  note: 'TEST OPERATION — observing KG2GL; these reports belong to that station. Last 30 minutes of CW reports. Checks at most once a minute while this panel is visible.',
+  note: 'TEST OPERATION — observing KG2GL; these reports belong to that station. Last 30 minutes of reports across all modes. Checks at most once a minute while this panel is visible.',
   bands: ['all', '20m', '40m'],
   rows,
   mapOptions: {
@@ -137,6 +138,36 @@ function assertSceneBounds(scene: SvgScene): void {
 }
 
 describe('RBN native scene', () => {
+  it.each([390, 1366])('shows modes and CW-only WPM at width %i', (width) => {
+    const source = {
+      ...model,
+      rows: ['CW', 'PSK31', 'RTTY', 'FT8', 'FT4'].map((mode) => ({
+        ...rows[0],
+        mode,
+        wpm: mode === 'CW' ? 25 : undefined,
+      })),
+    }
+    const initial = renderRbnScene(source, environment(width, 900), { view: 'list' })
+    let contents = ''
+    for (let page = 0; page < initial.pageCount; page++) {
+      const { scene } = renderRbnScene(source, environment(width, 900), { view: 'list', page })
+      assertSceneBounds(scene)
+      contents += text(scene)
+      for (let index = 0; index < initial.pageSize; index++) {
+        const row = source.rows[page * initial.pageSize + index]
+        if (!row) break
+        const measurement = layer(
+          scene,
+          width === 390 ? `row-${index}-frequency` : `row-${index}-speed`,
+        ).text?.literal
+        if (row.mode === 'CW') expect(measurement).toContain('25 wpm')
+        else expect(measurement).not.toContain('wpm')
+      }
+    }
+    for (const row of source.rows) expect(contents).toContain(row.mode)
+    expect(contents).not.toContain('CW reports')
+  })
+
   it('renders a map beside a receiver table at desktop sizes with native readable text', () => {
     const { scene, pageSize } = renderRbnScene(model, environment())
     const map = layer(scene, 'reception-map-0')
@@ -390,6 +421,7 @@ describe('receiver sorting', () => {
     {
       receiver: 'Z1RX',
       band: '20m',
+      mode: 'CW',
       age: '2 min ago',
       timeMs: 1000,
       snrDb: 0,
@@ -400,6 +432,7 @@ describe('receiver sorting', () => {
     {
       receiver: 'A1RX',
       band: '40m',
+      mode: 'CW',
       age: '1 min ago',
       timeMs: 2000,
       snrDb: 5,
@@ -407,7 +440,7 @@ describe('receiver sorting', () => {
       frequencyKhz: 7000,
       wpm: 20,
     },
-    { receiver: 'M1RX', band: '20m', age: 'unknown', snrDb: Number.NaN },
+    { receiver: 'M1RX', band: '20m', mode: 'FT8', age: 'unknown', snrDb: Number.NaN },
   ]
   it('sorts all fields in both directions, preserving zero and keeping missing readings last', () => {
     const calls = (sort: SceneSelection['sort'], direction: SceneSelection['direction']) =>

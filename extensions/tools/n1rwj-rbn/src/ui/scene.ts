@@ -33,7 +33,7 @@ const sorts: Array<{ key: UiSort; label: string }> = [
   { key: 'snr', label: 'SNR' },
   { key: 'distance', label: 'Distance' },
   { key: 'frequency', label: 'Frequency' },
-  { key: 'wpm', label: 'Speed' },
+  { key: 'wpm', label: 'CW speed' },
 ]
 const views: Array<{ key: UiView; label: string }> = [
   { key: 'both', label: 'Map + list' },
@@ -542,7 +542,7 @@ export function renderRbnScene(
     )
     const columns = [0, 0.25, 0.43, 0.53, 0.64, 0.84, 1]
     if (table && capacity > 0) {
-      const labels = ['Receiver', 'Band / kHz', 'SNR', 'WPM', 'km / bearing', 'Heard']
+      const labels = ['Receiver', 'Band / kHz', 'SNR', 'Mode', 'km / bearing', 'Heard']
       for (const [index, caption] of labels.entries()) {
         text(
           `column-${index}`,
@@ -575,7 +575,7 @@ export function renderRbnScene(
           row.receiver,
           row.band,
           `${number(row.snrDb)} dB`,
-          number(row.wpm),
+          row.mode,
           finite(row.distanceKm) ? `${Math.round(row.distanceKm).toLocaleString('en-US')} km` : '—',
           row.age,
         ]
@@ -607,6 +607,15 @@ export function renderRbnScene(
           listX + listWidth * 0.25 + 8,
           ry + 8 + labelLine,
           listWidth * 0.18 - 12,
+          label,
+          colors.muted,
+        )
+        text(
+          `row-${index}-speed`,
+          row.mode === 'CW' && finite(row.wpm) ? `${number(row.wpm)} wpm` : '',
+          listX + listWidth * 0.53 + 8,
+          ry + 8 + labelLine,
+          listWidth * 0.11 - 12,
           label,
           colors.muted,
         )
@@ -653,7 +662,7 @@ export function renderRbnScene(
         )
         text(
           `row-${index}-frequency`,
-          `${row.band} · ${number(row.frequencyKhz, 1)} kHz · ${number(row.wpm)} wpm`,
+          `${row.band} · ${row.mode} · ${number(row.frequencyKhz, 1)} kHz${row.mode === 'CW' && finite(row.wpm) ? ` · ${number(row.wpm)} wpm` : ''}`,
           listX + 10,
           ry + 8 + bodyLine + labelLine,
           listWidth - 20,
@@ -725,7 +734,7 @@ export function renderRbnScene(
     )
   text(
     'source',
-    `RBN · CW reports · Ages as of ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
+    `RBN · All modes · Ages as of ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
     left,
     footerTop + (footerLines > 1 ? labelLine : 0),
     w,

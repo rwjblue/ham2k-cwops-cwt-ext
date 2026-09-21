@@ -21,11 +21,16 @@ function report(overrides: Partial<RbnReport> = {}): RbnReport {
 }
 
 describe('RBN report presentation model', () => {
-  it('keeps latest report per receiver/band, preserving separate band reports', () => {
+  it('keeps latest report per receiver/band/mode, preserving separate bands and modes', () => {
     const strongOld = report({ id: 'old', snrDb: 50 })
     const weakNew = report({ id: 'new', snrDb: 10, timeMs: 110_000 })
     const otherBand = report({ id: '40', band: '40m' })
-    expect(latestReports([strongOld, otherBand, weakNew])).toEqual([weakNew, otherBand])
+    const otherMode = report({ id: 'ft8', mode: 'FT8', timeMs: 105_000, wpm: null })
+    expect(latestReports([strongOld, otherBand, otherMode, weakNew])).toEqual([
+      weakNew,
+      otherMode,
+      otherBand,
+    ])
   })
 
   it('sorts strongest first with unknown SNR last in either direction and preserves input', () => {

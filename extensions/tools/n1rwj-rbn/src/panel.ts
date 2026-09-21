@@ -80,7 +80,7 @@ export function panelModel(
       ? `TEST OPERATION — observing ${snapshot.call}; these reports belong to that station.`
       : '',
     snapshot.error ?? '',
-    `Last ${config.windowMinutes} minutes of CW reports. Checks at most once a minute while this panel is visible.`,
+    `Last ${config.windowMinutes} minutes of reports across all modes. Checks at most once a minute while this panel is visible.`,
     snapshot.capped
       ? 'The RBN response reached its 500-report limit; additional reports may be missing.'
       : '',
@@ -127,6 +127,7 @@ export function panelModel(
         receiver: report.receiver,
         country: report.country ?? undefined,
         band: report.band,
+        mode: report.mode,
         frequencyKhz: report.frequencyKhz,
         snrDb: report.snrDb ?? undefined,
         wpm: report.wpm ?? undefined,
@@ -177,7 +178,8 @@ export function createRbnPanel(
           key: 'my-signal',
           title: 'RBN · My signal',
           icon: 'radar',
-          description: 'Where your CW signal is heard, with a map and sortable receiver reports.',
+          description:
+            'Where your signal is heard, with a map and sortable receiver reports across all RBN modes.',
           on: ['operation', 'tick:30'],
           multiple: true,
           form: configFields,
