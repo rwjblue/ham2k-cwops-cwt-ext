@@ -1,5 +1,42 @@
 # Verification and compatibility
 
+## Published 0.3.1 native screenshot refresh — 2026-09-21
+
+Downloaded all four `.h2kext` bundles and their checksum files directly from
+[the published v0.3.1 release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1).
+All checksums matched. Installed these exact downloaded archives through
+**Settings → Features & Extensions → Install from file** in published
+**Ham2K Next 26.9.0 build 170**. The installed-extension list confirmed
+**0.3.1** for CWT, MST, SST, and RBN.
+
+| Published bundle | SHA-256 |
+| --- | --- |
+| `n1rwj-cwt-0.3.1.h2kext` | `d71b9a66fdd8636238fe52654aa35caee23f1c691838b75453f513373ea03558` |
+| `n1rwj-mst-0.3.1.h2kext` | `fdf67b8493a6213368d81eaf4a518b419a4f980a4deec6a4d119b6c181626f78` |
+| `n1rwj-sst-0.3.1.h2kext` | `bcf57b0bdb0aadc4f317269a172ea555fcc806a177dd94778f92e7a3b84608d4` |
+| `n1rwj-rbn-0.3.1.h2kext` | `2e237b6aded0574ccffd10fd7ba1c52caf62a8f7ee67b680c1ad2967d875cf42` |
+
+Reopened each existing contest test operation and captured its session setup,
+exchange controls, saved contacts, and score. Contacts and contest settings
+were not changed. The refreshed images are listed in the
+[screenshot record](images/README.md).
+
+For RBN, the public POTA feed at 19:21 UTC listed **W8CAR** at **US-9496,
+Resthaven State Wildlife Area**, locator **EN81OK**. An empty native
+`W8CAR/TEST` operation with the **Testing** tag watched this public callsign
+using explicit callsign and map-origin overrides. The desktop panel displayed
+live reports, distinct land/water colors, boundary geometry, geographic and
+receiver labels, the diamond station marker, and a receiver table. The capture
+showed **27 receivers**, **one band**, and **7,977 km** maximum distance.
+No QSOs or spots were created.
+
+This establishes native installation and rendering of the published packages
+and supersedes the earlier pending desktop visual check below. It is a focused
+screenshot verification, not a repeat of every contest behavior or RBN control
+test. Updated compact captures could not be completed because the Mac locked
+during layout setup. Physical phone, Linux, CPU, and battery checks remain
+outstanding.
+
 ## Release 0.3.1 — 2026-09-21
 
 [v0.3.1 is published on GitHub](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1)

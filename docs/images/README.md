@@ -1,17 +1,20 @@
 # README screenshots
 
-These are unmodified screenshots of the native Ham2K macOS app. Dates,
-installed versions, callsigns, and exchanges illustrate the captured UI;
-they are not installation requirements or a recommendation to install an
-older release. Follow the latest-release links in the extension guides.
+These are unmodified screenshots of the native Ham2K macOS app, recaptured
+September 21, 2026 after updating all four installed N1RWJ extensions to the
+published **0.3.1** bundles. Ham2K's **Features & Extensions** screen confirmed
+the installed versions. The host is published **Ham2K Next 26.9.0 build 170**.
+
+Dates, callsigns, exchanges, and versions illustrate the captured UI; they
+are not installation requirements. Follow the latest-release links in the
+extension guides when installing.
 
 ## Installation and contest views
 
-Captured September 21, 2026 in published **Ham2K Next 26.9.0 build 170**,
-in a 1437×768 window, with the installed **0.2.0** N1RWJ extensions:
+Captured in a 1437×768 window:
 
 - [Installed extensions](extensions-installed.jpg): **Settings → Features & Extensions**,
-  filtered to `N1RWJ`.
+  filtered to `N1RWJ`, showing all four extensions at **0.3.1**.
 - [CWT setup](contests/cwt-setup.jpg) and [logging](contests/cwt-logging.jpg).
 - [MST setup](contests/mst-setup.jpg) and [logging](contests/mst-logging.jpg).
 - [SST setup](contests/sst-setup.jpg) and [logging](contests/sst-logging.jpg).
@@ -19,22 +22,22 @@ in a 1437×768 window, with the installed **0.2.0** N1RWJ extensions:
 
 The contest images reopen existing `N1RWJ/TEST` operations marked **Testing**.
 Their saved contacts are synthetic examples from earlier validation. Capturing
-these images did not add or change contacts, session settings, or saved layouts.
-They document UI placement, not a new acceptance test of the latest bundles.
+these images did not add or change contacts or contest session settings.
 CWT images also accompany the upstream CWT guide; they show the personal
 adaptation used for native testing, not a side-loaded `ham2k-` package.
 
 ## RBN map and receivers
 
-The [desktop](rbn/rbn-next170-desktop.jpg),
-[compact map](rbn/rbn-next170-phone-map.jpg), and
-[compact list](rbn/rbn-next170-phone-list.jpg) images are the earlier native
-captures from September 21, 2026, using the same published Ham2K build and
-the **0.2.0** RBN candidate. They show the original SVG map before the later
-visual refinements. Compact captures are 448×770 macOS windows, not physical
-phone screenshots. The `W9MET/TEST` observation operation watched public RBN
-reports and contained no contacts.
+The [desktop](rbn/rbn-desktop.jpg) capture shows the updated map and receiver
+table using the installed published bundle. It observes public reports for
+**W8CAR** from an empty `W8CAR/TEST` operation marked **Testing**. The panel's
+watch override is `W8CAR`, with map origin `EN81OK`, the public locator of
+its POTA activation at **US-9496**. No contacts or spots were created.
+
+The older `rbn-next170-*` images remain as historical evidence for the earlier
+SVG migration; they are no longer the current README examples. Updated compact
+captures remain pending because the Mac locked during layout setup.
 
 See [verification and compatibility](../VERIFICATION.md) for package hashes,
-runtime checks, and limitations. Keep historical capture details here rather
-than pinning installation instructions to a release.
+runtime checks, and limitations. Keep capture details here rather than pinning
+installation instructions to a release.

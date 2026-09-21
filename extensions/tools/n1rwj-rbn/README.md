@@ -35,16 +35,10 @@ layout, and save.
 The panel then appears alongside your other operation panels. This desktop
 example shows the reception map and receiver table together:
 
-![RBN map and receiver table in Ham2K](../../../docs/images/rbn/rbn-next170-desktop.jpg)
+![RBN map and receiver table in Ham2K](../../../docs/images/rbn/rbn-desktop.jpg)
 
-Narrow layouts can show the map or receiver cards separately:
-
-| Map view | Receiver list |
-| --- | --- |
-| ![RBN map in a compact Ham2K window](../../../docs/images/rbn/rbn-next170-phone-map.jpg) | ![RBN receiver cards in a compact Ham2K window](../../../docs/images/rbn/rbn-next170-phone-list.jpg) |
-
-These native macOS captures show the original SVG map before its later visual
-refinements; the compact examples use a 448×770 window. See the
+Narrow layouts can show the map or receiver cards separately. These screenshots
+show the published extension running in the native macOS app. See the
 [screenshot record](../../../docs/images/README.md) for capture versions and
 the [verification record](../../../docs/VERIFICATION.md) for runtime coverage.
 Physical phone and Linux runtime checks remain outstanding.

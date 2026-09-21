@@ -26,8 +26,9 @@ optional. GitHub downloads and catalog availability are separate; see
 [publishing status and recovery](docs/PUBLISHING.md) for the catalog workflow.
 
 After installation, search for **N1RWJ** in **Features & Extensions** to
-see the installed extensions and their enable switches. The versions in this
-example screenshot are historical; use the latest release linked above.
+see the installed extensions and their enable switches. See the
+[screenshot record](docs/images/README.md) for the captured app and extension
+versions; use the latest release linked above when installing.
 
 ![Installed N1RWJ contest extensions and RBN panel in Ham2K](docs/images/extensions-installed.jpg)
 
