@@ -1,6 +1,7 @@
 import type { JSONValue, PanelHook, PanelRenderArgs } from '@ham2k/extension-sdk'
 import { host } from '@ham2k/extension-sdk'
-import { configFields, operationOrigin, readConfig, watchedCall } from './config.ts'
+import type { PanelConfig } from './config.ts'
+import { configFields, operationOrigin, rbnBands, readConfig, watchedCall } from './config.ts'
 import type { RbnClient } from './data/client.ts'
 import { rbnClient } from './data/host-client.ts'
 import type { MapReceiver, MapTheme } from './map/index.ts'
@@ -37,7 +38,7 @@ export function panelModel(
   const config = readConfig(args.config)
   const origin = operationOrigin(args.operation, config.gridOverride)
   const reports = latestReports(snapshot.reports)
-  const bands = [...new Set(['all', ...reports.map((report) => report.band), config.band])]
+  const bands = [...new Set([...rbnBands, ...reports.map((report) => report.band), config.band])]
   const pointsFor = (selected: typeof reports): MapReceiver[] => {
     // One point/path per receiver, even when it has reported on several bands.
     const receivers = new Map<string, (typeof reports)[number]>()
@@ -157,18 +158,29 @@ export function createRbnPanel(
   const client = dependencies.client ?? rbnClient
   const now = dependencies.now ?? Date.now
   const settings = dependencies.settings ?? (() => host.getSettings())
-  const selections = new Map<string, { signature: string; selection: Partial<SceneSelection> }>()
+  const selections = new Map<
+    string,
+    { signature: string; config: PanelConfig; selection: Partial<SceneSelection> }
+  >()
   function stateFor(args: PanelRenderArgs) {
     const config = readConfig(args.config)
-    const signature = JSON.stringify([config, args.operation?.uuid, args.operation?.stationCall])
+    const signature = JSON.stringify([args.operation?.uuid, args.operation?.stationCall])
     const key = args.instanceId ?? ''
     let state = selections.get(key)
     if (!state || state.signature !== signature) {
-      state = { signature, selection: {} }
+      state = { signature, config, selection: {} }
       selections.delete(key)
       selections.set(key, state)
       // Placements can disappear without a teardown hook; bound session memory.
       if (selections.size > 32) selections.delete(selections.keys().next().value as string)
+    } else if (JSON.stringify(state.config) !== JSON.stringify(config)) {
+      // Saving one default must not discard unrelated in-panel choices.
+      // A changed default takes effect for that control on the next render.
+      for (const field of ['view', 'band', 'sort', 'direction'] as const) {
+        if (state.config[field] !== config[field]) delete state.selection[field]
+      }
+      state.selection.page = 0
+      state.config = config
     }
     return state
   }

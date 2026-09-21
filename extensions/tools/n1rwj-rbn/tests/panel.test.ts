@@ -153,7 +153,20 @@ describe('RBN native panel integration', () => {
     expect(model.note).toContain('TEST OPERATION — observing K8BTU')
     expect(model.fetchedAt).toBe('14:00:00 UTC')
     expect(model.mapOptions?.receivers).toHaveLength(1)
-    expect(model.bands).toEqual(['all', '40m'])
+    expect(model.bands).toEqual([
+      'all',
+      '160m',
+      '80m',
+      '60m',
+      '40m',
+      '30m',
+      '20m',
+      '17m',
+      '15m',
+      '12m',
+      '10m',
+      '6m',
+    ])
     expect(model.mapOptions?.origin?.label).toBe('K8BTU')
   })
   it('passes every supported mode to the list while mapping a receiver only once', () => {
@@ -199,7 +212,7 @@ describe('RBN native panel integration', () => {
     expect(await panel.render(args, { online: true })).toEqual(filtered)
     const other = await panel.render({ ...args, instanceId: 'other' }, { online: true })
     expect(sceneText(other)).toContain('W1NT')
-    // Applying new settings resets local choices; persisted defaults win.
+    // Unrelated settings preserve the band chosen in the panel.
     expect(
       sceneText(
         await panel.render(
@@ -207,8 +220,114 @@ describe('RBN native panel integration', () => {
           { online: true },
         ),
       ),
-    ).toContain('W1NT')
+    ).not.toContain('W1NT')
   })
+  it('keeps Map selected when saving a band, but applies an explicitly changed view default', async () => {
+    const { panel } = setup()
+    await panel.render(args, { online: true })
+    await panel.onEvent?.(event('view', 'view:map'), { online: true })
+    const changed = { ...args, config: { ...args.config, band: '15m' }, reason: 'config' }
+    const filtered = sceneText(await panel.render(changed, { online: true }))
+    expect(filtered).toContain('Map ▾')
+    expect(filtered).toContain('15m ▾')
+    expect(filtered).not.toContain('Map + list ▾')
+    expect(await panel.render(changed, { online: true })).toEqual(
+      await panel.render({ ...changed, reason: 'tick:30' }, { online: true }),
+    )
+    const list = sceneText(
+      await panel.render(
+        { ...changed, config: { ...changed.config, view: 'list' } },
+        { online: true },
+      ),
+    )
+    expect(list).toContain('List ▾')
+    expect(list).toContain('15m ▾')
+  })
+  it.each<PanelRenderArgs['config']>([
+    { windowMinutes: 30 },
+    { projection: 'azimuthal' },
+    { grid: 'FN31' },
+    { watchCall: 'N1RWJ' },
+    { view: 'both', band: 'all', sort: 'age', direction: 'desc' },
+  ])('preserves independent choices after saving %j', async (config) => {
+    const { panel } = setup()
+    await panel.render(args, { online: true })
+    for (const [control, action] of [
+      ['view', 'view:list'],
+      ['band', 'band:40m'],
+      ['sort', 'sort:call'],
+      ['direction', 'direction:toggle'],
+    ])
+      await panel.onEvent?.(event(control, action), { online: true })
+    const result = sceneText(
+      await panel.render(
+        { ...args, config: { ...args.config, ...config }, reason: 'config' },
+        { online: true },
+      ),
+    )
+    expect(result).toContain('List ▾')
+    expect(result).toContain('40m ▾')
+    expect(result).toContain('Sort: Receiver ▾')
+    expect(result).toContain('↑')
+  })
+  it('applies changed sort defaults without clearing the view or band', async () => {
+    const { panel } = setup()
+    await panel.render(args, { online: true })
+    for (const [control, action] of [
+      ['view', 'view:list'],
+      ['band', 'band:40m'],
+      ['sort', 'sort:call'],
+    ])
+      await panel.onEvent?.(event(control, action), { online: true })
+    const result = sceneText(
+      await panel.render(
+        { ...args, config: { ...args.config, sort: 'snr', direction: 'asc' } },
+        { online: true },
+      ),
+    )
+    expect(result).toContain('List ▾')
+    expect(result).toContain('40m ▾')
+    expect(result).toContain('Sort: SNR ▾')
+    expect(result).toContain('↑')
+  })
+  it('resets session choices when switching operations', async () => {
+    const { panel } = setup()
+    await panel.render(args, { online: true })
+    await panel.onEvent?.(event('view', 'view:map'), { online: true })
+    await panel.onEvent?.(event('band', 'band:15m'), { online: true })
+    const result = sceneText(
+      await panel.render(
+        { ...args, operation: { ...args.operation, uuid: 'another-operation' } },
+        { online: true },
+      ),
+    )
+    expect(result).toContain('Map + list ▾')
+    expect(result).toContain('All bands ▾')
+  })
+  it.each([snapshot, { ...snapshot, status: 'empty' as const, reports: [] }])(
+    'offers the complete settings band list directly in the panel ($status)',
+    async (current) => {
+      const { panel, getSnapshot } = setup(current)
+      const result = await panel.render(args, { online: true })
+      if (result.kind !== 'svgScene') throw new Error('Expected native scene')
+      const band = result.scene.controls?.find((control) => control.id === 'band')
+      const fields = (await panel.getPanels({}, { online: true }))[0].form
+      const field = fields?.find((field) => field.type === 'field' && field.key === 'band')
+      if (field?.type !== 'field' || !Array.isArray(field.options))
+        throw new Error('Expected band options')
+      expect(band?.menu).toEqual(
+        field.options.map(({ label, value }) => ({ label, event: `band:${value}` })),
+      )
+      const choice = band?.menu?.find((item) => item.label === '15m')
+      if (!choice || !band) throw new Error('Missing 15m band choice')
+      await panel.onEvent?.(event(band.id, choice.event), { online: true })
+      expect(getSnapshot).toHaveBeenCalledTimes(1)
+      const filtered = sceneText(await panel.render(args, { online: true }))
+      expect(filtered).toContain('15m ▾')
+      expect(filtered).toContain('No 15m reports in this time window.')
+      expect(filtered).not.toContain('W1NT')
+    },
+  )
   it('validates action/control pairs and ignores malformed or non-activation events', async () => {
     const { panel, getSnapshot } = setup()
     const initial = await panel.render(args, { online: true })

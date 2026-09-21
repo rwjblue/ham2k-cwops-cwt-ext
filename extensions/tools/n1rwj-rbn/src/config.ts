@@ -14,7 +14,20 @@ export interface PanelConfig {
   band: string
 }
 
-const bands = ['all', '160m', '80m', '60m', '40m', '30m', '20m', '17m', '15m', '12m', '10m', '6m']
+export const rbnBands = [
+  'all',
+  '160m',
+  '80m',
+  '60m',
+  '40m',
+  '30m',
+  '20m',
+  '17m',
+  '15m',
+  '12m',
+  '10m',
+  '6m',
+]
 const sorts: SortKey[] = ['age', 'call', 'snr', 'distance', 'frequency', 'wpm']
 
 export function readConfig(config: Record<string, JSONValue> = {}): PanelConfig {
@@ -28,7 +41,7 @@ export function readConfig(config: Record<string, JSONValue> = {}): PanelConfig 
     view: config.view === 'map' || config.view === 'list' ? config.view : 'both',
     sort: sorts.includes(config.sort as SortKey) ? (config.sort as SortKey) : 'age',
     direction: config.direction === 'asc' ? 'asc' : 'desc',
-    band: typeof config.band === 'string' && bands.includes(config.band) ? config.band : 'all',
+    band: typeof config.band === 'string' && rbnBands.includes(config.band) ? config.band : 'all',
   }
 }
 
@@ -145,7 +158,7 @@ export const configFields: SettingsField[] = [
     key: 'band',
     label: 'Default band',
     value: 'all',
-    options: bands.map((value) => ({ label: value === 'all' ? 'All bands' : value, value })),
+    options: rbnBands.map((value) => ({ label: value === 'all' ? 'All bands' : value, value })),
   },
   {
     type: 'field',

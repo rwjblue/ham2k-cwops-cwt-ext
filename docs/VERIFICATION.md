@@ -1,5 +1,49 @@
 # Verification and compatibility
 
+## RBN control preferences — 2026-09-21 (unreleased)
+
+Installed the local RBN candidate through **Features & Extensions → Install
+from file** in published **Ham2K Next 26.9.0 build 170**. The native
+**Check for Updates…** dialog reported that this was the newest available
+version; no host update was available. The installed-extension list confirmed
+RBN **0.3.2**, enabled. This is a working-tree candidate, not a published
+0.3.2 release artifact: **262,210 bytes**, SHA-256
+`cd6a7a9cf55c05b5b0f9a4a6b8be132ce2b2868a26746b872474ae469c117499`.
+
+Native macOS checks used the existing empty `W8CAR/TEST` operation:
+
+- Selected **Map** in the panel, opened its settings, changed **Default band**
+  from **All bands** to **15m**, and saved. The panel retained **Map** and
+  displayed **15m**, although the saved default view remained **Map and
+  receivers**. This reproduces the reported settings-save sequence.
+- With no recent W8CAR reports, the panel's band dropdown opened and offered
+  **All bands** plus all eleven bands from **160m** through **6m**. Selecting
+  **20m** directly changed the filter and retained Map.
+- Temporarily watched public **WG1V** reports with a **60-minute** window and
+  explicit **FN42FK** origin, the registered grid returned by Vail. The
+  operation retained its `/TEST` identity. Selecting **40m** directly displayed
+  **14 receivers**, one band, and an estimated **6,008 km** maximum distance.
+  **Map + list** showed FT4 receiver rows; selecting **10m** removed receivers
+  from both surfaces and displayed **No 10m reports in this time window**.
+- Selected Map again, changed the saved default band to 40m, and saved. At
+  **23:53:53 UTC**, the panel retained Map and displayed the populated 40m map.
+- An automatic refresh advanced **Checked 23:53:53 → 23:55:00 UTC** while
+  preserving Map and 40m, with the same 14 receivers.
+
+Restored the test panel's original W8CAR / EN81OK overrides, 15-minute window,
+All bands, and Map + list view. The updated RBN candidate remains installed.
+The operation stayed at **zero QSOs** with a blank draft; no spots or contacts
+were submitted. No host source changes were needed.
+
+`mise run check` passed **402 tests across 30 files**, lint, TypeScript checks,
+official builds, and package validation. `mise run verify-host n1rwj-rbn`
+also passed against the running build 170 kernel. A separate static preview
+made a successful live HTTP request for W8CAR; native interaction evidence
+above comes from the installed app, not that preview.
+
+This verification covers macOS; physical phone interaction remains untested.
+Changes are confined to RBN, so no CWT upstream synchronization is required.
+
 ## Vail ReRBN HTTP migration — 2026-09-21 (unreleased)
 
 The RBN panel now requests CW, RTTY, FT8, and FT4 reports through the

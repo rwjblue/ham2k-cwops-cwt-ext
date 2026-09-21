@@ -84,9 +84,11 @@ for an operation location or grid override, and distance and bearing remain
 unavailable. The extension never substitutes a callsign-prefix location guess.
 If no valid callsign is available, it prompts for one without requesting reports.
 
-Changes made with the panel's view, band, sort and page controls survive normal
-refreshes separately for each placement. They reset when switching operations,
-changing saved panel settings, or restarting the extension. Save preferred
+Changes made with the panel's view, band and sort controls survive normal
+refreshes and unrelated settings changes separately for each placement. Changing
+a saved default applies to that control only: saving a different band keeps your
+selected map or list view. Changing settings returns to the first page. Choices
+reset when switching operations or restarting the extension. Save preferred
 defaults in panel settings when you want them to survive a restart.
 
 ## Map and receiver list
@@ -103,8 +105,10 @@ Receiver positions come from registered grids and may differ from the actual
 skimmer location. Receivers without a valid grid remain in the list.
 
 Use the view menu to choose **Map + list**, **Map**, or **List**, and the band
-menu to select a reported band or **All bands**. The list contains the latest
-report from each receiver on each band and mode: mode, frequency, SNR, CW speed
+menu to select any band offered in panel settings or **All bands**, even before
+reports arrive on that band. Additional reported bands also appear. The list
+contains the latest report from each receiver on each band and mode: mode,
+frequency, SNR, CW speed
 (for CW only), age, and—when
 locations are available—estimated distance and bearing. The **Sort** menu offers **Heard**,
 **Receiver**, **SNR**, **Distance**, **Frequency**, and **CW speed**. The adjacent
