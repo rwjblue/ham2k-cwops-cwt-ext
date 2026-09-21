@@ -77,8 +77,7 @@ describe('reception map', () => {
           expect(definitions.has(match[1])).toBe(true)
         }
       }
-      expect(map.svgLayers[0]).toContain('fill="#dce9ed"')
-      expect(map.svgLayers.slice(1).join('')).not.toContain('fill="#dce9ed"')
+      expect(map.svgLayers[0].includes('fill="#dce9ed"')).toBe(true)
     }
   })
 
@@ -106,6 +105,40 @@ describe('reception map', () => {
     )
   })
 
+  it('adds clipped regional divisions within native budgets and omits them at world scale', () => {
+    const regionalReceivers = Array.from({ length: 500 }, (_, index) => ({
+      key: `regional-${index}`,
+      label: `R${index}`,
+      latitude: 25 + (index % 25),
+      longitude: -125 + (index % 55),
+      ageMinutes: index % 30,
+    }))
+    for (const [width, height] of [
+      [320, 390],
+      [1280, 800],
+      [4096, 4096],
+    ]) {
+      const map = layoutReceptionMap({ ...options, width, height, receivers: regionalReceivers })
+      expect(map.markers).toHaveLength(500)
+      expect(map.svg.includes('admin-land-')).toBe(true)
+      expect(map.svgLayers.reduce((sum, layer) => sum + layer.length, 0)).toBeLessThan(1048576)
+      for (const layer of map.svgLayers) {
+        expect(layer.length).toBeLessThanOrEqual(262144)
+        const ids = new Set([...layer.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]))
+        for (const match of layer.matchAll(/url\(#([^)]*)\)/g)) expect(ids.has(match[1])).toBe(true)
+      }
+    }
+    const worldwide = layoutReceptionMap({
+      ...options,
+      receivers: [
+        { key: 'vk', label: 'VK', latitude: -33, longitude: 151, ageMinutes: 0 },
+        { key: 'ja', label: 'JA', latitude: 35, longitude: 140, ageMinutes: 0 },
+        { key: 'zs', label: 'ZS', latitude: -33, longitude: 18, ageMinutes: 0 },
+      ],
+    })
+    expect(worldwide.svg.includes('admin-land-')).toBe(false)
+  })
+
   it('reserves scaled native text space and removes crowded labels at large text sizes', () => {
     const normal = layoutReceptionMap({ ...options, width: 320, height: 290 })
     const scaled = layoutReceptionMap({ ...options, width: 320, height: 290, labelScale: 2 })
@@ -130,7 +163,8 @@ describe('reception map', () => {
 
   it('keeps the station centered in azimuthal mode and draws real distance rings', () => {
     const map = layoutReceptionMap({ ...options, projection: 'azimuthal' })
-    expect(map.svg).toContain('cx="360.00" cy="190.00" r="5"')
+    // The map reserves a footer for attribution below its geographic viewport.
+    expect(map.svg.includes('cx="360.00" cy="174.50" r="2"')).toBe(true)
     expect(map.labels.some((label) => label.key.startsWith('ring:'))).toBe(true)
     expect(map.svg).not.toMatch(/NaN|Infinity/)
     const regional = layoutReceptionMap({ ...options, projection: 'regional' })

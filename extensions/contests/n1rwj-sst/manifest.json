@@ -2,7 +2,7 @@
   "key": "n1rwj-sst",
   "name": "N1RWJ K1USN SST",
   "shortName": "SST",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "K1USN Slow Speed Test with state/province/DX exchanges, weekly sessions, scoring and N1MM call history.",
   "category": "contest",
   "icon": "clock-fast",

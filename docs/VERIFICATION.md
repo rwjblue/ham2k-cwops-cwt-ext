@@ -1,5 +1,44 @@
 # Verification and compatibility
 
+## Release 0.3.1 preparation — 2026-09-21
+
+The 0.3.1 RBN map adds bundled state/province boundaries at regional scales,
+sparse country labels, distinct land/water colors in both themes, a diamond
+station marker, and quieter reception paths and distance rings. Receiver labels
+take priority over geographic captions. Collision checks reserve the attribution
+footer and empty-report message, and label density changes gradually with size.
+
+`mise run check` passed **385 tests across 30 files**, lint, TypeScript checks,
+official builds and package validation. New checks cover crowded North American
+and European layouts, compact sizes, enlarged text, resizing near 420 pixels,
+theme contrast, and 500-receiver SVG layer budgets through 4096×4096. This work
+affects RBN and its geography-generation tooling; it does not change CWT behavior.
+
+The public POTA feed at 17:48 UTC listed **N5ILQ**, **US-10658, Lake Carl
+Blackwell Wildlife Management Area**, grid **EM16JC**. Static previews at
+18:01–18:02 UTC observed that public call with a memory-only `N5ILQ/TEST`
+operation and a 30-minute window. They showed 26 receivers on one band, with
+a maximum reported distance of 3,076 km. No native operation, QSO or spot was
+created. The built ES2020 bundle ran through the installed published Next 170
+kernel; it was not installed in the native app for this check.
+
+Local evidence is `dist/rbn-map-improved-desktop.jpg` (1280×800 panel),
+`dist/rbn-map-improved-compact.jpg` and `dist/rbn-map-improved-dark.jpg`
+(424×644 panels). Each screenshot includes an additional static-preview footer.
+Matching SVG, scene JSON and provenance JSON files are beside the screenshots.
+These ignored files are local evidence, not repository assets. The desktop scene
+used 120 layers and 115,991 bytes of formatted JSON; compact scenes used 28 layers
+and 82,212 bytes. These static checks do not establish native rendering, control,
+CPU or battery behavior. Native visual acceptance remains outstanding because
+computer use reported that the Mac was locked and could not unlock it.
+
+The preview-stage archive carried version **0.3.0**, but was **not the
+published 0.3.0 artifact**. It was 261,912 bytes with SHA-256
+`074c3c8385b880eacd0a29919a8ec7d935ee6c5df92453562a909a9d1f3e332b`.
+Release preparation subsequently synchronized every workspace to **0.3.1**.
+The release package is validated separately; the preview evidence above predates
+that version change. Native visual acceptance of the refinement remains pending.
+
 ## Release 0.3.0 — 2026-09-21
 
 [v0.3.0 is published on GitHub](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0)

@@ -1,0 +1,1418 @@
+[
+  {
+    "key": "country-ARG",
+    "label": "Argentina",
+    "latitude": -33.5,
+    "longitude": -64.17,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-AUS",
+    "label": "Australia",
+    "latitude": -24.13,
+    "longitude": 134.05,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-BEL",
+    "label": "Belgium",
+    "latitude": 50.79,
+    "longitude": 4.8,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-BRA",
+    "label": "Brazil",
+    "latitude": -12.1,
+    "longitude": -49.56,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-CAN",
+    "label": "Canada",
+    "latitude": 60.32,
+    "longitude": -101.91,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-CHL",
+    "label": "Chile",
+    "latitude": -38.15,
+    "longitude": -72.32,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-CHN",
+    "label": "China",
+    "latitude": 32.5,
+    "longitude": 106.34,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-COD",
+    "label": "Dem. Rep. Congo",
+    "latitude": -1.86,
+    "longitude": 23.46,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-COL",
+    "label": "Colombia",
+    "latitude": 3.37,
+    "longitude": -73.17,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-DEU",
+    "label": "Germany",
+    "latitude": 50.96,
+    "longitude": 9.68,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-EGY",
+    "label": "Egypt",
+    "latitude": 26.19,
+    "longitude": 29.45,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-ESP",
+    "label": "Spain",
+    "latitude": 40.09,
+    "longitude": -3.46,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-ETH",
+    "label": "Ethiopia",
+    "latitude": 8.03,
+    "longitude": 39.09,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-FRA",
+    "label": "France",
+    "latitude": 46.7,
+    "longitude": 2.55,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-GBR",
+    "label": "United Kingdom",
+    "latitude": 54.4,
+    "longitude": -2.12,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-IDN",
+    "label": "Indonesia",
+    "latitude": -0.95,
+    "longitude": 101.89,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-IND",
+    "label": "India",
+    "latitude": 22.69,
+    "longitude": 79.36,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-IRN",
+    "label": "Iran",
+    "latitude": 32.17,
+    "longitude": 54.93,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-ITA",
+    "label": "Italy",
+    "latitude": 44.73,
+    "longitude": 11.08,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-JPN",
+    "label": "Japan",
+    "latitude": 36.14,
+    "longitude": 138.44,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-KEN",
+    "label": "Kenya",
+    "latitude": 0.55,
+    "longitude": 37.91,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-KOR",
+    "label": "Republic of Korea",
+    "latitude": 36.38,
+    "longitude": 128.13,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-MEX",
+    "label": "Mexico",
+    "latitude": 23.92,
+    "longitude": -102.29,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-NGA",
+    "label": "Nigeria",
+    "latitude": 9.44,
+    "longitude": 7.5,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-NZL",
+    "label": "New Zealand",
+    "latitude": -39.76,
+    "longitude": 172.79,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-PAK",
+    "label": "Pakistan",
+    "latitude": 29.33,
+    "longitude": 68.55,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-PER",
+    "label": "Peru",
+    "latitude": -12.98,
+    "longitude": -72.9,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-PHL",
+    "label": "Philippines",
+    "latitude": 11.2,
+    "longitude": 122.47,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-PNG",
+    "label": "Papua New Guinea",
+    "latitude": -5.7,
+    "longitude": 143.91,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-PRT",
+    "label": "Portugal",
+    "latitude": 39.61,
+    "longitude": -8.27,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-RUS",
+    "label": "Russian Federation",
+    "latitude": 58.25,
+    "longitude": 44.69,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-SAU",
+    "label": "Saudi Arabia",
+    "latitude": 23.81,
+    "longitude": 44.7,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-TUR",
+    "label": "Turkey",
+    "latitude": 39.35,
+    "longitude": 34.51,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-USA",
+    "label": "United States",
+    "latitude": 39.54,
+    "longitude": -97.48,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-VNM",
+    "label": "Vietnam",
+    "latitude": 21.72,
+    "longitude": 105.39,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-ZAF",
+    "label": "South Africa",
+    "latitude": -29.71,
+    "longitude": 23.67,
+    "kind": "country",
+    "rank": 2
+  },
+  {
+    "key": "country-AFG",
+    "label": "Afghanistan",
+    "latitude": 34.16,
+    "longitude": 66.5,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-AGO",
+    "label": "Angola",
+    "latitude": -12.18,
+    "longitude": 17.98,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-BFA",
+    "label": "Burkina Faso",
+    "latitude": 12.67,
+    "longitude": -1.36,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-BGD",
+    "label": "Bangladesh",
+    "latitude": 24.21,
+    "longitude": 89.68,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-BOL",
+    "label": "Bolivia",
+    "latitude": -16.67,
+    "longitude": -64.59,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-CIV",
+    "label": "Côte d'Ivoire",
+    "latitude": 7.49,
+    "longitude": -5.57,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-CMR",
+    "label": "Cameroon",
+    "latitude": 4.59,
+    "longitude": 12.47,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-CUB",
+    "label": "Cuba",
+    "latitude": 21.33,
+    "longitude": -77.98,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-DZA",
+    "label": "Algeria",
+    "latitude": 27.4,
+    "longitude": 2.81,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-ECU",
+    "label": "Ecuador",
+    "latitude": -1.26,
+    "longitude": -78.19,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-FIN",
+    "label": "Finland",
+    "latitude": 63.25,
+    "longitude": 27.28,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-GHA",
+    "label": "Ghana",
+    "latitude": 7.72,
+    "longitude": -1.04,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-GIN",
+    "label": "Guinea",
+    "latitude": 10.62,
+    "longitude": -10.02,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-GRC",
+    "label": "Greece",
+    "latitude": 39.49,
+    "longitude": 21.73,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-GRL",
+    "label": "Greenland",
+    "latitude": 74.32,
+    "longitude": -39.34,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-GTM",
+    "label": "Guatemala",
+    "latitude": 14.98,
+    "longitude": -90.5,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-IRL",
+    "label": "Ireland",
+    "latitude": 53.08,
+    "longitude": -7.8,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-IRQ",
+    "label": "Iraq",
+    "latitude": 33.09,
+    "longitude": 43.26,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-ISL",
+    "label": "Iceland",
+    "latitude": 64.78,
+    "longitude": -18.67,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-KAZ",
+    "label": "Kazakhstan",
+    "latitude": 49.05,
+    "longitude": 68.69,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-KHM",
+    "label": "Cambodia",
+    "latitude": 12.65,
+    "longitude": 104.5,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-LBY",
+    "label": "Libya",
+    "latitude": 26.64,
+    "longitude": 18.01,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-LKA",
+    "label": "Sri Lanka",
+    "latitude": 7.58,
+    "longitude": 80.7,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MAR",
+    "label": "Morocco",
+    "latitude": 31.65,
+    "longitude": -7.19,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MDG",
+    "label": "Madagascar",
+    "latitude": -18.63,
+    "longitude": 46.7,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MLI",
+    "label": "Mali",
+    "latitude": 18.69,
+    "longitude": -2.04,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MMR",
+    "label": "Myanmar",
+    "latitude": 21.57,
+    "longitude": 95.8,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MNG",
+    "label": "Mongolia",
+    "latitude": 46,
+    "longitude": 104.15,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MOZ",
+    "label": "Mozambique",
+    "latitude": -13.94,
+    "longitude": 37.84,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MRT",
+    "label": "Mauritania",
+    "latitude": 19.59,
+    "longitude": -9.74,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-MYS",
+    "label": "Malaysia",
+    "latitude": 2.53,
+    "longitude": 113.84,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-NAM",
+    "label": "Namibia",
+    "latitude": -20.58,
+    "longitude": 17.11,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-NCL",
+    "label": "New Caledonia",
+    "latitude": -21.06,
+    "longitude": 165.08,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-NER",
+    "label": "Niger",
+    "latitude": 17.45,
+    "longitude": 9.5,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-NOR",
+    "label": "Norway",
+    "latitude": 61.36,
+    "longitude": 9.68,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-NPL",
+    "label": "Nepal",
+    "latitude": 28.3,
+    "longitude": 83.64,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-POL",
+    "label": "Poland",
+    "latitude": 51.99,
+    "longitude": 19.49,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-PRK",
+    "label": "Dem. Rep. Korea",
+    "latitude": 39.89,
+    "longitude": 126.44,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-ROU",
+    "label": "Romania",
+    "latitude": 45.73,
+    "longitude": 24.97,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-RWA",
+    "label": "Rwanda",
+    "latitude": -1.9,
+    "longitude": 30.1,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-SDN",
+    "label": "Sudan",
+    "latitude": 16.33,
+    "longitude": 29.26,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-SDS",
+    "label": "South Sudan",
+    "latitude": 7.23,
+    "longitude": 30.39,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-SEN",
+    "label": "Senegal",
+    "latitude": 15.14,
+    "longitude": -14.78,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-SLB",
+    "label": "Solomon Islands",
+    "latitude": -8.03,
+    "longitude": 159.17,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-SWE",
+    "label": "Sweden",
+    "latitude": 65.86,
+    "longitude": 19.02,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-SYR",
+    "label": "Syria",
+    "latitude": 35.01,
+    "longitude": 38.28,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-TCD",
+    "label": "Chad",
+    "latitude": 15.14,
+    "longitude": 18.65,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-THA",
+    "label": "Thailand",
+    "latitude": 15.46,
+    "longitude": 101.07,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-TUN",
+    "label": "Tunisia",
+    "latitude": 33.69,
+    "longitude": 9.01,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-TWN",
+    "label": "Taiwan",
+    "latitude": 23.65,
+    "longitude": 120.87,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-TZA",
+    "label": "Tanzania",
+    "latitude": -6.05,
+    "longitude": 34.96,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-UGA",
+    "label": "Uganda",
+    "latitude": 1.97,
+    "longitude": 32.95,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-UKR",
+    "label": "Ukraine",
+    "latitude": 49.72,
+    "longitude": 32.14,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-UZB",
+    "label": "Uzbekistan",
+    "latitude": 41.69,
+    "longitude": 64.01,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-VEN",
+    "label": "Venezuela",
+    "latitude": 7.18,
+    "longitude": -64.6,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-YEM",
+    "label": "Yemen",
+    "latitude": 15.33,
+    "longitude": 45.87,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-ZMB",
+    "label": "Zambia",
+    "latitude": -14.66,
+    "longitude": 26.4,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-ZWE",
+    "label": "Zimbabwe",
+    "latitude": -18.91,
+    "longitude": 29.93,
+    "kind": "country",
+    "rank": 3
+  },
+  {
+    "key": "country-ARE",
+    "label": "United Arab Emirates",
+    "latitude": 23.47,
+    "longitude": 54.55,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-ATA",
+    "label": "Antarctica",
+    "latitude": -79.84,
+    "longitude": 35.89,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-AUT",
+    "label": "Austria",
+    "latitude": 47.52,
+    "longitude": 14.13,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-BGR",
+    "label": "Bulgaria",
+    "latitude": 42.51,
+    "longitude": 25.16,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-BHS",
+    "label": "Bahamas",
+    "latitude": 26.4,
+    "longitude": -77.15,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-BLR",
+    "label": "Belarus",
+    "latitude": 53.82,
+    "longitude": 28.42,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-BWA",
+    "label": "Botswana",
+    "latitude": -22.1,
+    "longitude": 24.18,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-CAF",
+    "label": "Central African Rep.",
+    "latitude": 6.99,
+    "longitude": 20.91,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-CHE",
+    "label": "Switzerland",
+    "latitude": 46.72,
+    "longitude": 7.46,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-COG",
+    "label": "Congo",
+    "latitude": 0.14,
+    "longitude": 15.9,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-DNK",
+    "label": "Denmark",
+    "latitude": 55.97,
+    "longitude": 9.02,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-ERI",
+    "label": "Eritrea",
+    "latitude": 15.79,
+    "longitude": 38.29,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-GAB",
+    "label": "Gabon",
+    "latitude": -0.44,
+    "longitude": 11.84,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-GNQ",
+    "label": "Equatorial Guinea",
+    "latitude": 2.33,
+    "longitude": 8.99,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-GUY",
+    "label": "Guyana",
+    "latitude": 5.12,
+    "longitude": -58.94,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-ISR",
+    "label": "Israel",
+    "latitude": 30.91,
+    "longitude": 34.85,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-JAM",
+    "label": "Jamaica",
+    "latitude": 18.14,
+    "longitude": -77.32,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-JOR",
+    "label": "Jordan",
+    "latitude": 30.81,
+    "longitude": 36.38,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-KGZ",
+    "label": "Kyrgyzstan",
+    "latitude": 41.67,
+    "longitude": 74.53,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-LAO",
+    "label": "Lao PDR",
+    "latitude": 19.43,
+    "longitude": 102.53,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-LBR",
+    "label": "Liberia",
+    "latitude": 6.45,
+    "longitude": -9.46,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-OMN",
+    "label": "Oman",
+    "latitude": 22.12,
+    "longitude": 57.34,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-PAN",
+    "label": "Panama",
+    "latitude": 8.72,
+    "longitude": -80.35,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-PRY",
+    "label": "Paraguay",
+    "latitude": -21.67,
+    "longitude": -60.15,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-SLE",
+    "label": "Sierra Leone",
+    "latitude": 8.62,
+    "longitude": -11.76,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-SUR",
+    "label": "Suriname",
+    "latitude": 4.14,
+    "longitude": -55.91,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-SWZ",
+    "label": "Kingdom of eSwatini",
+    "latitude": -26.53,
+    "longitude": 31.47,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-TJK",
+    "label": "Tajikistan",
+    "latitude": 38.2,
+    "longitude": 72.59,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-TKM",
+    "label": "Turkmenistan",
+    "latitude": 39.86,
+    "longitude": 58.68,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-URY",
+    "label": "Uruguay",
+    "latitude": -32.96,
+    "longitude": -55.97,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-VUT",
+    "label": "Vanuatu",
+    "latitude": -15.37,
+    "longitude": 166.91,
+    "kind": "country",
+    "rank": 4
+  },
+  {
+    "key": "country-AZE",
+    "label": "Azerbaijan",
+    "latitude": 40.4,
+    "longitude": 47.21,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-BEN",
+    "label": "Benin",
+    "latitude": 10.32,
+    "longitude": 2.35,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-BIH",
+    "label": "Bosnia and Herz.",
+    "latitude": 44.09,
+    "longitude": 18.07,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-BTN",
+    "label": "Bhutan",
+    "latitude": 27.54,
+    "longitude": 90.04,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-CRI",
+    "label": "Costa Rica",
+    "latitude": 10.07,
+    "longitude": -84.08,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-CYP",
+    "label": "Cyprus",
+    "latitude": 34.91,
+    "longitude": 33.08,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-CZE",
+    "label": "Czech Republic",
+    "latitude": 49.88,
+    "longitude": 15.38,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-DJI",
+    "label": "Djibouti",
+    "latitude": 11.98,
+    "longitude": 42.5,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-DOM",
+    "label": "Dominican Republic",
+    "latitude": 19.1,
+    "longitude": -70.65,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-FLK",
+    "label": "Falkland Is.",
+    "latitude": -51.61,
+    "longitude": -58.74,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-GEO",
+    "label": "Georgia",
+    "latitude": 41.87,
+    "longitude": 43.74,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-HND",
+    "label": "Honduras",
+    "latitude": 14.79,
+    "longitude": -86.89,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-HTI",
+    "label": "Haiti",
+    "latitude": 19.26,
+    "longitude": -72.22,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-HUN",
+    "label": "Hungary",
+    "latitude": 47.09,
+    "longitude": 19.45,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-LBN",
+    "label": "Lebanon",
+    "latitude": 34.13,
+    "longitude": 35.99,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-LTU",
+    "label": "Lithuania",
+    "latitude": 55.1,
+    "longitude": 24.09,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-LVA",
+    "label": "Latvia",
+    "latitude": 57.07,
+    "longitude": 25.46,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-NIC",
+    "label": "Nicaragua",
+    "latitude": 12.67,
+    "longitude": -85.07,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-NLD",
+    "label": "Netherlands",
+    "latitude": 52.42,
+    "longitude": 5.61,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-PRI",
+    "label": "Puerto Rico",
+    "latitude": 18.23,
+    "longitude": -66.48,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-PSX",
+    "label": "Palestine",
+    "latitude": 32.05,
+    "longitude": 35.29,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-QAT",
+    "label": "Qatar",
+    "latitude": 25.24,
+    "longitude": 51.14,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-SOL",
+    "label": "Somaliland",
+    "latitude": 9.44,
+    "longitude": 46.73,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-SRB",
+    "label": "Serbia",
+    "latitude": 44.19,
+    "longitude": 20.79,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-TLS",
+    "label": "Timor-Leste",
+    "latitude": -8.8,
+    "longitude": 125.85,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-TTO",
+    "label": "Trinidad and Tobago",
+    "latitude": 11,
+    "longitude": -60.92,
+    "kind": "country",
+    "rank": 5
+  },
+  {
+    "key": "country-ALB",
+    "label": "Albania",
+    "latitude": 40.65,
+    "longitude": 20.11,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-ARM",
+    "label": "Armenia",
+    "latitude": 40.46,
+    "longitude": 44.8,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-ATF",
+    "label": "Fr. S. Antarctic Lands",
+    "latitude": -49.3,
+    "longitude": 69.12,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-BDI",
+    "label": "Burundi",
+    "latitude": -3.33,
+    "longitude": 29.92,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-BLZ",
+    "label": "Belize",
+    "latitude": 17.2,
+    "longitude": -88.71,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-BRN",
+    "label": "Brunei Darussalam",
+    "latitude": 4.45,
+    "longitude": 114.55,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-CYN",
+    "label": "Northern Cyprus",
+    "latitude": 35.22,
+    "longitude": 33.69,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-EST",
+    "label": "Estonia",
+    "latitude": 58.72,
+    "longitude": 25.87,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-FJI",
+    "label": "Fiji",
+    "latitude": -17.83,
+    "longitude": 177.98,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-GMB",
+    "label": "The Gambia",
+    "latitude": 13.64,
+    "longitude": -15,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-GNB",
+    "label": "Guinea-Bissau",
+    "latitude": 12.16,
+    "longitude": -14.52,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-HRV",
+    "label": "Croatia",
+    "latitude": 45.81,
+    "longitude": 16.37,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-KOS",
+    "label": "Kosovo",
+    "latitude": 42.59,
+    "longitude": 20.86,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-KWT",
+    "label": "Kuwait",
+    "latitude": 29.41,
+    "longitude": 47.31,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-LSO",
+    "label": "Lesotho",
+    "latitude": -29.48,
+    "longitude": 28.25,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-LUX",
+    "label": "Luxembourg",
+    "latitude": 49.73,
+    "longitude": 6.08,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-MDA",
+    "label": "Moldova",
+    "latitude": 47.43,
+    "longitude": 28.49,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-MKD",
+    "label": "North Macedonia",
+    "latitude": 41.56,
+    "longitude": 21.56,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-MNE",
+    "label": "Montenegro",
+    "latitude": 42.8,
+    "longitude": 19.14,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-MWI",
+    "label": "Malawi",
+    "latitude": -13.39,
+    "longitude": 33.61,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-SLV",
+    "label": "El Salvador",
+    "latitude": 13.69,
+    "longitude": -88.89,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-SOM",
+    "label": "Somalia",
+    "latitude": 3.57,
+    "longitude": 45.19,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-SVK",
+    "label": "Slovakia",
+    "latitude": 48.73,
+    "longitude": 19.05,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-SVN",
+    "label": "Slovenia",
+    "latitude": 46.06,
+    "longitude": 14.92,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-TGO",
+    "label": "Togo",
+    "latitude": 8.81,
+    "longitude": 1.06,
+    "kind": "country",
+    "rank": 6
+  },
+  {
+    "key": "country-SAH",
+    "label": "Western Sahara",
+    "latitude": 23.97,
+    "longitude": -12.63,
+    "kind": "country",
+    "rank": 7
+  }
+]

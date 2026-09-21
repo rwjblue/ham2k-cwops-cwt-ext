@@ -1,7 +1,8 @@
 import type { GeoPermissibleObjects, GeoProjection } from 'd3-geo'
 import { geoAzimuthalEquidistant, geoDistance, geoGraticule10, geoPath } from 'd3-geo'
 import earth from './earth-110m.json'
-import { receiverLabels } from './labels.ts'
+import { admin1Boundaries, geographicLabels } from './geography.ts'
+import { annotationLabels, receiverLabels } from './labels.ts'
 import type {
   MapLabel,
   MapLocation,
@@ -114,7 +115,7 @@ function createProjection(
     const point = projected(projection, location)
     return point ? [point] : []
   })
-  const padding = width < 420 ? 30 : 44
+  const padding = Math.max(26, Math.min(44, width / 12))
   if (kind === 'azimuthal') {
     const farthest = receivers.reduce(
       (distance, receiver) =>
@@ -157,9 +158,53 @@ function mappedReceivers(origin: MapLocation, receivers: readonly MapReceiver[])
   )
 }
 
-function basemap(projection: GeoProjection, theme: MapTheme): string {
+function basemap(
+  projection: GeoProjection,
+  theme: MapTheme,
+  width: number,
+  height: number,
+): string[] {
   const path = geoPath(projection).digits(1)
-  return `<path d="${path(earth as GeoPermissibleObjects) ?? ''}" fill="${theme.land}" stroke="${theme.border}" stroke-width="0.7" stroke-linejoin="round"/><path d="${path(geoGraticule10()) ?? ''}" fill="none" stroke="${theme.border}" stroke-opacity="0.35" stroke-width="0.6"/>`
+  // Separate country elements allow native layers to split between complete
+  // shapes. A single compound world path cannot be split by the layer packer.
+  const land = [
+    ...earth.geometries.flatMap((geometry) => {
+      const d = path(geometry as GeoPermissibleObjects)
+      return d
+        ? [
+            `<path d="${d}" fill="${theme.land}" stroke="${theme.border}" stroke-width="0.8" stroke-linejoin="round"/>`,
+          ]
+        : []
+    }),
+  ]
+  // Internal divisions add context at regional scales but overwhelm a world
+  // view. Clip detailed boundary endpoints to the bundled coarse coastline.
+  const regional = Math.max(width, height) / projection.scale() < 2.8
+  const landPath = regional ? (path(earth as GeoPermissibleObjects) ?? '') : ''
+  const divisions: string[] = []
+  if (regional && landPath.length < 160000) {
+    let boundaryPath = ''
+    const flush = () => {
+      if (!boundaryPath) return
+      const id = `admin-land-${divisions.length}`
+      divisions.push(
+        `<defs><clipPath id="${id}"><path d="${landPath}"/></clipPath></defs><path d="${boundaryPath}" clip-path="url(#${id})" fill="none" stroke="${theme.border}" stroke-opacity="0.65" stroke-width="0.6" stroke-linejoin="round"/>`,
+      )
+      boundaryPath = ''
+    }
+    for (const coordinates of admin1Boundaries.coordinates) {
+      const line = path({ type: 'LineString', coordinates })
+      if (!line) continue
+      if (boundaryPath.length + line.length > 48000) flush()
+      boundaryPath += line
+    }
+    flush()
+  }
+  return [
+    ...land,
+    ...divisions,
+    `<path d="${path(geoGraticule10()) ?? ''}" fill="none" stroke="${theme.border}" stroke-opacity="0.18" stroke-width="0.5"/>`,
+  ]
 }
 
 function svgDocument(body: string, width: number, height: number, description: string): string {
@@ -203,7 +248,7 @@ function labelBackings(labels: readonly MapLabel[], theme: MapTheme): string {
     .filter((label) => label.key.startsWith('receiver-label:') || label.key === 'origin-label')
     .map(
       (label) =>
-        `<rect x="${format(label.x)}" y="${format(label.y)}" width="${format(label.width)}" height="${format(label.height)}" rx="4" fill="${theme.surface}" fill-opacity="0.94"/>`,
+        `<rect x="${format(label.x)}" y="${format(label.y)}" width="${format(label.width)}" height="${format(label.height)}" rx="${label.key === 'origin-label' ? 6 : 4}" fill="${theme.land}" fill-opacity="0.94"${label.key === 'origin-label' ? ` stroke="${theme.text}" stroke-opacity="0.4" stroke-width="0.8"` : ''}/>`,
     )
     .join('')
 }
@@ -279,11 +324,12 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
     return emptyMap(width, height, theme, options.receivers.length, labelScale)
 
   const receivers = mappedReceivers(origin, options.receivers)
+  const plotHeight = Math.max(70, height - 15 - 16 * labelScale)
   const projection = createProjection(
     origin,
     receivers,
     width,
-    height,
+    plotHeight,
     options.projection ?? 'regional',
   )
   const path = geoPath(projection).digits(1)
@@ -294,12 +340,45 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
       ? [{ key: receiver.key, x: point[0], y: point[1], selected: Boolean(receiver.selected) }]
       : []
   })
-  const labels: MapLabel[] = []
+  const labels: MapLabel[] = [
+    {
+      key: 'attribution',
+      text:
+        labelScale > 1.4
+          ? 'Natural Earth'
+          : width < 420
+            ? 'Natural Earth · approximate locations'
+            : 'Natural Earth · receiver locations approximate',
+      x: 10,
+      y: height - 5 - 16 * labelScale,
+      width: width - 20,
+      height: 16 * labelScale,
+      size: 11,
+      color: theme.muted,
+      weight: 400,
+      align: 'right',
+    },
+  ]
+  if (receivers.length === 0) {
+    labels.push({
+      key: 'no-receivers',
+      text: labelScale > 1.4 ? 'No mapped reports' : 'Waiting for receiver reports',
+      x: 12,
+      y: 12,
+      width: width - 24,
+      height: 24 * labelScale,
+      size: 14,
+      color: theme.text,
+      weight: 600,
+      align: 'center',
+    })
+  }
   const background: string[] = [
     `<rect width="${width}" height="${height}" rx="10" fill="${theme.surface}"/>`,
-    basemap(projection, theme),
+    ...basemap(projection, theme, width, height),
   ]
   const body: string[] = []
+  const ringLabels: MapLabel[] = []
 
   const visibleRadiusKm = (Math.max(width, height) / projection.scale()) * earthRadiusKm
   const ringStep =
@@ -317,7 +396,7 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
   ) {
     const radius = (distanceKm / earthRadiusKm) * projection.scale()
     body.push(
-      `<circle cx="${format(originPoint[0])}" cy="${format(originPoint[1])}" r="${format(radius)}" fill="none" stroke="${theme.muted}" stroke-opacity="0.25" stroke-width="0.8" stroke-dasharray="3 5"/>`,
+      `<circle cx="${format(originPoint[0])}" cy="${format(originPoint[1])}" r="${format(radius)}" fill="none" stroke="${theme.muted}" stroke-opacity="0.2" stroke-width="0.7" stroke-dasharray="2 7"/>`,
     )
     const x = originPoint[0] + 6
     const y = originPoint[1] - radius - 10
@@ -328,7 +407,7 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
       y > 12 &&
       y < height - 30
     ) {
-      labels.push({
+      ringLabels.push({
         key: `ring:${distanceKm}`,
         text: `${distanceKm.toLocaleString('en-US')} km`,
         x,
@@ -355,7 +434,7 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
     })
     if (route)
       body.push(
-        `<path d="${route}" fill="none" stroke="${theme.accent}" stroke-opacity="${format(receiver.selected ? 1 : freshOpacity(receiver.ageMinutes) * 0.6)}" stroke-width="${receiver.selected ? 2.5 : 1.25}"/>`,
+        `<path d="${route}" fill="none" stroke="${theme.accent}" stroke-opacity="${format(receiver.selected ? 1 : freshOpacity(receiver.ageMinutes) * 0.46)}" stroke-width="${receiver.selected ? 2.5 : 1.15}" stroke-linecap="round"/>`,
       )
   }
 
@@ -368,19 +447,20 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
         `<circle cx="${x}" cy="${y}" r="10" fill="${theme.accent}" fill-opacity="0.15" stroke="${theme.accent}" stroke-width="1"/>`,
       )
     body.push(
-      `<circle cx="${x}" cy="${y}" r="${receiver.selected ? 5 : 4}" fill="${theme.accent}" fill-opacity="${format(freshOpacity(receiver.ageMinutes))}" stroke="${theme.surface}" stroke-width="1.6"/>`,
+      `<circle cx="${x}" cy="${y}" r="${receiver.selected ? 5 : 4.5}" fill="${theme.accent}" fill-opacity="${format(freshOpacity(receiver.ageMinutes))}" stroke="${theme.land}" stroke-width="1.8"/>`,
     )
   }
+  const [originX, originY] = originPoint
   body.push(
-    `<circle cx="${format(originPoint[0])}" cy="${format(originPoint[1])}" r="11" fill="${theme.accent}" fill-opacity="0.16"/><circle cx="${format(originPoint[0])}" cy="${format(originPoint[1])}" r="5" fill="${theme.text}" stroke="${theme.surface}" stroke-width="2"/>`,
+    `<circle cx="${format(originX)}" cy="${format(originY)}" r="14" fill="${theme.land}" fill-opacity="0.85"/><path d="M${format(originX)},${format(originY - 8)}L${format(originX + 7)},${format(originY)}L${format(originX)},${format(originY + 8)}L${format(originX - 7)},${format(originY)}Z" fill="${theme.text}" stroke="${theme.land}" stroke-width="1.5"/><circle cx="${format(originX)}" cy="${format(originY)}" r="2" fill="${theme.land}"/>`,
   )
   const originText = (origin.label ?? 'Your station').slice(0, 20)
-  const originWidth = Math.min(width - 20, originText.length * 7.8 * labelScale + 18)
+  const originWidth = Math.min(width - 32, originText.length * 7.8 * labelScale + 18)
   const originLabel: MapLabel = {
     key: 'origin-label',
     text: originText,
     x: Math.max(8, Math.min(width - originWidth - 8, originPoint[0] - originWidth / 2)),
-    y: Math.min(height - 10 - 38 * labelScale, originPoint[1] + 14),
+    y: Math.min(height - 10 - 38 * labelScale, originPoint[1] + 17),
     width: originWidth,
     height: 22 * labelScale,
     size: 12,
@@ -388,54 +468,52 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
     weight: 700,
     align: 'center',
   }
-  if (receivers.length > 0 || labelScale <= 1.4) labels.push(originLabel)
-  labels.push(
-    ...receiverLabels(
-      receivers,
-      [...markers, { key: 'origin', x: originPoint[0], y: originPoint[1], selected: false }],
-      width,
-      height,
-      theme,
-      labels,
-      labelScale,
-    ),
-  )
-  if (receivers.length === 0) {
-    labels.push({
-      key: 'no-receivers',
-      text: labelScale > 1.4 ? 'No mapped reports' : 'Waiting for receiver reports',
-      x: 12,
-      y: 12,
-      width: width - 24,
-      height: 24 * labelScale,
-      size: 14,
-      color: theme.text,
-      weight: 600,
-      align: 'center',
-    })
+  const mapMarkers = [...markers, { key: 'origin', x: originX, y: originY, selected: false }]
+  if (receivers.length > 0 || labelScale <= 1.4) {
+    const centeredX = Math.max(12, Math.min(width - originWidth - 12, originLabel.x))
+    const candidates = [
+      { ...originLabel, x: centeredX },
+      { ...originLabel, x: centeredX, y: originY - originLabel.height - 17 },
+      { ...originLabel, x: originX + 18, y: originY - originLabel.height / 2 },
+      { ...originLabel, x: originX - originWidth - 18, y: originY - originLabel.height / 2 },
+      { ...originLabel, x: 12, y: 12 },
+      { ...originLabel, x: width - originWidth - 12, y: 12 },
+    ]
+    labels.push(...annotationLabels(candidates, mapMarkers, labels, width, height, 1))
   }
-  labels.push({
-    key: 'attribution',
-    text:
-      labelScale > 1.4
-        ? 'Natural Earth'
-        : width < 420
-          ? 'Natural Earth · approximate locations'
-          : 'Natural Earth · receiver locations approximate',
-    x: 10,
-    y: height - 5 - 16 * labelScale,
-    width: width - 20,
-    height: 16 * labelScale,
-    size: 11,
-    color: theme.muted,
-    weight: 400,
-    align: 'right',
-  })
+  labels.push(...receiverLabels(receivers, mapMarkers, width, height, theme, labels, labelScale))
+  labels.push(...annotationLabels(ringLabels, mapMarkers, labels, width, height, 2))
+  if (labelScale <= 1.4) {
+    const countries: MapLabel[] = geographicLabels.flatMap((country) => {
+      const point = projected(projection, country)
+      if (!point) return []
+      const text = country.label.toUpperCase()
+      const labelWidth = text.length * 6.5 * labelScale + 8
+      return [
+        {
+          key: `geography:${country.key}`,
+          text,
+          x: point[0] - labelWidth / 2,
+          y: point[1] - 9 * labelScale,
+          width: labelWidth,
+          height: 18 * labelScale,
+          size: 11,
+          color: theme.muted,
+          weight: 400,
+          align: 'center' as const,
+        },
+      ]
+    })
+    labels.push(
+      ...annotationLabels(countries, mapMarkers, labels, width, height, width < 520 ? 3 : 5),
+    )
+  }
   const overlay = [
+    `<rect x="1" y="${format(plotHeight)}" width="${width - 2}" height="${format(height - plotHeight - 1)}" rx="9" fill="${theme.surface}"/>`,
     labelBackings(labels, theme),
     `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="none" stroke="${theme.border}" stroke-width="1"/>`,
   ]
-  const description = `${originText} reception map: ${receivers.length} receiver${receivers.length === 1 ? '' : 's'}. Lines show reported reception, not a coverage boundary.`
+  const description = `${originText} reception map: ${receivers.length} receiver${receivers.length === 1 ? '' : 's'}. Diamond marks the station; circles mark receivers. Lines show reported reception, not a coverage boundary.`
   const svgLayers = geometryLayers([background, body], width, height, description)
   svgLayers.push(svgDocument(overlay.join(''), width, height, description))
   return {

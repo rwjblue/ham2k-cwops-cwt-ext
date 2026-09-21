@@ -185,12 +185,12 @@ that CWT synchronization requirement.
 ## Release
 
 All extensions and shared workspaces use one synchronized repository version.
-Choose an unused version; `0.3.1` below is an example for the next release:
+Choose an unused version; `0.3.2` below is an example for the next release:
 
 ```sh
-mise run release:prepare 0.3.1
+mise run release:prepare 0.3.2
 mise run format
-mise run release v0.3.1 --dry-run
+mise run release v0.3.2 --dry-run
 ```
 
 `release:prepare` updates the root package, every extension's manifest and

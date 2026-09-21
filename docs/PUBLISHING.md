@@ -52,16 +52,16 @@ the already uploaded GitHub release assets remain available.
 ## Prepare and publish a release
 
 All extensions and shared workspaces retain one synchronized version. Choose
-an unused version; **0.3.1 below is an example for a future release**:
+an unused version; **0.3.2 below is an example for a future release**:
 
 ```sh
-mise run release:prepare 0.3.1
+mise run release:prepare 0.3.2
 mise run format
-mise run release v0.3.1 --dry-run
+mise run release v0.3.2 --dry-run
 ```
 
 Commit the prepared files using the repository's signed Jujutsu workflow and
-push them, then publish a GitHub release tagged `v0.3.1` at that tested commit.
+push them, then publish a GitHub release tagged `v0.3.2` at that tested commit.
 The workflow checks out the release commit, runs `check`, and attaches the
 exact current bundle/checksum pairs. Drafts do not trigger it. Keep GitHub
 release immutability disabled because these assets are attached after
@@ -80,7 +80,7 @@ versions use `unstable`. To preview an **existing** published GitHub release
 from a checkout with the same version and extensions:
 
 ```sh
-mise run release:catalog v0.3.0 --dry-run
+mise run release:catalog v0.3.1 --dry-run
 ```
 
 This downloads and validates assets but needs no catalog token and submits
@@ -91,9 +91,9 @@ The following are alternative commands; choose the one matching the intended
 scope and channel:
 
 ```sh
-mise run release:catalog v0.3.0
-mise run release:catalog v0.3.0 n1rwj-mst
-mise run release:catalog v0.3.0 --channel bleeding
+mise run release:catalog v0.3.1
+mise run release:catalog v0.3.1 n1rwj-mst
+mise run release:catalog v0.3.1 --channel bleeding
 ```
 
 The optional extension key limits submission to one extension. All release

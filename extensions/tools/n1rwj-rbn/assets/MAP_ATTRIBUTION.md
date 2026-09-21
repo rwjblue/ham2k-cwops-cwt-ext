@@ -1,6 +1,7 @@
 # Bundled map data and geometry
 
-The extension bundles coarse country geometry; drawing or reopening its map never
+The extension bundles coarse country geometry, simplified state/province
+boundaries, and country label positions; drawing or reopening its map never
 downloads image tiles. The map is a reception diagram, not a navigation map.
 Receiver positions come from RBN's reported skimmer locations and are approximate.
 Lines indicate reports at those receivers, not a measured coverage boundary.
@@ -11,6 +12,38 @@ derived from Natural Earth at 1:110 million scale. TopoJSON arcs were expanded i
 GeoJSON rings, country metadata removed, and longitude/latitude values rounded to
 three decimals. No points were otherwise simplified. This keeps the full world
 data small enough to include directly in the `.h2kext` JavaScript bundle.
+
+The source files `src/map/admin1-boundaries.json` and
+`src/map/geographic-labels.json` derive directly from the Natural Earth repository's
+**v5.1.2** snapshot:
+
+- [10m internal administrative boundary lines](https://github.com/nvkelso/natural-earth-vector/blob/v5.1.2/geojson/ne_10m_admin_1_states_provinces_lines.geojson)
+  cover most countries worldwide. Connected segments are joined at degree-two
+  endpoints while preserving junctions, simplified with Douglas–Peucker at a
+  longitude/latitude tolerance of 0.1 degrees, then rounded to two decimal places.
+  Duplicate consecutive coordinates and lines that collapse to a point are
+  removed. All source scale ranks are included: 8,991 output lines and 28,276
+  coordinates. Minified GeoJSON is 412,556 bytes, or approximately 119 KB with gzip.
+- [110m countries](https://github.com/nvkelso/natural-earth-vector/blob/v5.1.2/geojson/ne_110m_admin_0_countries.geojson)
+  supply 177 label candidates from `LABEL_X`, `LABEL_Y`, and `LABELRANK`.
+  Labels use `NAME_LONG` when at most 20 characters, otherwise `NAME`.
+  Coordinates are rounded to two decimals. The renderer chooses a sparse,
+  non-overlapping subset; these are geographic labels, not receiver locations.
+
+To reproduce these two files from the repository root, run
+`mise run rbn:geography`, then `mise run format`. The generator pins the source tag
+and verifies SHA-256 checksums before generating either file. It uses Node's
+built-in modules and does not add a runtime dependency. The source checksums are:
+
+```text
+1a1f30ccaaf4cc9c4bde34266f0b8cbb955d3a4cf254b756912255f2ec7c75b6  ne_10m_admin_1_states_provinces_lines.geojson
+6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f  ne_110m_admin_0_countries.geojson
+```
+
+The [Natural Earth admin-1 dataset](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/)
+omits some tiny countries and disputed areas. It uses Natural Earth's standard
+de facto boundaries. Its 10m source is simplified for this regional reception map;
+it is neither a detailed local basemap nor an authoritative boundary reference.
 
 Made with Natural Earth. Natural Earth map data is public domain:
 <https://www.naturalearthdata.com/about/terms-of-use/>.

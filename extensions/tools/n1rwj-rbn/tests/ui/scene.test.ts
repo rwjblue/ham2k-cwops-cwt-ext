@@ -183,7 +183,7 @@ describe('RBN native scene', () => {
   it('filters both map and list to the selected band and keeps an empty configured band selectable', () => {
     const selected = renderRbnScene(model, environment(), { band: '40m' })
     expect(selected.totalRows).toBe(12)
-    expect(text(selected.scene)).toContain('12 receivers · 1 bands')
+    expect(text(selected.scene)).toContain('12 receivers · 1 band')
     const empty = renderRbnScene(model, environment(390, 844), { view: 'list', band: '10m' })
     expect(empty.totalRows).toBe(0)
     expect(text(empty.scene)).toContain('No 10m reports in this time window.')
@@ -213,8 +213,10 @@ describe('RBN native scene', () => {
         .filter((layer) => layer.id.startsWith('reception-map-'))
         .map((layer) => layer.svg)
         .join('')
-    expect(geometry(fresh.scene)).toContain('stroke-opacity="0.60"')
-    expect(geometry(old.scene)).toContain('stroke-opacity="0.20"')
+    const markerOpacity = (scene: SvgScene) =>
+      Number(geometry(scene).match(/<circle[^>]+r="4\.5"[^>]+fill-opacity="([\d.]+)"/)?.[1])
+    expect(markerOpacity(fresh.scene)).toBe(1)
+    expect(markerOpacity(old.scene)).toBeCloseTo(1 / 3, 2)
   })
 
   it('bounds dropdown menus and keeps the current empty band available', () => {

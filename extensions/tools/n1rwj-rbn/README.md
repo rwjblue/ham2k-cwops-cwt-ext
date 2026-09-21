@@ -12,8 +12,8 @@ Part of the [N1RWJ extension family](../../../README.md).
 
 1. Use a Ham2K version with native SVG panels. Published **Ham2K Next 26.9.0
    build 170** supports them; older builds such as 169 show **App update needed**.
-2. Download **`n1rwj-rbn-0.3.0.h2kext`** from the
-   [v0.3.0 release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0).
+2. Download **`n1rwj-rbn-0.3.1.h2kext`** from the
+   [v0.3.1 release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1).
 3. In Ham2K, open **Settings → Features & Extensions → Install from file**
    and select the downloaded package.
 4. Open an operation, choose **Edit Layout → Add a Panel → RBN · My signal**,
@@ -63,7 +63,11 @@ defaults in panel settings when you want them to survive a restart.
 
 ## Map and receiver list
 
-The map shows your configured origin, reception paths, and receiver points.
+The map marks your station with a diamond and reporting receivers with circles.
+Reception paths show where your signal was heard. Regional maps include
+state/province boundaries and sparse country labels; light and dark colors keep
+land and water distinct. Labels adapt to the available space, with receiver
+callsigns taking priority over geographic captions.
 Choose **Fit reporting receivers** in panel settings for a regional view or
 **From my station · distance rings** for a view centered on your station.
 The map includes the selected band's located receivers across all list pages.
@@ -88,7 +92,8 @@ attribution and warnings. Long details are paginated too.
 
 Also see the [compact map](../../../docs/images/rbn/rbn-next170-phone-map.jpg)
 and [compact receiver cards](../../../docs/images/rbn/rbn-next170-phone-list.jpg).
-These are native macOS captures; the compact examples use a 448×770 window.
+These native macOS captures show the original SVG map before the 0.3.1 visual
+refinements; the compact examples use a 448×770 window.
 Physical phone and Linux runtime checks remain outstanding. Exact package
 versions and test coverage are in the [verification record](../../../docs/VERIFICATION.md).
 

@@ -6,6 +6,7 @@ import type {
   SvgSceneLayer,
 } from '@ham2k/extension-sdk'
 import { layoutReceptionMap } from '../map/index.ts'
+import { receptionMapTheme } from '../map/theme.ts'
 import type { UiDirection, UiModel, UiReport, UiSort, UiView } from './types.ts'
 
 export interface SceneSelection {
@@ -285,7 +286,7 @@ export function renderRbnScene(
   if (!compact) {
     text(
       'summary',
-      `${receivers} receivers · ${bands} bands${farthest ? ` · ${Math.round(farthest).toLocaleString('en-US')} km max` : ''}`,
+      `${receivers} receiver${receivers === 1 ? '' : 's'} · ${bands} band${bands === 1 ? '' : 's'}${farthest ? ` · ${Math.round(farthest).toLocaleString('en-US')} km max` : ''}`,
       left,
       y,
       w,
@@ -440,14 +441,7 @@ export function renderRbnScene(
             return ageMinutes === undefined ? receiver : { ...receiver, ageMinutes }
           }),
         labelScale: textScale,
-        theme: {
-          surface: colors.card,
-          land: colors.surface,
-          text: colors.text,
-          muted: colors.muted,
-          border: colors.border,
-          accent: colors.accent,
-        },
+        theme: receptionMapTheme(dark ? 'dark' : 'light', raw?.accent),
       })
       for (const [index, svg] of map.svgLayers.entries())
         layers.push({

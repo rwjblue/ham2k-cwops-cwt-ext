@@ -99,6 +99,21 @@ not a substitute for those measurements.
 
 ## Development build and static previews
 
+The 0.3.1 map refinement adds simplified internal state/province boundaries
+and sparse country labels to the existing coarse country outlines. Regional
+maps show internal divisions; world-scale maps omit that detail. Native text
+labels reserve space for reception data before placing geographic captions.
+Map-specific light/dark palettes keep land and water distinct even when the
+host supplies identical surface colors. A host accent is used only when it has
+adequate text contrast against both fills.
+
+The additional geography is generated from checksum-verified Natural Earth
+v5.1.2 sources. Run `mise run rbn:geography`, then `mise run format` to regenerate
+it. The [map attribution](../extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
+records the source files, simplification and license. No tiles or new runtime
+network requests are required. See the [verification record](VERIFICATION.md)
+for the current development package and the remaining native acceptance work.
+
 Install dependencies as described in the [root README](../README.md), then
 build an installable RBN package from the repository root:
 
@@ -144,8 +159,8 @@ render deadline; they do not guarantee response times from the public service.
 ## Published-app reproduction and acceptance
 
 1. Use the published Next app. Record version/build and run Check for Updates.
-2. Install `n1rwj-rbn-0.3.0.h2kext` from the
-   [release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0),
+2. Install `n1rwj-rbn-0.3.1.h2kext` from the
+   [release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1),
    or a freshly built package from `dist/`, through Settings → Features & Extensions.
 3. Open a clearly labeled, empty TEST operation. Add RBN · My signal using
    Edit Layout. On older builds, expect the explicit app-update message.
