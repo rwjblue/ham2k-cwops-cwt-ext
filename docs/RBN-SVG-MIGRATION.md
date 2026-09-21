@@ -112,7 +112,7 @@ v5.1.2 sources. Run `mise run rbn:geography`, then `mise run format` to regenera
 it. The [map attribution](../extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
 records the source files, simplification and license. No tiles or new runtime
 network requests are required. See the [verification record](VERIFICATION.md)
-for the current development package and the remaining native acceptance work.
+for the published package and the remaining native acceptance work.
 
 Install dependencies as described in the [root README](../README.md), then
 build an installable RBN package from the repository root:

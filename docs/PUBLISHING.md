@@ -8,21 +8,24 @@ each submission before operators can install it from the catalog.
 
 ## Current release status
 
-[v0.3.0](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.0)
+[v0.3.1](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1)
 was published on September 21, 2026. All four extension bundles and their
-four checksum files are available on GitHub. The
-[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35631976696/job/106440097548),
+four checksum files are available on GitHub, and downloaded assets passed
+checksum validation. The
+[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35636926897/job/106456515162),
 but the separate
-[catalog job failed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35631976696/job/106440223935)
-on its first upload with HTTP 403 from a Cloudflare challenge. No submission
-was accepted by that run, so this release is **not pending catalog review**.
-Use the GitHub downloads while the catalog API issue is being resolved.
+[catalog job failed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35636926897/job/106456635007)
+on its first upload, `n1rwj-cwt`, with HTTP 403 from a Cloudflare challenge.
+No submission was accepted by that run and later extensions were not attempted,
+so this release is **not pending catalog review**. Use the GitHub downloads
+while the catalog API issue is being resolved.
 
-The same failure occurred for v0.2.1. The catalog maintainer needs to resolve
-the API challenge before retrying. Once resolved, use **Re-run failed jobs**
-for the release workflow; the successful GitHub upload job does not need to
-run again. See [verification details](VERIFICATION.md#release-030--2026-09-21)
-for the observed failure and release checks.
+The same failure occurred for v0.2.1 and v0.3.0. The catalog maintainer needs
+to resolve the API challenge before retrying. Once resolved, use **Re-run
+failed jobs** for the release workflow; the successful GitHub upload job does
+not need to run again. See [verification details](VERIFICATION.md#release-031--2026-09-21)
+for the observed failure and release checks. The map refinement has automated
+and static-preview coverage; native visual acceptance remains outstanding.
 
 ## Configure the token
 
@@ -106,7 +109,7 @@ As checked on September 21, 2026, the catalog's publishing page and parts of
 its UI still call channels `prod`, `next`, and `dev`. The pinned official
 tools use `stable`, `unstable`, and `bleeding`; inspected host source also
 requests `stable`. This automation follows the official publisher contract.
-The authenticated v0.2.1 and v0.3.0 upload attempts were blocked by Cloudflare
+The authenticated v0.2.1, v0.3.0 and v0.3.1 upload attempts were blocked by Cloudflare
 before catalog validation. They therefore do not establish whether the
 deployed catalog accepts these channel names; that remains unverified.
 

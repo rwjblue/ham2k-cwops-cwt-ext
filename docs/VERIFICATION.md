@@ -1,6 +1,23 @@
 # Verification and compatibility
 
-## Release 0.3.1 preparation — 2026-09-21
+## Release 0.3.1 — 2026-09-21
+
+[v0.3.1 is published on GitHub](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1)
+from signed commit
+[`c1327670`](https://github.com/rwjblue/ham2k-n1rwj-extensions/commit/c132767012a4a9f0b94e392ace32f772fe60c59e).
+[Main CI passed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35636851999)
+and the [release upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35636926897/job/106456515162).
+All four bundles and four checksum files are available. A local
+`mise run release:catalog v0.3.1 --dry-run` downloaded and validated all eight
+assets without submitting anything. The published RBN archive is **261,909
+bytes**, with SHA-256
+`2e237b6aded0574ccffd10fd7ba1c52caf62a8f7ee67b680c1ad2967d875cf42`.
+
+The [catalog job failed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35636926897/job/106456635007)
+at `2026-09-21T18:13:17.854Z`: its first `n1rwj-cwt` upload received HTTP
+**403** and a Cloudflare challenge. No submission was accepted, and subsequent
+extensions were not attempted. GitHub downloads work; catalog acceptance is
+not established. See [publishing and recovery](PUBLISHING.md) before retrying.
 
 The 0.3.1 RBN map adds bundled state/province boundaries at regional scales,
 sparse country labels, distinct land/water colors in both themes, a diamond
@@ -36,8 +53,8 @@ The preview-stage archive carried version **0.3.0**, but was **not the
 published 0.3.0 artifact**. It was 261,912 bytes with SHA-256
 `074c3c8385b880eacd0a29919a8ec7d935ee6c5df92453562a909a9d1f3e332b`.
 Release preparation subsequently synchronized every workspace to **0.3.1**.
-The release package is validated separately; the preview evidence above predates
-that version change. Native visual acceptance of the refinement remains pending.
+The release checks above passed after that version change; the preview evidence
+predates it. Native visual acceptance of the refinement remains pending.
 
 ## Release 0.3.0 — 2026-09-21
 
