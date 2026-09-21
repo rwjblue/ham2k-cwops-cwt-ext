@@ -57,10 +57,12 @@ Use one callsign per contact for these exchange-based contests: batch call
 entry shares exchange controls. ADIF and Cabrillo exports preserve the
 contest exchange. MST and SST scores are reported through
 [3830 Scores](https://www.3830scores.com/); their sponsors do not require log
-uploads. See the [CWT guide](extensions/contests/n1rwj-cwt/README.md) and
-[call-history details](docs/CALL-HISTORY.md) for CWT precedence and portable
-calls. [Verification](docs/VERIFICATION.md) separates automated checks from
-tests performed in the native Ham2K app.
+uploads. The [CWT](extensions/contests/n1rwj-cwt/README.md),
+[MST](extensions/contests/n1rwj-mst/README.md), and
+[SST](extensions/contests/n1rwj-sst/README.md) operator guides explain each
+contest, its data sources, exchange suggestions, and scoring, including how
+MST serial numbers work. [Verification](docs/VERIFICATION.md) separates
+automated checks from tests performed in the native Ham2K app.
 
 ## Develop
 

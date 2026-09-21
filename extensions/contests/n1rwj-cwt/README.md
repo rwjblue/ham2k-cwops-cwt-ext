@@ -1,121 +1,132 @@
 # N1RWJ CWT for Ham2K
 
-CWT exchange suggestions from N1MM CWops call history and previous CWT
-contacts, packaged as a personal Ham2K extension (`n1rwj-cwt`).
+Log the **CWops Tests (CWT)** in Ham2K with session selection, exchange
+suggestions, scoring, and ADIF/Cabrillo exports. The extension suggests names
+and CWops numbers or locations from a downloaded call-history file and your
+previous CWT contacts, while preserving what you actually enter.
 
-**This CWT extension is temporary until
-[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1) lands.**
-It keeps an installable version available while the upstream change is
-reviewed, and is not intended to be a long-term fork. That PR is the source
-of truth for feature changes; relevant changes made here must also be
-applied to its source branch. Version 0.1.2 backports its history-loading
-race fix, CWT-only suggestion handling, and English/Spanish prefill and
-settings text.
+Part of the [N1RWJ extension family](../../../README.md):
+**CWT** · [MST](../n1rwj-mst/README.md) · [SST](../n1rwj-sst/README.md).
 
-**Based on the official CWT extension by Sebastian Delmont, KI2D, the main
-Ham2K developer.** His setup, scheduling, scoring, exchange entry,
-translations, ADIF and Cabrillo behavior are preserved. This independent
-adaptation uses MPL-2.0. See [provenance](../../../docs/PROVENANCE.md),
+## The contest at a glance
+
+[CWops CWT](https://cwops.org/cwops-tests/) is a series of short CW operating
+events, open to members and nonmembers alike. Each one-hour session is a
+separate event.
+
+| Detail | CWT |
+| --- | --- |
+| Sessions, UTC | Wednesday 13:00 and 19:00; Thursday 03:00 and 07:00 |
+| Mode and bands | CW on 160, 80, 40, 20, 15, and 10 meters |
+| Exchange | First name + CWops member number; nonmembers send state, province, or DX country prefix |
+| Example | `ART 3806` for a member, or `ROB RI` for a nonmember in Rhode Island |
+| Score | QSO points × unique callsigns across all bands |
+
+Eligible CW Academy participants can use `CWA` as described in the
+[official rules](https://cwops.org/cwops-tests/). A CWops number is a fixed
+membership number: **CWT does not use a sequential contact serial number**.
+The extension suggests the regular weekly schedule; check the sponsor's page
+for special sessions or schedule changes.
+
+## Get started
+
+1. Download `n1rwj-cwt-<version>.h2kext` from
+   [N1RWJ releases](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases)
+   and install it through **Settings → Features & Extensions → Install from file**.
+2. **Disable the original CWops CWT extension.** Enable only one CWT extension
+   so Ham2K has one set of exchange controls and scoring rules.
+3. Create an operation for the session, add CWT, and select the correct UTC
+   date/time. Set your sent first name, member number or location (or eligible
+   `CWA` exchange), and power class.
+4. Under **Settings → Accounts, Services & Data Sources**, refresh
+   **CWops CWT call history (N1RWJ)** before operating.
+5. Enter a callsign, listen to the exchange, and confirm or correct the
+   suggested **Name** and **Nr** values before saving.
+
+Use a separate operation for each session and log **one callsign at a time**;
+batch call entry shares the exchange fields. Use **Wipe** to start a fresh
+contact and reset any edits left in the controls.
+
+## Where the call history comes from
+
+The default source is the public
+[N1MM call-history collection](https://n1mmwp.hamdocs.com/mmfiles/categories/callhistory/).
+The extension discovers the latest listed `CWOPS_*.txt` file, which contains
+names and known CWT exchanges. See N1MM's
+[call-history explanation](https://n1mmwp.hamdocs.com/setup/call-history/)
+for background on these community-maintained files. They are suggestions,
+not a live membership check or a guarantee of today's exchange.
+
+Ham2K checks the data when it loads the extension and when it reconnects,
+downloading a missing file or refreshing one older than 24 hours. You can
+also refresh it manually. **CWT Prefill** settings show the file's source,
+date, download time, record count, and any warnings. Leave the source blank
+for automatic discovery, or choose an HTTPS N1MM file page or direct text
+URL, then refresh. Local file paths are not supported.
+
+Typing a callsign uses the downloaded data and your local history; it does
+not download the N1MM file for every contact. The native app keeps the last
+successful file across restarts and failed refreshes, so cached suggestions
+remain available without a new download. See the
+[verification record](../../../docs/VERIFICATION.md) for tested offline/cache
+behavior and its limits.
+
+## How exchange suggestions work
+
+Your edits, including deliberately cleared fields, take priority. For each
+untouched field, the extension looks for a value in this order:
+
+1. CWT contacts already saved in this operation.
+2. The downloaded N1MM CWT file.
+3. Your older CWT contacts.
+4. Ham2K's ordinary name or location suggestion.
+
+Name and number/location are resolved separately. Within each source, exact
+callsign matches come first. An unambiguous base call can supply a portable
+station's name, member number, or `CWA`; a stored nonmember location requires
+the exact call because the station may have moved.
+
+If no CWT exchange is known, **Nr** may suggest a state or country prefix.
+That is only a location guess: a missing file entry or member number does
+not establish that someone is a nonmember. Check what they send. A suggestion
+is saved if you leave it unchanged; clearing or correcting it is respected.
+For the full matching rules, see [call-history details](../../../docs/CALL-HISTORY.md).
+
+## How scoring works
+
+Each eligible contact earns **one point**, and you may work a callsign once
+on each contest band. The multiplier is the number of **different callsigns
+across the whole session**. Working the same station on a second band adds
+a point, but does not add another multiplier. For example, 10 contacts with
+8 different callsigns score **10 × 8 = 80**.
+
+Duplicate contacts on the same band, non-CW contacts, and contacts on other
+bands earn no points. The current CWT scorer does **not** independently
+exclude contacts outside the selected hour or reject incomplete exchanges.
+Keep each operation confined to its session and review the exchange fields
+before reporting your score; a displayed score is not a completed-log check.
+
+## Export and report your score
+
+Use Ham2K's **Exports** menu for ADIF or Cabrillo. CWT exports use the
+`CWOPS-CWT` contest identifier and retain your sent and received exchanges.
+Report your session total at [3830 Scores](https://www.3830scores.com/), as
+described by CWops; routine CWT participation does not require a log submission.
+
+## About this extension
+
+This independent adaptation is based on the official CWT extension by
+**Sebastian Delmont, KI2D**, the main Ham2K developer. His attribution and
+MPL-2.0 notices are preserved; see [provenance](../../../docs/PROVENANCE.md),
 [license](../../../LICENSE), and [notices](../../../NOTICE.md).
 
-## Install and use
+Only this personal CWT extension is temporary, pending
+[Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1); the N1RWJ
+repository and the other extensions are permanent. CWT behavior and relevant
+documentation are kept aligned with that PR. Existing CWT operations,
+settings, and cached data are retained when updating this extension.
 
-1. Use a Ham2K build supporting SDK 0.5.0 and the shared-library versions in
-   [manifest.json](manifest.json). Native installation, member/nonmember/CWA
-   prefills, and saved exchanges were verified in **Power Logger 26.9.0,
-   build 169**; see [verification and limits](../../../docs/VERIFICATION.md).
-2. Download the `.h2kext` asset from a
-   [GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases), or
-   build it locally with `mise run check`. Choose **Settings → Features &
-   Extensions → Install from file** and select the bundle.
-3. **Disable the original CWops CWT extension.** Both handle `cwt` references;
-   enabling both creates duplicate handlers.
-4. Open **Settings → Accounts, Services & Data Sources → CWops CWT call
-   history (N1RWJ) → Refresh**. The default source discovers the current
-   CWOPS entry in the N1MM category. Automatic refresh is daily when Ham2K
-   is online.
-5. Choose a CWT session, configure your sent name/number, and enter a call.
-   Suggestions fill the separate native name and number controls. Check what
-   was received and correct it as needed.
-
-Log CWT contacts **one callsign at a time**. Ham2K's batch call-list logging
-shares the same exchange controls across its calls.
-
-**CWT Prefill** settings show source, file date, download time, record count,
-and warnings. Leave the source blank for automatic discovery, or select an
-HTTPS N1MM category, CWOPS entry, or direct text URL on `n1mm.hamdocs.com`
-or `n1mmwp.hamdocs.com`, then refresh its data-source entry. Local file paths
-are unsupported: this host's data-file loader fetches HTTP resources, and
-SDK 0.5.0 provides no local import capability for this extension.
-
-## Exchange behavior
-
-Each field uses operator input first (including intentional clearing), then
-current-operation CWT history, the selected file, and older compatible CWT
-history. Names retain the original host name suggestion as a final fallback.
-When no exchange is found, Number/QTH prefills from the station’s state,
-then its country/entity prefix (including callsign country-file lookup).
-Check this guess against what was received; missing records or member numbers
-never prove nonmembership. The prefilled location is saved unless you change
-or clear it.
-
-Exact calls precede an unambiguous base call. Names/member numbers/CWA can
-follow a portable suffix; nonmember locations require an exact call. Only
-explicit CWT references qualify as log history. The received exchange is
-stored on the CWT ref and projected to the log, ADIF, and Cabrillo.
-
-Ham2K protects touched controls during lookups and callsign corrections. Use
-**Wipe** for a fresh contact to reset those edits. Calls without a known exchange
-replace previous untouched suggestions with a location guess, or clear them
-when no location is available. See [supported syntax and precedence](../../../docs/CALL-HISTORY.md).
-
-The native Data Files cache retains the last successful dataset across failed
-refreshes and app restarts. Malformed replacements also leave it intact. This
-extension uses local history and an in-memory file index while typing. No
-backend is required. Testing with the operating system offline remains pending.
-
-## Develop
-
-Run commands at the repository root; see the [monorepo guide](../../../README.md).
-`mise run build n1rwj-cwt` builds this extension and `mise run pack n1rwj-cwt`
-creates its independent archive in the root `dist/` directory.
-
-### Keeping the personal extension aligned
-
-Keep relevant changes synchronized in both directions until PR #1 lands.
-For every CWT behavior change made here, apply any upstream-relevant behavior, bug fix,
-test, translation, or documentation change to the PR's source branch,
-`codex/cwt-call-history`, in `~/src/github/ham2k/extensions`. The upstream CWT
-extension lives in `extensions/contests/ham2k-cwt/`. Verify the checkout and
-current PR branch before editing, and run the upstream repository's checks
-for any changes there. Personal-only identity, packaging, release tooling,
-and personal CWT documentation do not need to be copied upstream;
-note that exception when reporting the change.
-
-Backport relevant fixes from `extensions/contests/ham2k-cwt/` in the upstream
-PR, adapting imports and tests to this repo's layout and Vitest setup. Keep
-the personal `n1rwj-cwt` identity, `n1rwj-cwt_history` data-file key, settings,
-export identifiers, licensing notices, and build/release tooling intact so
-existing installations retain their data and configuration. Run
-`mise run format` and `mise run check` after each backport and bump the personal
-version when preparing an updated bundle. Upstream-only packaging changes do
-not need a matching personal change.
-
-## Release
-
-CWT participates in the repository's synchronized release. See the root
-[release instructions](../../../README.md#release).
-
-## Verification
-
-`src/cwt/` preserves upstream logic; `src/history/` contains pure parsing and
-resolution; `src/data/` handles refresh/cache; `src/integration/` connects native
-controls. Tests cover fixtures, host-contract models, and the built bundle.
-Native installation, data download, member/nonmember/CWA logging, an
-unknown-number case, and operator edits/clearing across callsign corrections
-have been verified, along with native ADIF/Cabrillo exports and cached
-suggestions after a failed refresh and app restart. A native check of version
-0.1.1 also confirmed current-operation history overriding a conflicting file
-name and a successful refresh after restoring the default source.
-OS-offline use and a controlled delayed-lookup race remain unverified;
-[VERIFICATION.md](../../../docs/VERIFICATION.md) records the evidence and limits.
+See the [installation and development guide](../../../README.md),
+[upstream synchronization guidance](../../../README.md#keep-cwt-aligned-upstream),
+and [verification record](../../../docs/VERIFICATION.md). To build just CWT,
+run `mise run pack n1rwj-cwt` from the repository root.
