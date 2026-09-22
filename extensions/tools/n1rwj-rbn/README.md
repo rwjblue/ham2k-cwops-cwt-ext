@@ -104,7 +104,7 @@ callsigns taking priority over geographic captions.
 Choose **Fit reporting receivers** in panel settings for a regional view or
 **From my station · distance rings** for a view centered on your station.
 The map includes the selected band's located receivers across all list pages.
-Receiver positions come from registered grids and may differ from the actual
+Receiver positions come from RBN node grids, with registered grids as a fallback, and may differ from the actual
 skimmer location. Receivers without a valid grid remain in the list.
 
 Use **View** in the panel's tune settings to choose **Map and receivers**, **Map**,
@@ -176,9 +176,20 @@ unavailable, the panel shows the failure and any unexpired cached reports.
 Rate-limit responses pause requests across all panels until the retry delay
 has passed.
 
-Receiver positions use the `spotter_grid` supplied by Vail ReRBN, which comes
-from the callsign's HamDB registered grid. It can differ from the skimmer's
-actual receiving location, especially for remote receivers. Map positions,
+Receiver positions and countries come from the public [RBN node directory](https://www.reversebeacon.net/nodes/),
+matched by full receiver callsign, including skimmer suffixes. Ham2K downloads
+and caches this as **RBN receiver directory** in **Settings → Data Files**.
+The file becomes eligible for refresh after seven days, on the host's next
+data-file sync (such as startup or reconnection); it is not a weekly timer.
+Use Data Files settings to refresh sooner when a receiver is new or moves.
+The saved directory loads offline, failed downloads or invalid data retain the
+last good cache, and nodes absent from a later response are retained within a
+10,000-node limit. Directory updates apply to already-cached reports on the
+next panel render. The panel's refresh button refreshes reports only.
+
+Without a usable directory grid, positions fall back to `spotter_grid` supplied
+by Vail ReRBN, which comes from the callsign's HamDB registered grid. It can
+differ from the actual receiving location, especially for remote receivers. Map positions,
 distances, and bearings are estimates. Missing or invalid grids leave receivers
 in the list without a map point, distance, or bearing; the extension never
 substitutes a callsign-prefix location.

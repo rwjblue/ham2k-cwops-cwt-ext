@@ -21,7 +21,7 @@ function isCount(value: unknown, minimum = 0): value is number {
 }
 
 /** RBN receiver IDs can append a skimmer suffix, such as KM3T-5. */
-function isValidReceiver(value: string): boolean {
+export function isValidReceiver(value: string): boolean {
   const separator = value.indexOf('-')
   if (separator < 0) return isValidCall(value)
   return (
@@ -29,11 +29,10 @@ function isValidReceiver(value: string): boolean {
   )
 }
 
-function receiverLocation(value: unknown): [number | null, number | null] {
+export function receiverLocation(value: unknown): [number | null, number | null] {
   const grid = typeof value === 'string' ? value.trim().toUpperCase() : ''
   if (!/^[A-R]{2}\d{2}(?:[A-X]{2}(?:\d{2})?)?$/.test(grid)) return [null, null]
-  // Vail enriches this grid from HamDB. It is an approximate lookup location,
-  // not necessarily the skimmer's current physical location.
+  // Use the grid center; neither source guarantees an exact receiver position.
   return gridToLocation(grid)
 }
 

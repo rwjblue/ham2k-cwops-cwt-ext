@@ -5,7 +5,7 @@ import { configFields, operationOrigin, rbnBands, readConfig, watchedCall } from
 import type { RbnClient } from './data/client.ts'
 import { rbnClient } from './data/host-client.ts'
 import type { MapReceiver, MapTheme } from './map/index.ts'
-import type { RbnSnapshot } from './model.ts'
+import type { RbnReport, RbnSnapshot } from './model.ts'
 import { bearingDegrees, distanceKm, latestReports, receiverCoordinates } from './model.ts'
 import type { SceneSelection } from './ui/scene.ts'
 import { renderRbnScene } from './ui/scene.ts'
@@ -82,12 +82,12 @@ export function panelModel(
       : '',
     snapshot.error ?? '',
     `Last ${config.windowMinutes} minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Automatic checks at most once a minute while this panel is visible. Manual refresh waits at least 30 seconds between requests.`,
-    'Receiver locations use HamDB registered grids supplied by Vail ReRBN and may differ from the actual skimmer location. Distances and bearings are estimates.',
+    'Receiver locations and countries use the cached RBN receiver directory, with HamDB registered grids supplied by Vail ReRBN as a fallback. Distances and bearings are estimates. Refresh the receiver directory in Data Files settings.',
     snapshot.capped
       ? 'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.'
       : '',
     reports.some((report) => !receiverCoordinates(report))
-      ? 'Receivers without a valid registered grid remain in the list.'
+      ? 'Receivers without a valid grid remain in the list.'
       : '',
   ].filter(Boolean)
   const themeMode = settings.themeMode
@@ -153,6 +153,7 @@ export function createRbnPanel(
     client?: RbnClient
     now?: () => number
     settings?: () => Promise<Record<string, JSONValue>>
+    enrichReports?: (reports: readonly RbnReport[]) => RbnReport[]
   } = {},
 ): PanelHook {
   const client = dependencies.client ?? rbnClient
@@ -233,7 +234,15 @@ export function createRbnPanel(
           : Math.max(snapshot.lastSuccessMs ?? 0, Math.floor((realTime ?? now()) / 60_000) * 60_000)
       const state = stateFor(args)
       const rendered = renderRbnScene(
-        panelModel(args, snapshot, ageReference, preferences),
+        panelModel(
+          args,
+          {
+            ...snapshot,
+            reports: dependencies.enrichReports?.(snapshot.reports) ?? snapshot.reports,
+          },
+          ageReference,
+          preferences,
+        ),
         args.environment,
         { ...state.selection, view: config.view, band: config.band },
       )

@@ -1,6 +1,7 @@
 import type { PanelContent, PanelEnvironment, PanelRenderArgs } from '@ham2k/extension-sdk'
 import { describe, expect, it, vi } from 'vitest'
 import { createRbnClient } from '../src/data/client.ts'
+import { createReceiverData } from '../src/data/receivers.ts'
 import type { RbnSnapshot } from '../src/model.ts'
 import { createRbnPanel, panelModel } from '../src/panel.ts'
 import { payload, spotPayload } from './data/fixtures.ts'
@@ -117,6 +118,26 @@ function event(controlId: string, action: string, extra: Partial<PanelRenderArgs
 }
 
 describe('RBN native panel integration', () => {
+  it('applies directory updates to cached reports on the next render and falls back after removal', async () => {
+    const receivers = createReceiverData()
+    const current = { ...snapshot, reports: [{ ...snapshot.reports[0], country: null }] }
+    const panel = createRbnPanel({
+      client: { getSnapshot: async () => current },
+      now: () => now,
+      settings: async () => ({}),
+      enrichReports: receivers.enrichReports,
+    })
+    const before = await panel.render(args, { online: false })
+    expect(sceneText(before)).toContain('Country unknown')
+    receivers.dataFile.onLoadRawData({
+      schema: 1,
+      nodes: [{ call: 'W1NT', grid: 'FN43', country: 'United States' }],
+    })
+    expect(sceneText(await panel.render(args, { online: false }))).toContain('United States')
+    expect(current.reports[0].country).toBeNull()
+    await receivers.dataFile.onRemoveRawData()
+    expect(await panel.render(args, { online: false })).toEqual(before)
+  })
   it('registers the stable panel identity and bounded refresh triggers', async () => {
     const { panel } = setup()
     expect((await panel.getPanels({}, { online: true }))[0]).toMatchObject({

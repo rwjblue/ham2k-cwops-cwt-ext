@@ -3,7 +3,7 @@
 The extension bundles coarse country geometry, simplified state/province
 boundaries, and country label positions; drawing or reopening its map never
 downloads image tiles. The map is a reception diagram, not a navigation map.
-Receiver positions come from RBN's reported skimmer locations and are approximate.
+Receiver positions and countries come from the [RBN node directory](https://www.reversebeacon.net/nodes/), cached by Ham2K for seven days, with HamDB registered grids supplied by Vail ReRBN as a fallback. Positions are approximate.
 Lines indicate reports at those receivers, not a measured coverage boundary.
 
 The source file `src/map/earth-110m.json` contains the 177 country geometries in

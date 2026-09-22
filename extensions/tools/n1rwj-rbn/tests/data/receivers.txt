@@ -1,0 +1,50 @@
+<!-- Reduced fixtures using calls, grids and countries verified against the public RBN node directory on 2026-09-22. Unused activity fields are synthetic. -->
+<tr class="online total">
+  <td><a href="/dxsd1.php?f=0&amp;c=BD8CS&amp;t=de" title="show spots sent from this skimmer">BD8CS</a></td>
+  <td>15m</td>
+  <td>OM30BP</td>
+  <td><a title="China - show spots from this dxcc">DXCC</a></td>
+  <td>continent</td><td>1</td><td>1</td><td>1 year ago</td><td>online</td>
+</tr>
+<tr class="online total">
+  <td><a href="/dxsd1.php?f=0&amp;c=JJ2VLY&amp;t=de" title="show spots sent from this skimmer">JJ2VLY</a></td>
+  <td>15m</td>
+  <td>PM95JG</td>
+  <td><a title="Japan - show spots from this dxcc">DXCC</a></td>
+  <td>continent</td><td>1</td><td>1</td><td>1 year ago</td><td>online</td>
+</tr>
+<tr class="online total">
+  <td><a href="/dxsd1.php?f=0&amp;c=KD7EFG&amp;t=de" title="show spots sent from this skimmer">KD7EFG</a></td>
+  <td>15m</td>
+  <td>DN31UO</td>
+  <td><a title="United States - show spots from this dxcc">DXCC</a></td>
+  <td>continent</td><td>1</td><td>1</td><td>1 year ago</td><td>online</td>
+</tr>
+<tr class="online total">
+  <td><a href="/dxsd1.php?f=0&amp;c=ND7K&amp;t=de" title="show spots sent from this skimmer">ND7K</a></td>
+  <td>15m</td>
+  <td>DM34OB</td>
+  <td><a title="United States - show spots from this dxcc">DXCC</a></td>
+  <td>continent</td><td>1</td><td>1</td><td>1 year ago</td><td>online</td>
+</tr>
+<tr class="online total">
+  <td><a href="/dxsd1.php?f=0&amp;c=VK6ANC&amp;t=de" title="show spots sent from this skimmer">VK6ANC</a></td>
+  <td>15m</td>
+  <td>OF78WE</td>
+  <td><a title="Australia - show spots from this dxcc">DXCC</a></td>
+  <td>continent</td><td>1</td><td>1</td><td>1 year ago</td><td>online</td>
+</tr>
+<tr class="online total">
+  <td><a href="/dxsd1.php?f=0&amp;c=ZL2KS&amp;t=de" title="show spots sent from this skimmer">ZL2KS</a></td>
+  <td>15m</td>
+  <td>RE68XQ</td>
+  <td><a title="New Zealand - show spots from this dxcc">DXCC</a></td>
+  <td>continent</td><td>1</td><td>1</td><td>1 year ago</td><td>online</td>
+</tr>
+<tr class="online total">
+  <td><a href="/dxsd1.php?f=0&amp;c=ZL3X&amp;t=de" title="show spots sent from this skimmer">ZL3X</a></td>
+  <td>15m</td>
+  <td>RE66IR</td>
+  <td><a title="New Zealand - show spots from this dxcc">DXCC</a></td>
+  <td>continent</td><td>1</td><td>1</td><td>1 year ago</td><td>online</td>
+</tr>
