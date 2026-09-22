@@ -8,21 +8,21 @@ each submission before operators can install it from the catalog.
 
 ## Current release status
 
-[v0.3.3](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.3)
-was published from signed commit `a306ccee520c4bb26c450eb33f913621eff138f7`
+[v0.3.4](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.4)
+was published from signed commit `f1851580c6f6ef948ae799b1520460d78b3e351a`
 on September 21, 2026 (September 22 UTC). All four extension bundles and their
 four checksum files are available on GitHub. The
-[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35673953580/job/106576380527),
-and downloaded assets passed `mise run release:catalog v0.3.3 --dry-run`.
+[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35679997989/job/106594684230),
+and downloaded assets passed `mise run release:catalog v0.3.4 --dry-run`.
 
-The [catalog job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35673953580/job/106576460997):
-all four uploads to `stable` were accepted as **pending review** at 00:57 UTC
+The [catalog job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35679997989/job/106594780468):
+all four uploads to `stable` were accepted as **pending review** at 02:35 UTC
 on September 22. This confirms submission, not catalog approval or installation
-availability. See the [release notes](releases/v0.3.3.md) and
-[published artifact verification](VERIFICATION.md#release-033-publication--2026-09-21).
+availability. See the [release notes](releases/v0.3.4.md) and
+[published artifact verification](VERIFICATION.md#release-034-publication--2026-09-21).
 
 Earlier v0.2.1, v0.3.0, and v0.3.1 runs failed with HTTP 403 from a Cloudflare
-challenge. The v0.3.2 retry and v0.3.3 publication succeeded; inspect each earlier
+challenge. The v0.3.2 retry and v0.3.3/v0.3.4 publications succeeded; inspect each earlier
 version's submission history before retrying it.
 
 ## Configure the token
