@@ -54,7 +54,10 @@ Wide panes show a table; narrow panes use receiver cards.
 Explicit callsign/grid overrides stay with that panel placement until cleared,
 so leave them blank for normal operation. The map geography is bundled; new
 RBN reports are provided by Vail ReRBN and need internet access. Receiver positions
-use registered grids, so map paths, distances, and bearings are estimates.
+use cached RBN node grids, with registered grids as a fallback, so map paths,
+distances, and bearings are estimates. Refresh the **RBN receiver directory**
+in **Settings → Data Files** when needed; it becomes eligible for automatic
+refresh during data-file sync after seven days.
 See the [RBN guide and historical screenshots](extensions/tools/n1rwj-rbn/README.md)
 for settings, test observations, and device-testing limits.
 

@@ -1,5 +1,24 @@
 # Verification and compatibility
 
+## Release 0.3.4 preparation — 2026-09-21
+
+Prepared synchronized version **0.3.4** with the RBN receiver-directory
+cache introduced in `79f8f532`. Reviewed directory parsing, location fallback,
+cache retention, and registration changes. Contest runtime behavior is unchanged.
+
+`mise run format` and `mise run release v0.3.4 --dry-run` passed:
+**419 tests across 32 files**, lint, strict typechecks, official builds and
+packaging, and all eight bundle/checksum paths. `mise run verify-host` passed
+for all four extensions against the running **Ham2K Next 26.9.0 build 170**
+kernel, SHA-256
+`b001f0c0ede236f2dfb5a24788aaaebd49709bb193ff487b90337b115790f743`,
+including the `dataFile/n1rwj-rbn_receivers` hook.
+
+These checks exercise automated tests and the installed JavaScript kernel
+under Node VM, not native installation, UI interactions, or live directory
+refresh. RBN changes and personal release packaging/documentation are exempt
+from CWT upstream synchronization.
+
 ## Release 0.3.3 publication — 2026-09-21
 
 Published [v0.3.3](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.3)
