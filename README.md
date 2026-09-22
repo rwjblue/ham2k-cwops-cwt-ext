@@ -197,7 +197,7 @@ that CWT synchronization requirement.
 ## Release
 
 All extensions and shared workspaces use one synchronized repository version.
-Choose an unused version; `0.3.3` is the prepared candidate:
+Choose an unused version. For example, preparation for v0.3.3 used:
 
 ```sh
 mise run release:prepare 0.3.3

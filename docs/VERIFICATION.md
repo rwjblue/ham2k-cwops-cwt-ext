@@ -1,5 +1,30 @@
 # Verification and compatibility
 
+## Release 0.3.3 publication — 2026-09-21
+
+Published [v0.3.3](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.3)
+from signed commit `a306ccee520c4bb26c450eb33f913621eff138f7`. GitHub verified
+the commit signature. The [release workflow](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35673953580)
+passed its checks, attached all four bundles and checksum files, and submitted
+all four bundles to catalog channel `stable`. The catalog reported each as
+**pending review** at 00:57 UTC on September 22; approval remains unverified.
+
+`mise run release:catalog v0.3.3 --dry-run` downloaded the published artifacts
+and validated synchronized versions and every checksum without resubmitting.
+These are the published archive digests, distinct from the local candidate
+archive digests recorded below:
+
+| Published bundle | SHA-256 |
+| --- | --- |
+| `n1rwj-cwt-0.3.3.h2kext` | `de9fdf234b13564b6a52407ed5f4a4d05195f4ba0f0d752590f04b780ef980df` |
+| `n1rwj-mst-0.3.3.h2kext` | `c38a4f4c2a7b7345ef953655a514af5b59402c1806adc6afe58437672b37d195` |
+| `n1rwj-rbn-0.3.3.h2kext` | `4d47d65d9925ec1f1357c0e9c8252c0bd7de3e9a33ab66c5571c11591089930b` |
+| `n1rwj-sst-0.3.3.h2kext` | `53393201c84417066a95c6a6a76f789ea39dd391b4a24977e62409fa329a5e64` |
+
+No new native installation or interaction acceptance was performed during
+publication. This publication record is personal packaging documentation,
+exempt from CWT upstream synchronization.
+
 ## Release 0.3.3 preparation — 2026-09-21
 
 Reviewed the four commits after published `v0.3.2`: Vail ReRBN migration,

@@ -8,21 +8,22 @@ each submission before operators can install it from the catalog.
 
 ## Current release status
 
-[v0.3.2](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.2)
-was published on September 21, 2026, with all four extension bundles and their
-four checksum files on GitHub. The
-[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35652154202/job/106564246229).
-The [catalog retry succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35652154202/job/106564225157)
-at 00:00 UTC on September 22: all four uploads to `stable` were accepted as
-**pending review**, and the job completed successfully. This confirms submission,
-not catalog approval or installation availability.
+[v0.3.3](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.3)
+was published from signed commit `a306ccee520c4bb26c450eb33f913621eff138f7`
+on September 21, 2026 (September 22 UTC). All four extension bundles and their
+four checksum files are available on GitHub. The
+[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35673953580/job/106576380527),
+and downloaded assets passed `mise run release:catalog v0.3.3 --dry-run`.
+
+The [catalog job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35673953580/job/106576460997):
+all four uploads to `stable` were accepted as **pending review** at 00:57 UTC
+on September 22. This confirms submission, not catalog approval or installation
+availability. See the [release notes](releases/v0.3.3.md) and
+[published artifact verification](VERIFICATION.md#release-033-publication--2026-09-21).
 
 Earlier v0.2.1, v0.3.0, and v0.3.1 runs failed with HTTP 403 from a Cloudflare
-challenge. The successful v0.3.2 retry supersedes that blocker for this release;
-inspect each earlier version's submission history before retrying it.
-
-**v0.3.3 is prepared locally and has not been published.** Its
-[release notes](releases/v0.3.3.md) summarize the RBN changes and verification.
+challenge. The v0.3.2 retry and v0.3.3 publication succeeded; inspect each earlier
+version's submission history before retrying it.
 
 ## Configure the token
 
@@ -52,7 +53,7 @@ the already uploaded GitHub release assets remain available.
 ## Prepare and publish a release
 
 All extensions and shared workspaces retain one synchronized version. Choose
-an unused version; **0.3.3 is the prepared candidate**:
+an unused version. For example, preparation for v0.3.3 used:
 
 ```sh
 mise run release:prepare 0.3.3
