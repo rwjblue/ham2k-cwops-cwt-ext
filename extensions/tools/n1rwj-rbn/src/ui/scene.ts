@@ -251,13 +251,13 @@ export function renderRbnScene(
   const bandLabel = selection.band === 'all' ? 'All bands' : selection.band
   const summary = `${receivers} receiver${receivers === 1 ? '' : 's'} · ${bands} band${bands === 1 ? '' : 's'}${farthest ? ` · ${Math.round(farthest).toLocaleString('en-US')} km max` : ''}`
   // The host tab already names the watched call. Keep status and the active
-  // filter beside the details target instead of spending a row on a title.
+  // filter beside refresh/details instead of spending a row on a title.
   text(
     'status',
     `${testObservation ? 'TEST · ' : ''}${model.status ?? 'Receiver reports'}`,
     left,
     y,
-    w - 56,
+    w - 112,
     label,
     colors.accent,
   )
@@ -268,8 +268,12 @@ export function renderRbnScene(
       : `${bandLabel} · ${receivers} receiver${receivers === 1 ? '' : 's'}`,
     left,
     y + labelLine,
-    w - 56,
+    w - 112,
   )
+  button('refresh', '↻', right - 104, y, 48, {
+    event: 'refresh:reports',
+    label: 'Refresh receiver reports (30-second minimum between requests)',
+  })
   button(
     'details',
     selection.details ? '×' : model.warnings?.length ? '!' : 'ⓘ',

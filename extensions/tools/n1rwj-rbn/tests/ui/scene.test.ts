@@ -138,6 +138,31 @@ function assertSceneBounds(scene: SvgScene): void {
 }
 
 describe('RBN native scene', () => {
+  it.each([320, 390, 1366])(
+    'fits refresh beside details without reducing the map at %ipx',
+    (width) => {
+      const { scene } = renderRbnScene(model, environment(width, 900), { view: 'map' })
+      const refresh = scene.controls?.find((control) => control.id === 'refresh')
+      const details = scene.controls?.find((control) => control.id === 'details')
+      if (!refresh || !details) throw new Error('Missing report actions')
+      expect(refresh.event).toBe('refresh:reports')
+      expect(refresh.label).toContain('Refresh receiver reports')
+      expect(refresh.y).toBe(details.y)
+      expect(refresh.x + refresh.width).toBeLessThan(details.x)
+      for (const id of ['status', 'summary']) {
+        const summary = layer(scene, id)
+        expect(summary.x + summary.width).toBeLessThan(refresh.x)
+      }
+      // Preserve the compact layout's 50px header budget and full-width map.
+      expect(layer(scene, 'reception-map-0')).toMatchObject({
+        x: 12,
+        y: 58,
+        width: width - 24,
+        height: 806,
+      })
+      assertSceneBounds(scene)
+    },
+  )
   it.each([390, 1366])('shows modes and CW-only WPM at width %i', (width) => {
     const source = {
       ...model,
@@ -258,7 +283,7 @@ describe('RBN native scene', () => {
       const { scene } = renderRbnScene(model, environment(width, height), { view: 'map' })
       const map = layer(scene, 'reception-map-0')
       expect(map.height).toBeGreaterThanOrEqual(height - 100)
-      expect(scene.controls?.map((control) => control.id)).toEqual(['details'])
+      expect(scene.controls?.map((control) => control.id)).toEqual(['refresh', 'details'])
       expect(layer(scene, 'summary').y + layer(scene, 'summary').height).toBeLessThan(map.y)
       expect(map.y + map.height).toBeLessThan(layer(scene, 'source').y)
       assertSceneBounds(scene)

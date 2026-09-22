@@ -81,7 +81,7 @@ export function panelModel(
       ? `TEST OPERATION — observing ${snapshot.call}; these reports belong to that station.`
       : '',
     snapshot.error ?? '',
-    `Last ${config.windowMinutes} minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Checks at most once a minute while this panel is visible.`,
+    `Last ${config.windowMinutes} minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Automatic checks at most once a minute while this panel is visible. Manual refresh waits at least 30 seconds between requests.`,
     'Receiver locations use HamDB registered grids supplied by Vail ReRBN and may differ from the actual skimmer location. Distances and bearings are estimates.',
     snapshot.capped
       ? 'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.'
@@ -193,7 +193,9 @@ export function createRbnPanel(
           icon: 'radar',
           description:
             'Where your CW, RTTY, FT8, and FT4 signals are heard, with a map and RBN receiver reports provided by Vail ReRBN.',
-          on: ['operation', 'tick:30'],
+          // The host withholds renders behind a tab or while the app is hidden.
+          // Match the network cooldown to avoid rebuilding an unchanged map halfway through it.
+          on: ['operation', 'tick:60'],
           multiple: true,
           form: configFields,
         },
@@ -242,7 +244,7 @@ export function createRbnPanel(
         scene: rendered.scene,
       }
     },
-    async onEvent(args) {
+    async onEvent(args, ctx) {
       if (!args.instanceId || !args.environment || args.event.phase !== 'activate')
         return { values: {} }
       const state = stateFor(args)
@@ -250,7 +252,24 @@ export function createRbnPanel(
       const { controlId, action } = args.event
       const [prefix, value] = action.split(':')
       if (action !== `${prefix}:${value}`) return { values: {} }
-      if (
+      if (controlId === 'refresh' && action === 'refresh:reports') {
+        const suppliedTime = args.clock?.realNowMillis
+        // Await the request so the host disables buttons while it is pending.
+        // Its post-event render reads this same shared cache, without another fetch.
+        await client.getSnapshot(
+          {
+            call: watchedCall(args.operation, config.watchCall),
+            windowMinutes: config.windowMinutes,
+          },
+          {
+            force: true,
+            online: ctx.online,
+            ...(typeof suppliedTime === 'number' && Number.isFinite(suppliedTime)
+              ? { realNowMillis: suppliedTime }
+              : {}),
+          },
+        )
+      } else if (
         controlId === 'sort' &&
         prefix === 'sort' &&
         ['age', 'call', 'snr', 'distance', 'frequency', 'wpm'].includes(value)

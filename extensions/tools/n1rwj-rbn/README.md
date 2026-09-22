@@ -129,9 +129,33 @@ attribution and warnings. Long details are paginated too.
 
 ## Refreshes and interpreting reports
 
-While visible, the panel checks Vail ReRBN at most once per minute for each
-callsign/report-window combination. Multiple panels watching the same query
-share results. A failed refresh retains cached reports within the selected
+While visible, the panel requests a scheduled render every 60 seconds and
+automatically checks Vail ReRBN at most once per minute for each
+callsign/report-window combination.
+Multiple panels watching the same query share results. Switching away does not
+clear that cache: returning less than 60 seconds after the last request reuses
+the reports. The cooldown starts at the request, not at the last tab visit.
+Changing the callsign or report window can request a different snapshot immediately.
+
+Use **↻** beside the Details button to check manually without waiting for the
+next automatic refresh. It shares the same cache and waits at least 30 seconds
+between requests for the same query; earlier taps reuse the cached reports.
+The host disables scene buttons while the refresh action is pending. Refreshing
+preserves your view, band, sort, and page, and the icon uses the existing status
+row without taking space from the map. Offline state and server rate-limit
+backoff still apply.
+
+Ham2K suppresses repeat renders behind another dock tab and while the app is
+hidden or paused; the extension has no independent polling timer. A panel that
+starts behind another tab makes no request until selected. An already-started
+render/request can finish after hiding, and the inspected host allows an initial
+render of a selected panel even when the app is hidden. A desktop window merely
+losing focus is still considered visible. See the
+[host verification and limits](../../../docs/RBN-SVG-MIGRATION.md#why-the-refresh-model-works).
+
+The SDK does not expose device battery level, charging state, or Low Power Mode,
+so the extension cannot automatically adapt the interval to those conditions.
+A failed refresh retains cached reports within the selected
 time window and marks the failure. Reports expire as they age; the in-memory
 cache does not survive an extension restart. A successful check with no reports
 is different from a failed check. **Checked** and **Heard** show when data was

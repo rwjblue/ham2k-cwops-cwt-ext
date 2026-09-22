@@ -1,5 +1,47 @@
 # Verification and compatibility
 
+## Manual RBN refresh — 2026-09-21 (unreleased)
+
+Added **↻** beside Details in the existing status row. Layout tests at 320,
+390, and 1366 logical pixels confirm separate touch targets of at least 44
+pixels, no overlap with status text, and unchanged map bounds. Static SVG
+previews were inspected at phone, desktop, and enlarged-text sizes; these are
+fixture-based previews, not native acceptance screenshots.
+
+Panel tests cover the manual 30-second cooldown, concurrent tap deduplication,
+reuse on the host's post-event render, retained display choices, waiting for
+the action to complete, offline state, and server-directed 429 backoff across
+queries. The native host disables scene buttons while an awaited action is
+pending; this was verified in source, not by clicking the installed app.
+
+`mise run format` and `mise run check` passed: 411 tests in 30 files, lint,
+typechecks, builds, and official packaging. The installed-kernel check passed
+against Next 26.9.0 build 170. The local package has not been installed or
+published by this verification. RBN-only changes require no CWT upstream sync.
+
+## RBN refresh budget and visibility — 2026-09-21 (unreleased)
+
+The panel now declares `tick:60`, matching its existing 60-second per-query
+network cooldown. Deterministic panel tests exercise the real RBN client with
+mock HTTP responses: reveal and placement recreation reuse the cache through
+59,999 ms; a request is eligible at 60,000 ms; neither panel discovery nor time
+passing without renders causes polling; returning after five minutes fetches
+once without a catch-up burst.
+
+`mise run format` and `mise run check` passed: 405 tests in 30 files, lint,
+typechecks, official builds, and all package validations. The installed-kernel
+check (`mise run verify-host n1rwj-rbn`) passed against Next 26.9.0 build 170.
+This builds a local candidate; it does not install or publish it.
+
+Host source and existing host test inspection confirm hidden-tab and hidden/paused
+app suppression of repeat renders. The SDK has no device battery or lifecycle
+API. See the [source evidence and exceptions](RBN-SVG-MIGRATION.md#why-the-refresh-model-works):
+a selected panel can receive an initial render while the app is hidden, and
+started renders/requests are not canceled when hidden. Native screen-lock and
+background behavior were not runtime-tested, and the host's Flutter tests were
+not run here. These RBN-only changes do not affect CWT and require no upstream
+CWT synchronization.
+
 ## Compact RBN layout and README captures — 2026-09-21 (unreleased)
 
 Installed the compact-layout local RBN **0.3.2** candidate through

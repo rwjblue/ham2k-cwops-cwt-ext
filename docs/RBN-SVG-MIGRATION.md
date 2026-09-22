@@ -54,10 +54,53 @@ unrelated settings preserves the current sort choices.
 
 ## Why the refresh model works
 
-`on: ['operation', 'tick:30']` requests renders while visible. It is a refresh
+`on: ['operation', 'tick:60']` requests renders while visible. It is a refresh
 budget, not an event listener inside a document. The RBN client separately
 limits network refreshes to once a minute per callsign/window and coalesces
-concurrent requests. Failed refreshes retain only unexpired cached reports.
+concurrent requests. The minute is measured from the last request attempt,
+including failures; visiting a tab does not restart it. The shared client lives
+outside panel placement state, so hiding/revealing a placement or creating another
+placement for the same query reuses the cache. Extension restarts and eviction
+from the eight-query cache lose that history. Failed refreshes retain only
+unexpired cached reports.
+
+The **↻** button shares the status row with Details, without changing map bounds.
+Its `refresh:reports` activation awaits `getSnapshot` with `force: true`, using
+the host's real clock and online state. Manual requests retain the client's
+30-second minimum interval, in-flight deduplication, and client-wide 429 backoff.
+Awaiting the action lets the native scene host disable buttons while it is
+pending. The host's post-event render then reads the shared cache, without a
+second request or resetting the display selection.
+
+Visibility is a host responsibility, not an extension timer. Source inspection
+of Ham2K `cad0bc2cc78ba5f2a8a7e8f34423fa48bfc8a071` confirms:
+
+- `packages/halo_widgets/lib/src/dock_layout.dart` publishes selected-tab
+  visibility, including whether its parent container is visible.
+- `app/lib/views/operation/extension_panel.dart` gates ticks, operation/config
+  triggers, and queued repeat renders on both dock and app visibility. Missed
+  work coalesces into one render on reveal. An unselected panel does not receive
+  even its initial render.
+- `app/lib/services/panel_service.dart` treats `hidden`, `paused`, and `detached`
+  lifecycle states as invisible. `inactive` still counts as visible, so a desktop
+  window losing focus does not stop its panels.
+- This is not cancellation: a render already started may reach the network after
+  hiding. The host also exempts a selected panel's initial render from the app
+  visibility check. Its native tick timer continues while hidden, recording
+  missed work without invoking the extension.
+
+The host's `app/test/extension/extension_panel_budget_test.dart` covers hidden-tab
+mounting, queued renders, reveal catch-up, and the lifecycle predicate. Those
+tests were inspected, not run here. RBN's panel tests use the real client with
+mock HTTP responses to check reuse at 59,999 ms, eligibility at 60,000 ms, sharing
+across placements, no autonomous polling between renders, and one fetch after
+a long absence. These are deterministic extension tests and host source evidence,
+not a native screen-lock/background runtime test.
+
+SDK 0.5.0 has no device battery level, charging, Low Power Mode, or panel
+visibility/lifecycle field in the public host API, `HookContext`, or
+`PanelRenderArgs`. Battery-aware polling and stronger background guarantees
+would need host support.
 
 For SVG scenes, controls dispatch an action to the panel's `onEvent`. The
 extension validates control/action pairs and updates bounded, per-instance
