@@ -35,11 +35,6 @@ const sorts: Array<{ key: UiSort; label: string }> = [
   { key: 'frequency', label: 'Frequency' },
   { key: 'wpm', label: 'CW speed' },
 ]
-const views: Array<{ key: UiView; label: string }> = [
-  { key: 'both', label: 'Map + list' },
-  { key: 'map', label: 'Map' },
-  { key: 'list', label: 'List' },
-]
 
 const finite = (value: number | undefined): value is number =>
   typeof value === 'number' && Number.isFinite(value)
@@ -120,12 +115,10 @@ export function renderRbnScene(
   }
   const label = environment?.typography.label ?? fallbackRole(13)
   const body = environment?.typography.body ?? fallbackRole(15)
-  const title = environment?.typography.title ?? fallbackRole(20)
   const line = (role: PanelTypography): number =>
     Math.ceil(role.scaledFontSize * role.lineHeight + 4)
   const labelLine = line(label)
   const bodyLine = line(body)
-  const titleLine = line(title)
   const buttonHeight = Math.max(44, labelLine + 16)
   const layers: SvgSceneLayer[] = []
   const controls: SvgSceneControl[] = []
@@ -242,24 +235,40 @@ export function renderRbnScene(
     height,
     `<rect width="${width}" height="${height}" fill="${colors.surface}"/>`,
   )
-  if (w < 180 || bottom - top < titleLine + buttonHeight + 20) {
+  if (w < 180 || bottom - top < labelLine * 2 + buttonHeight + 20) {
     text('small-panel', 'Enlarge this panel to see RBN reports.', left, top, w)
     return result
   }
 
   let y = top
-  const compact = bottom - top < 400
   const testObservation = /\bTEST\b/.test(model.title)
+  const receivers = new Set(rows.map((row) => row.receiver)).size
+  const bands = new Set(rows.map((row) => row.band)).size
+  const farthest = Math.max(
+    0,
+    ...rows.flatMap((row) => (finite(row.distanceKm) ? [row.distanceKm] : [])),
+  )
+  const bandLabel = selection.band === 'all' ? 'All bands' : selection.band
+  const summary = `${receivers} receiver${receivers === 1 ? '' : 's'} · ${bands} band${bands === 1 ? '' : 's'}${farthest ? ` · ${Math.round(farthest).toLocaleString('en-US')} km max` : ''}`
+  // The host tab already names the watched call. Keep status and the active
+  // filter beside the details target instead of spending a row on a title.
   text(
-    'title',
-    testObservation ? `TEST · ${model.watchCall}` : `${model.watchCall || 'RBN'} · ${model.title}`,
+    'status',
+    `${testObservation ? 'TEST · ' : ''}${model.status ?? 'Receiver reports'}`,
     left,
-    y + (Math.max(titleLine, buttonHeight) - titleLine) / 2,
+    y,
     w - 56,
-    title,
-    colors.text,
-    'start',
-    600,
+    label,
+    colors.accent,
+  )
+  text(
+    'summary',
+    w >= 600 * (label.scaledFontSize / label.fontSize)
+      ? `${bandLabel} · ${summary}`
+      : `${bandLabel} · ${receivers} receiver${receivers === 1 ? '' : 's'}`,
+    left,
+    y + labelLine,
+    w - 56,
   )
   button(
     'details',
@@ -274,39 +283,11 @@ export function renderRbnScene(
         : `Report details, provenance${model.warnings?.length ? ` and ${model.warnings.length} warnings` : ''}`,
     },
   )
-  y += Math.max(titleLine, buttonHeight) + 4
-  text('status', model.status ?? 'Receiver reports', left, y, w, label, colors.accent)
-  y += labelLine
-  const receivers = new Set(rows.map((row) => row.receiver)).size
-  const bands = new Set(rows.map((row) => row.band)).size
-  const farthest = Math.max(
-    0,
-    ...rows.flatMap((row) => (finite(row.distanceKm) ? [row.distanceKm] : [])),
-  )
-  if (!compact) {
-    text(
-      'summary',
-      `${receivers} receiver${receivers === 1 ? '' : 's'} · ${bands} band${bands === 1 ? '' : 's'}${farthest ? ` · ${Math.round(farthest).toLocaleString('en-US')} km max` : ''}`,
-      left,
-      y,
-      w,
-    )
-    y += labelLine
-    text(
-      'freshness',
-      `Checked ${model.fetchedAt ?? 'never'} · Heard ${model.lastReport ?? '—'}`,
-      left,
-      y,
-      w,
-      label,
-      colors.muted,
-    )
-    y += labelLine
-  }
-  y += 8
+  y += Math.max(labelLine * 2, buttonHeight) + 6
 
   if (selection.details) {
     const paragraphs = [
+      `${model.watchCall} · ${bandLabel} · ${summary}`,
       model.note,
       ...(model.warnings ?? []),
       model.locationLabel,
@@ -360,46 +341,8 @@ export function renderRbnScene(
     return result
   }
 
-  const half = (w - 8) / 2
-  button(
-    'view',
-    `${views.find((view) => view.key === selection.view)?.label ?? 'Map + list'} ▾`,
-    left,
-    y,
-    half,
-    {
-      label: 'Choose map and receiver list view',
-      menu: views.map((view) => ({ label: view.label, event: `view:${view.key}` })),
-    },
-  )
-  const availableBands = [
-    ...new Set([
-      'all',
-      ...(model.bands ?? []),
-      ...model.rows.map((row) => row.band),
-      selection.band,
-    ]),
-  ].slice(0, 32)
-  if (!availableBands.includes(selection.band))
-    availableBands[availableBands.length - 1] = selection.band
-  button(
-    'band',
-    `${selection.band === 'all' ? 'All bands' : selection.band} ▾`,
-    left + half + 8,
-    y,
-    half,
-    {
-      label: 'Filter receiver reports by band',
-      menu: availableBands.map((band) => ({
-        label: band === 'all' ? 'All bands' : band,
-        event: `band:${band}`,
-      })),
-    },
-  )
-  y += buttonHeight + 10
-
-  const footerLines = compact ? 1 : w >= 600 ? 2 : 3
-  const footerTop = Math.max(y, bottom - labelLine * footerLines)
+  // View and band are persisted by the host's panel tune form.
+  const footerTop = Math.max(y, bottom - labelLine)
   const contentBottom = footerTop - 8
   const sideBySide = selection.view === 'both' && w >= 1080
   const listWidth = sideBySide ? Math.floor(w * 0.51) : w
@@ -485,7 +428,7 @@ export function renderRbnScene(
     } else if (!sideBySide) {
       text(
         'map-compact',
-        'Choose Map above for a larger reception map.',
+        'Choose Map in panel settings for a larger map.',
         left,
         y,
         w,
@@ -722,34 +665,16 @@ export function renderRbnScene(
     }
   }
 
-  if (footerLines > 1)
-    text(
-      'location',
-      model.locationLabel ?? 'Receiver locations are approximate.',
-      left,
-      footerTop,
-      w,
-      label,
-      colors.muted,
-    )
   text(
     'source',
-    `RBN via Vail · Ages as of ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
+    w >= 800 * (label.scaledFontSize / label.fontSize)
+      ? `RBN via Vail · Checked ${model.fetchedAt ?? 'never'} · Heard ${model.lastReport ?? '—'} · Ages as of ${model.generatedAt ?? '—'}`
+      : `RBN via Vail · ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
     left,
-    footerTop + (footerLines > 1 ? labelLine : 0),
+    footerTop,
     w,
     label,
     colors.muted,
   )
-  if (footerLines === 3)
-    text(
-      'coverage',
-      'Reception paths are not a coverage boundary.',
-      left,
-      footerTop + labelLine * 2,
-      w,
-      label,
-      colors.muted,
-    )
   return result
 }

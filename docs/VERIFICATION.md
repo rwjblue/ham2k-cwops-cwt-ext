@@ -1,5 +1,37 @@
 # Verification and compatibility
 
+## Compact RBN layout and README captures — 2026-09-21 (unreleased)
+
+Installed the compact-layout local RBN **0.3.2** candidate through
+**Features & Extensions → Install from file** in published **Ham2K Next 26.9.0
+build 170**. The update dialog identified version 0.3.2 and the existing
+`vailrerbn.com` network capability. This is not a published release artifact:
+**261,712 bytes**, SHA-256
+`a64f6ca88fbe83bdd3f5c452832cf8bc603354e41bcad06d4cf848fa0f3d8416`.
+
+Native macOS checks and screenshots used the existing empty W8CAR/TEST
+operation, temporarily observing WG1V with a 60-minute window and FN42FK origin:
+
+- Desktop rendering showed the map beside the receiver table, a two-line
+  status/filter summary, one footer, and no in-panel view or band dropdowns.
+- The host tune dialog exposed **View** and **Band**. Saving **Map**, then
+  **Receivers**, changed the narrow placement to a full-height reception map
+  and paginated receiver cards respectively.
+- Live Vail reports populated 14 receivers and FT4 rows. The details button
+  retained its warning indicator for an unlocated receiver.
+- Saved four native screenshots for the README: desktop, narrow map, narrow
+  receiver list, and tune settings. See the [capture record](images/README.md)
+  for dimensions and timestamps. No static previews substitute for these images.
+- Restored the original overrides, report window, and view in both layout
+  placements. The operation remained at zero QSOs; no contacts or spots were
+  submitted. The updated RBN candidate remains installed.
+
+`mise run check` passed **403 tests across 30 files**, lint, TypeScript checks,
+official builds, and package validation. Deterministic tests cover tune-form
+choices, configuration persistence, map space, safe bounds, scaled text, and
+paginated details. Native coverage is macOS only; physical phone and Linux
+checks remain outstanding. RBN-only changes require no CWT upstream sync.
+
 ## RBN control preferences — 2026-09-21 (unreleased)
 
 Installed the local RBN candidate through **Features & Extensions → Install

@@ -6,7 +6,7 @@ For installation and everyday use, start with the
 ## Result and published-app compatibility
 
 RBN can use the documented native `svgScene` API for its bundled reception
-map, receiver table, band/sort menus and pagination. The implementation now
+map, receiver table, sort menus and pagination. The implementation now
 uses that API. Published Next 26.9.0 build 170 supports it, and the migrated
 extension runs in that unmodified app. Native testing with an empty
 `W9MET/TEST` operation observing W9MET at the public POTA grid EL97ER has
@@ -47,9 +47,10 @@ descending report time. The band does not follow the operation's active band.
 Settings belong to the panel placement, so explicit call/grid overrides remain
 in effect when that layout is used with another operation. Clearing them
 restores inheritance. The [panel](../extensions/tools/n1rwj-rbn/src/panel.ts)
-keeps menu/page state in memory per instance, with a signature based on saved
-config, operation UUID and station callsign. Changed signatures or a runtime
-restart restore the saved defaults.
+keeps sort/page/details state in memory per instance, scoped by operation UUID
+and station callsign. Switching operations or restarting restores saved sort
+defaults. View and band always come from the persisted panel settings. Saving
+unrelated settings preserves the current sort choices.
 
 ## Why the refresh model works
 
@@ -60,7 +61,7 @@ concurrent requests. Failed refreshes retain only unexpired cached reports.
 
 For SVG scenes, controls dispatch an action to the panel's `onEvent`. The
 extension validates control/action pairs and updates bounded, per-instance
-view/band/sort/direction/page state. Returning `{values:{}}` is intentional:
+sort/direction/page/details state. Returning `{values:{}}` is intentional:
 current `ExtensionPanel._sceneEvent` requests an authoritative render in its
 `finally` block, so structural changes arrive in the next scene. Numeric
 patches are useful for local animation; this static map needs none.
@@ -81,8 +82,8 @@ receives unscaled role font size; its reserved bounds use scaled font size.
   `<text>` is not portable through Flutter's vector renderer.
 - The scene has no scrolling container. The list therefore paginates,
   becoming cards at narrow widths; details also paginate when necessary.
-- Native menu buttons expose band/sort/view options. Drawn backgrounds/text
-  accompany the controls' hit regions, with 44-pixel minimum targets.
+- The host tune form persists view and band; native menu buttons expose sort
+  options. Drawn backgrounds/text accompany the controls' hit regions, with 44-pixel minimum targets.
 - The renderer respects the native limits: 128 layers, 64 controls, 32 menu
   items, 256 KiB per SVG/literal string and 1 MiB combined artwork/text.
   Large maps split into self-contained geometry layers, each with local defs.
@@ -169,7 +170,8 @@ render deadline; they do not guarantee response times from the public service.
    the real public call in the panel's Watch callsign setting. Use the public
    operation grid. Do not transmit, spot, or log fictitious contacts.
 5. Verify map + table at desktop width, then map/cards at narrow width.
-   Select each band, both SNR directions, next/previous page, and Details.
+   Use the panel tune settings to select each view and band. Test both SNR
+   directions, next/previous page, and Details.
    Missing measurements must remain last in either sort direction.
 6. Wait for a new checked timestamp. Confirm view/band/sort/page survive the
    refresh. Change saved panel defaults and confirm those new defaults apply.

@@ -144,7 +144,7 @@ export const configFields: SettingsField[] = [
     type: 'field',
     fieldType: 'select',
     key: 'view',
-    label: 'Default view',
+    label: 'View',
     value: 'both',
     options: [
       { label: 'Map and receivers', value: 'both' },
@@ -156,7 +156,7 @@ export const configFields: SettingsField[] = [
     type: 'field',
     fieldType: 'select',
     key: 'band',
-    label: 'Default band',
+    label: 'Band',
     value: 'all',
     options: rbnBands.map((value) => ({ label: value === 'all' ? 'All bands' : value, value })),
   },

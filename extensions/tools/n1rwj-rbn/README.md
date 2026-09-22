@@ -44,26 +44,29 @@ Narrow layouts can show the map or receiver cards separately:
 | --- | --- |
 | ![RBN map in a compact Ham2K window](../../../docs/images/rbn/rbn-compact-map.jpg) | ![RBN receiver cards in a compact Ham2K window](../../../docs/images/rbn/rbn-compact-list.jpg) |
 
-These screenshots are historical records of earlier published versions running
-in the native macOS app, before the switch to Vail ReRBN. They illustrate the
-panel layout, not runtime verification of the current backend. The compact
-examples use a narrow desktop window. See the
+These native macOS screenshots show the compact layout in the local **0.3.2**
+candidate, with live Vail ReRBN reports for WG1V observed from an empty TEST
+operation. The candidate is not a published release artifact. The compact
+examples use a narrow desktop window, not a phone. See the
 [screenshot record](../../../docs/images/README.md) for capture versions and
 the [verification record](../../../docs/VERIFICATION.md) for runtime coverage.
 Physical phone and Linux runtime checks remain outstanding.
 
 ## Configuration is optional
 
-The operation provides the defaults. Open the panel's settings in **Edit Layout**
-only when you want an override or different display defaults.
+The operation provides the defaults. Open the tune button beside the panel title
+to change its settings; they are also available in **Edit Layout**.
+**View** and **Band** live here to leave more room for the map.
+
+![RBN view and band settings in Ham2K's tune dialog](../../../docs/images/rbn/rbn-settings.jpg)
 
 | Setting | With the default settings | Optional change |
 | --- | --- | --- |
 | **Watch callsign** | Uses the operation's station callsign | Watch another exact callsign |
 | **Map origin grid** | Uses the operation's latitude/longitude, otherwise its grid | Use a 4, 6, or 8 character Maidenhead locator |
 | **Report window** | Last 15 minutes | Last 30 or 60 minutes |
-| **Default band** | All bands | Select one band |
-| **Default view** | Map and receivers | Map or receivers only |
+| **Band** | All bands | Select one band |
+| **View** | Map and receivers | Map or receivers only |
 | **Default sort / direction** | Newest reports first | Receiver, SNR, distance, frequency, or CW speed; either direction |
 | **Map projection** | Fit reporting receivers | From my station · distance rings |
 
@@ -84,12 +87,12 @@ for an operation location or grid override, and distance and bearing remain
 unavailable. The extension never substitutes a callsign-prefix location guess.
 If no valid callsign is available, it prompts for one without requesting reports.
 
-Changes made with the panel's view, band and sort controls survive normal
-refreshes and unrelated settings changes separately for each placement. Changing
-a saved default applies to that control only: saving a different band keeps your
-selected map or list view. Changing settings returns to the first page. Choices
-reset when switching operations or restarting the extension. Save preferred
-defaults in panel settings when you want them to survive a restart.
+View and band are saved per panel placement through the tune settings and survive
+refreshes, operation changes, and restarts. Saving a different band keeps the
+selected view. In-panel sort choices survive refreshes and unrelated settings
+changes, and reset when switching operations or restarting the extension.
+Changing a saved sort default applies to that control only. Changing settings
+returns to the first page.
 
 ## Map and receiver list
 
@@ -104,9 +107,11 @@ The map includes the selected band's located receivers across all list pages.
 Receiver positions come from registered grids and may differ from the actual
 skimmer location. Receivers without a valid grid remain in the list.
 
-Use the view menu to choose **Map + list**, **Map**, or **List**, and the band
-menu to select any band offered in panel settings or **All bands**, even before
-reports arrive on that band. Additional reported bands also appear. The list
+Use **View** in the panel's tune settings to choose **Map and receivers**, **Map**,
+or **Receivers**, and **Band** to select a supported band or **All bands**, even
+before reports arrive. The panel keeps a compact status and band summary above
+the map, with report timing, map origin, and provenance in **Details** (ⓘ or !).
+The list
 contains the latest report from each receiver on each band and mode: mode,
 frequency, SNR, CW speed
 (for CW only), age, and—when

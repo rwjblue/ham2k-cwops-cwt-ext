@@ -176,7 +176,7 @@ export function createRbnPanel(
     } else if (JSON.stringify(state.config) !== JSON.stringify(config)) {
       // Saving one default must not discard unrelated in-panel choices.
       // A changed default takes effect for that control on the next render.
-      for (const field of ['view', 'band', 'sort', 'direction'] as const) {
+      for (const field of ['sort', 'direction'] as const) {
         if (state.config[field] !== config[field]) delete state.selection[field]
       }
       state.selection.page = 0
@@ -233,7 +233,7 @@ export function createRbnPanel(
       const rendered = renderRbnScene(
         panelModel(args, snapshot, ageReference, preferences),
         args.environment,
-        state.selection,
+        { ...state.selection, view: config.view, band: config.band },
       )
       state.selection = rendered.selection
       return {
@@ -250,15 +250,7 @@ export function createRbnPanel(
       const { controlId, action } = args.event
       const [prefix, value] = action.split(':')
       if (action !== `${prefix}:${value}`) return { values: {} }
-      if (controlId === 'view' && prefix === 'view' && ['both', 'map', 'list'].includes(value)) {
-        state.selection = { ...state.selection, view: value as SceneSelection['view'], page: 0 }
-      } else if (
-        controlId === 'band' &&
-        prefix === 'band' &&
-        (value === 'all' || (/^[1-9]\d{0,3}m$/.test(value) && Number(value.slice(0, -1)) <= 1000))
-      ) {
-        state.selection = { ...state.selection, band: value, page: 0 }
-      } else if (
+      if (
         controlId === 'sort' &&
         prefix === 'sort' &&
         ['age', 'call', 'snr', 'distance', 'frequency', 'wpm'].includes(value)

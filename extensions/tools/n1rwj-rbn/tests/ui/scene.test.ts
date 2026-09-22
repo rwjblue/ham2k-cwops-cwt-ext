@@ -175,10 +175,10 @@ describe('RBN native scene', () => {
     expect(map.x + map.width).toBeLessThan(row.x)
     expect(scene.layers.some((layer) => layer.id === 'column-0')).toBe(true)
     expect(pageSize).toBeLessThanOrEqual(7)
-    expect(text(scene)).toContain('TEST · KG2GL')
+    expect(text(scene)).toContain('TEST · Recent reports')
     expect(text(scene)).toContain('Checked 14:48:08 UTC · Heard 1 min ago')
     expect(text(scene)).toContain('RBN via Vail')
-    expect(scene.layers.find((layer) => layer.id === 'title')?.text?.fontFamily).toBe('Host font')
+    expect(scene.layers.find((layer) => layer.id === 'status')?.text?.fontFamily).toBe('Host font')
     assertSceneBounds(scene)
   })
 
@@ -212,17 +212,14 @@ describe('RBN native scene', () => {
     expect(end.scene.controls?.some((control) => control.id === 'next')).toBe(false)
   })
 
-  it('filters both map and list to the selected band and keeps an empty configured band selectable', () => {
+  it('filters both map and list to the selected band and shows an empty configured band', () => {
     const selected = renderRbnScene(model, environment(), { band: '40m' })
     expect(selected.totalRows).toBe(12)
     expect(text(selected.scene)).toContain('12 receivers · 1 band')
     const empty = renderRbnScene(model, environment(390, 844), { view: 'list', band: '10m' })
     expect(empty.totalRows).toBe(0)
     expect(text(empty.scene)).toContain('No 10m reports in this time window.')
-    expect(empty.scene.controls?.find((control) => control.id === 'band')?.menu).toContainEqual({
-      label: '10m',
-      event: 'band:10m',
-    })
+    expect(text(empty.scene)).toContain('10m · 0 receivers')
   })
 
   it('uses the selected band’s report age for receiver marker freshness', () => {
@@ -251,14 +248,22 @@ describe('RBN native scene', () => {
     expect(markerOpacity(old.scene)).toBeCloseTo(1 / 3, 2)
   })
 
-  it('bounds dropdown menus and keeps the current empty band available', () => {
-    const source = { ...model, bands: Array.from({ length: 50 }, (_, index) => `${index + 1}m`) }
-    const { scene } = renderRbnScene(source, environment(), { band: '999m' })
-    const menu = scene.controls?.find((control) => control.id === 'band')?.menu
-    expect(menu).toHaveLength(32)
-    expect(menu?.[0]).toEqual({ label: 'All bands', event: 'band:all' })
-    expect(menu).toContainEqual({ label: '999m', event: 'band:999m' })
-  })
+  it.each([
+    [1100, 500],
+    [390, 844],
+    [600, 350],
+  ])(
+    'gives the map the panel height after a compact header and footer at %ix%i',
+    (width, height) => {
+      const { scene } = renderRbnScene(model, environment(width, height), { view: 'map' })
+      const map = layer(scene, 'reception-map-0')
+      expect(map.height).toBeGreaterThanOrEqual(height - 100)
+      expect(scene.controls?.map((control) => control.id)).toEqual(['details'])
+      expect(layer(scene, 'summary').y + layer(scene, 'summary').height).toBeLessThan(map.y)
+      expect(map.y + map.height).toBeLessThan(layer(scene, 'source').y)
+      assertSceneBounds(scene)
+    },
+  )
 
   it('stays within native host payload limits with 500 globally distributed receivers', () => {
     if (!model.mapOptions) throw new Error('Missing fixture map options')
@@ -288,11 +293,7 @@ describe('RBN native scene', () => {
 
   it('makes controls explicit host events, without HTML or local animation bindings', () => {
     const { scene } = renderRbnScene(model, environment())
-    expect(scene.controls?.find((control) => control.id === 'view')?.menu).toEqual([
-      { label: 'Map + list', event: 'view:both' },
-      { label: 'Map', event: 'view:map' },
-      { label: 'List', event: 'view:list' },
-    ])
+    expect(scene.controls?.some((control) => ['view', 'band'].includes(control.id))).toBe(false)
     expect(scene.controls?.find((control) => control.id === 'sort')?.menu).toContainEqual({
       label: 'SNR',
       event: 'sort:snr',
@@ -323,19 +324,22 @@ describe('RBN native scene', () => {
     )
     expect(displayed).toContain('these reports belong to that station.')
     expect(displayed).toContain('No map tiles are downloaded.')
+    expect(displayed).toContain(model.locationLabel)
+    expect(displayed).toContain('Data checked: 14:48:08 UTC. Last report: 1 min ago.')
+    expect(displayed).toContain('2,200 km max')
     expect(first.scene.controls?.find((control) => control.id === 'details')?.label).toBe(
       'Close report details',
     )
   })
 
   it('reserves OS scaled text space once and ignores device pixel ratio', () => {
-    const normal = renderRbnScene(model, environment(390, 844), { view: 'list' })
-    const scaledEnvironment = environment(390, 844, 1.6)
+    const normal = renderRbnScene(model, environment(390, 740), { view: 'list' })
+    const scaledEnvironment = environment(390, 740, 1.6)
     const scaled = renderRbnScene(model, scaledEnvironment, { view: 'list' })
     expect(scaled.pageSize).toBeLessThan(normal.pageSize)
-    expect(scaled.scene.layers.find((layer) => layer.id === 'title')?.text?.size).toBe(20)
-    expect(scaled.scene.layers.find((layer) => layer.id === 'title')?.height).toBeGreaterThan(
-      layer(normal.scene, 'title').height,
+    expect(scaled.scene.layers.find((layer) => layer.id === 'status')?.text?.size).toBe(13)
+    expect(scaled.scene.layers.find((layer) => layer.id === 'status')?.height).toBeGreaterThan(
+      layer(normal.scene, 'status').height,
     )
     expect(
       renderRbnScene(model, { ...scaledEnvironment, devicePixelRatio: 3 }, { view: 'list' }),
@@ -356,7 +360,7 @@ describe('RBN native scene', () => {
       expect(row.y + row.height).toBeLessThan(pager.y)
       expect(text(scene)).not.toContain('Enlarge this panel to display receiver reports.')
       if (!scene.layers.some((item) => item.id.startsWith('reception-map-'))) {
-        expect(text(scene)).toContain('Choose Map above for a larger reception map.')
+        expect(text(scene)).toContain('Choose Map in panel settings for a larger map.')
       }
       assertSceneBounds(scene)
     }
@@ -410,8 +414,8 @@ describe('RBN native scene', () => {
     host.colors.surface = '#101923'
     host.colors.onSurface = '#edf4f6'
     const { scene } = renderRbnScene(model, host, { view: 'map' })
-    expect(scene.layers.find((layer) => layer.id === 'title')?.y).toBeGreaterThanOrEqual(28)
-    expect(scene.layers.find((layer) => layer.id === 'title')?.text?.color).toBe('#edf4f6')
+    expect(scene.layers.find((layer) => layer.id === 'status')?.y).toBeGreaterThanOrEqual(28)
+    expect(scene.layers.find((layer) => layer.id === 'status')?.text?.color).toBe('#086f63')
     expect(scene.layers.find((layer) => layer.id === 'surface')?.svg).toContain('#101923')
     assertSceneBounds(scene)
   })
