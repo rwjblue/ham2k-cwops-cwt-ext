@@ -48,8 +48,9 @@ See the [verification record](docs/VERIFICATION.md) for tested builds.
 3. Save the layout. Reports refresh automatically while the panel is visible.
    The defaults show the last 15 minutes on all bands, newest first.
 
-Use the panel menus to switch views, filter bands, sort reports, and page
-through receivers. Wide panes show a table; narrow panes use receiver cards.
+Use panel settings (the tune icon) to choose **View** and **Band**. Use the
+panel controls to sort reports, page through receivers, and refresh manually.
+Wide panes show a table; narrow panes use receiver cards.
 Explicit callsign/grid overrides stay with that panel placement until cleared,
 so leave them blank for normal operation. The map geography is bundled; new
 RBN reports are provided by Vail ReRBN and need internet access. Receiver positions
@@ -196,12 +197,12 @@ that CWT synchronization requirement.
 ## Release
 
 All extensions and shared workspaces use one synchronized repository version.
-Choose an unused version; `0.3.2` below is an example for the next release:
+Choose an unused version; `0.3.3` is the prepared candidate:
 
 ```sh
-mise run release:prepare 0.3.2
+mise run release:prepare 0.3.3
 mise run format
-mise run release v0.3.2 --dry-run
+mise run release v0.3.3 --dry-run
 ```
 
 `release:prepare` updates the root package, every extension's manifest and

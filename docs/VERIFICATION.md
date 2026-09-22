@@ -1,5 +1,37 @@
 # Verification and compatibility
 
+## Release 0.3.3 preparation — 2026-09-21
+
+Reviewed the four commits after published `v0.3.2`: Vail ReRBN migration,
+settings preservation, compact layout, and manual refresh/reduced scheduled
+renders. No remaining release-blocking defects were identified. Corrected the
+refresh integration tests' mock responses to include the required `offset`
+and `limit` fields; previously they exercised error caching. The tests now
+also assert populated report reuse across placements and a successful manual
+refresh with an updated check timestamp. Updated the root operator instructions
+for View/Band in panel settings and corrected the stale catalog status.
+
+Prepared synchronized version **0.3.3** across the root, all four extensions,
+shared workspaces, and lockfile. `mise run format` and
+`mise run release v0.3.3 --dry-run` passed: **411 tests across 30 files**, lint,
+strict typechecks, official builds/packaging, and all eight asset/checksum paths.
+`mise run verify-host` passed for every extension against the running
+**Ham2K Next 26.9.0 build 170** kernel, SHA-256
+`b001f0c0ede236f2dfb5a24788aaaebd49709bb193ff487b90337b115790f743`.
+
+| Candidate bundle | SHA-256 |
+| --- | --- |
+| `n1rwj-cwt-0.3.3.h2kext` | `7ad8a6a0b1f254ad0a5ac8bb93b6a86f40a9151a2d96f91c47a7ac813c7ce3b3` |
+| `n1rwj-mst-0.3.3.h2kext` | `35ce89e7f3dca610e20e29669bfa03898ae8974394b65e6f7e103b098a7a356c` |
+| `n1rwj-rbn-0.3.3.h2kext` | `87bc1605f9751c5f503a14e5a3cdc4af9f1629af8948d6bbd11c52b75a5bfece` |
+| `n1rwj-sst-0.3.3.h2kext` | `7be067967bb44c323ce9988d43e97e9259384fb817c970cb2e3c8d8b852f5159` |
+
+These are local release candidates, not published or newly installed native
+artifacts. Earlier native checks below cover the layout/settings candidate;
+the final manual-refresh button still lacks native interaction acceptance.
+RBN changes, release documentation, and personal packaging are exempt from
+CWT upstream synchronization; contest runtime behavior is unchanged.
+
 ## Manual RBN refresh — 2026-09-21 (unreleased)
 
 Added **↻** beside Details in the existing status row. Layout tests at 320,

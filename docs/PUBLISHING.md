@@ -8,24 +8,21 @@ each submission before operators can install it from the catalog.
 
 ## Current release status
 
-[v0.3.1](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.1)
-was published on September 21, 2026. All four extension bundles and their
-four checksum files are available on GitHub, and downloaded assets passed
-checksum validation. The
-[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35636926897/job/106456515162),
-but the separate
-[catalog job failed](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35636926897/job/106456635007)
-on its first upload, `n1rwj-cwt`, with HTTP 403 from a Cloudflare challenge.
-No submission was accepted by that run and later extensions were not attempted,
-so this release is **not pending catalog review**. Use the GitHub downloads
-while the catalog API issue is being resolved.
+[v0.3.2](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.2)
+was published on September 21, 2026, with all four extension bundles and their
+four checksum files on GitHub. The
+[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35652154202/job/106564246229).
+The [catalog retry succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35652154202/job/106564225157)
+at 00:00 UTC on September 22: all four uploads to `stable` were accepted as
+**pending review**, and the job completed successfully. This confirms submission,
+not catalog approval or installation availability.
 
-The same failure occurred for v0.2.1 and v0.3.0. The catalog maintainer needs
-to resolve the API challenge before retrying. Once resolved, use **Re-run
-failed jobs** for the release workflow; the successful GitHub upload job does
-not need to run again. See [verification details](VERIFICATION.md#release-031--2026-09-21)
-for the observed failure and release checks. The map refinement has automated
-and static-preview coverage; native visual acceptance remains outstanding.
+Earlier v0.2.1, v0.3.0, and v0.3.1 runs failed with HTTP 403 from a Cloudflare
+challenge. The successful v0.3.2 retry supersedes that blocker for this release;
+inspect each earlier version's submission history before retrying it.
+
+**v0.3.3 is prepared locally and has not been published.** Its
+[release notes](releases/v0.3.3.md) summarize the RBN changes and verification.
 
 ## Configure the token
 
@@ -55,16 +52,16 @@ the already uploaded GitHub release assets remain available.
 ## Prepare and publish a release
 
 All extensions and shared workspaces retain one synchronized version. Choose
-an unused version; **0.3.2 below is an example for a future release**:
+an unused version; **0.3.3 is the prepared candidate**:
 
 ```sh
-mise run release:prepare 0.3.2
+mise run release:prepare 0.3.3
 mise run format
-mise run release v0.3.2 --dry-run
+mise run release v0.3.3 --dry-run
 ```
 
 Commit the prepared files using the repository's signed Jujutsu workflow and
-push them, then publish a GitHub release tagged `v0.3.2` at that tested commit.
+push them, then publish a GitHub release tagged `v0.3.3` at that tested commit.
 The workflow checks out the release commit, runs `check`, and attaches the
 exact current bundle/checksum pairs. Drafts do not trigger it. Keep GitHub
 release immutability disabled because these assets are attached after
@@ -109,9 +106,9 @@ As checked on September 21, 2026, the catalog's publishing page and parts of
 its UI still call channels `prod`, `next`, and `dev`. The pinned official
 tools use `stable`, `unstable`, and `bleeding`; inspected host source also
 requests `stable`. This automation follows the official publisher contract.
-The authenticated v0.2.1, v0.3.0 and v0.3.1 upload attempts were blocked by Cloudflare
-before catalog validation. They therefore do not establish whether the
-deployed catalog accepts these channel names; that remains unverified.
+The authenticated v0.2.1, v0.3.0, and v0.3.1 upload attempts were blocked by
+Cloudflare before catalog validation. The successful v0.3.2 retry established
+that the deployed catalog accepts `stable`; the other channels remain unverified.
 
 ## Review and recovery
 
@@ -128,7 +125,7 @@ dashboard before retrying; fix notes there if that was the only failure,
 and use the optional extension key to submit only the remaining extensions.
 
 If the catalog job failed before any submissions, resolve the specific cause
-(for example, a missing secret or the current API challenge) and use GitHub
+(for example, a missing secret or an API challenge) and use GitHub
 Actions' **Re-run failed jobs**. This preserves the successful GitHub upload
 job. Do not rerun all jobs blindly: the GitHub uploader deliberately refuses
 to overwrite existing release assets. If an archive was rejected, inspect

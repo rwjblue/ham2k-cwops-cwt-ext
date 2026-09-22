@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createRbnClient } from '../src/data/client.ts'
 import type { RbnSnapshot } from '../src/model.ts'
 import { createRbnPanel, panelModel } from '../src/panel.ts'
+import { payload, spotPayload } from './data/fixtures.ts'
 
 const typography = {
   fontFamily: null,
@@ -127,7 +128,13 @@ describe('RBN native panel integration', () => {
   it('reuses reports on reveal until 60 seconds since the last request, even across placements', async () => {
     const fetch = vi.fn(async () => ({
       status: 200,
-      body: JSON.stringify({ spots: [], total: 0 }),
+      body: JSON.stringify(
+        payload({
+          spots: [
+            spotPayload({ callsign: 'K8BTU', timestamp: new Date(now - 60_000).toISOString() }),
+          ],
+        }),
+      ),
     }))
     const client = createRbnClient({ fetch })
     const makePanel = () => createRbnPanel({ client, settings: async () => ({}) })
@@ -143,15 +150,17 @@ describe('RBN native panel integration', () => {
         },
         { online: true },
       )
-    await renderAt(0, 'initial')
+    const initial = await renderAt(0, 'initial')
+    expect(sceneText(initial)).toContain('Recent reports')
+    expect(sceneText(initial)).toContain('W3LPL')
     expect(fetch).toHaveBeenCalledTimes(1)
-    await renderAt(30_000, 'visible')
+    expect(await renderAt(30_000, 'visible')).toEqual(initial)
     await renderAt(45_000, 'config', { config: { ...args.config, view: 'list', band: '40m' } })
     // Placement/UI state can be recreated without losing the extension-wide client cache.
     panel = makePanel()
-    await renderAt(59_999, 'initial', { instanceId: 'another-placement' })
+    expect(await renderAt(59_999, 'initial', { instanceId: 'another-placement' })).toEqual(initial)
     expect(fetch).toHaveBeenCalledTimes(1)
-    await renderAt(60_000, 'visible')
+    expect(sceneText(await renderAt(60_000, 'visible'))).toContain('Recent reports')
     expect(fetch).toHaveBeenCalledTimes(2)
     await renderAt(60_001, 'tick')
     expect(fetch).toHaveBeenCalledTimes(2)
@@ -162,7 +171,7 @@ describe('RBN native panel integration', () => {
       vi.setSystemTime(now)
       const fetch = vi.fn(async () => ({
         status: 200,
-        body: JSON.stringify({ spots: [], total: 0 }),
+        body: JSON.stringify(payload({ spots: [], total: 0 })),
       }))
       const panel = createRbnPanel({
         client: createRbnClient({ fetch }),
@@ -197,14 +206,16 @@ describe('RBN native panel integration', () => {
   it('manually refreshes after 30 seconds without refetching on the post-event render', async () => {
     const fetch = vi.fn(async () => ({
       status: 200,
-      body: JSON.stringify({ spots: [], total: 0 }),
+      body: JSON.stringify(payload({ spots: [], total: 0 })),
     }))
     const panel = createRbnPanel({ client: createRbnClient({ fetch }), settings: async () => ({}) })
     const clockAt = (elapsed: number) => ({
       nowMillis: now - 86_400_000,
       realNowMillis: now + elapsed,
     })
-    await panel.render({ ...args, clock: clockAt(0) }, { online: true })
+    expect(
+      sceneText(await panel.render({ ...args, clock: clockAt(0) }, { online: true })),
+    ).toContain('No recent reports')
     await panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(29_999) }), {
       online: true,
     })
@@ -218,7 +229,12 @@ describe('RBN native panel integration', () => {
       }),
     ])
     expect(fetch).toHaveBeenCalledTimes(2)
-    await panel.render({ ...args, clock: clockAt(30_000), reason: 'event' }, { online: true })
+    const refreshed = await panel.render(
+      { ...args, clock: clockAt(30_000), reason: 'event' },
+      { online: true },
+    )
+    expect(sceneText(refreshed)).toContain('No recent reports')
+    expect(sceneText(refreshed)).toContain('14:00:30 UTC')
     await panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(59_999) }), {
       online: true,
     })
@@ -261,7 +277,7 @@ describe('RBN native panel integration', () => {
     const fetch = vi
       .fn()
       .mockResolvedValueOnce({ status: 429, body: JSON.stringify({ error: { retryAfter: 120 } }) })
-      .mockResolvedValue({ status: 200, body: JSON.stringify({ spots: [], total: 0 }) })
+      .mockResolvedValue({ status: 200, body: JSON.stringify(payload({ spots: [], total: 0 })) })
     const panel = createRbnPanel({ client: createRbnClient({ fetch }), settings: async () => ({}) })
     const refreshAt = (elapsed: number, online = true) =>
       panel.onEvent?.(
