@@ -918,3 +918,27 @@ session with the operating system offline were not separately exercised in
 the native UI. Deterministic tests cover these contracts; the native
 failed-refresh/restart and cached-lookup checks above provide additional
 evidence for cache recovery.
+
+## 2026-09-23: RBN spots and contest filter collaboration
+
+The new native RBN source uses `spotCallFilter:v1` providers from CWT, MST,
+and SST. Deterministic tests load all four built IIFEs with separate SDK
+copies and simulate the documented kernel dispatch. They verify default CWT
+selection, no-file behavior, portable matching, explicit selection across
+restarts, provider removal, all-calls opt-out, and MST/SST membership without
+exchanging contest fields. Receiver filtering precedes deduplication; mode,
+WARC bands, cached-directory precedence, invalid preferences, expiration,
+request coalescing, bounded paging, and shared rate-limit backoff are covered.
+
+An isolated checkout of these commits passes `mise run check`: 438 tests,
+format/lint, both TypeScript checks, four official builds and package validation.
+Isolation keeps simultaneous release-tooling edits out of this result.
+Upstream CWT passes 116 tests and repository typechecks; all 95 upstream
+extensions build, pack, and load successfully.
+
+The installed Ham2K Next 26.9.0 build 170 JavaScript kernel also accepts all
+four bundles and their hook registrations (`mise run verify-host`).
+
+These bundle and unit checks are not a native UI test. The new Spots settings,
+source, and My Signal title have not yet been exercised in the native app.
+Earlier screenshots show previous panel names and released behavior.

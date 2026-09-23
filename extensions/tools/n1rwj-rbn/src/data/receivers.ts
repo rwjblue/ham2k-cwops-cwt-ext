@@ -153,5 +153,5 @@ export function createReceiverData() {
       }
     })
   }
-  return { dataFile, enrichReports }
+  return { dataFile, enrichReports, lookup: (call: string) => current.get(call) }
 }

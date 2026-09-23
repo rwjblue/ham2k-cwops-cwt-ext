@@ -1,15 +1,15 @@
 {
   "key": "n1rwj-rbn",
-  "name": "N1RWJ RBN · My signal",
+  "name": "N1RWJ RBN",
   "shortName": "RBN",
   "version": "0.3.4",
-  "description": "See where your CW, RTTY, FT8, and FT4 signals are heard, with a bundled world map and Reverse Beacon Network reports provided by Vail ReRBN.",
+  "description": "Find stations heard by selected RBN receivers in Spots, and see where your own signal is heard in the My Signal map. Reports provided by Vail ReRBN.",
   "category": "dashboard",
   "icon": "radar",
   "accentColor": "#245FC2",
   "api": 1,
   "keywords": ["rbn", "reverse-beacon", "cw", "rtty", "ft8", "ft4", "map", "propagation", "signal"],
-  "hooks": ["panel", "dataFile"],
+  "hooks": ["panel", "dataFile", "spots", "settingsPanel"],
   "domains": ["vailrerbn.com", "www.reversebeacon.net"],
   "relevance": {
     "interests": ["cw"]

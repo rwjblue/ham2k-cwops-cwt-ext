@@ -1,4 +1,4 @@
-# N1RWJ RBN · My signal
+# N1RWJ RBN
 
 See where the [Reverse Beacon Network](https://www.reversebeacon.net/) has
 heard your CW, RTTY, FT8, and FT4 signals, with a reception map and sortable
@@ -8,6 +8,40 @@ It is read-only: it does not transmit, spot a station, post to POTA, or create
 contacts.
 
 Part of the [N1RWJ extension family](../../../README.md).
+
+## Find stations in Spots
+
+Enable **N1RWJ RBN** and select **RBN** in the native Spots source filter.
+Open **Settings → RBN** to choose:
+
+- **Call-history filter:** CWT is selected by default when installed. Choose
+  MST, SST, or **All calls** explicitly. A selected missing extension or file
+  produces no spots, with an explanation in RBN settings. An explicit choice
+  survives restarts; filters do not switch automatically with the operation.
+- **Spot mode:** CW (default), RTTY, FT8, or FT4.
+- **Only these skimmers:** exact IDs, including suffixes such as `KM3T-5`.
+- **Receiver grid regions:** Maidenhead prefixes, for example `FN, EM`, `JO`,
+  or `FN42`. These select the receiving skimmers, not the spotted stations.
+
+Separate skimmers or regions with spaces or commas. Blank means unrestricted.
+When both are set, a receiver must match both. Receiver selection happens
+before reports are collapsed to the newest station/band/mode observation.
+Regions use the cached RBN directory grid first, then the report grid; unknown
+locations are excluded when a region is selected. Locations are approximate,
+and reception by a nearby skimmer does not guarantee reception at your station.
+
+Reports cover ten minutes on 160, 80, 40, 30, 20, 17, 15, 12, and 10 meters.
+Each refresh is capped at two pages of 1,000 reports per band; a busy band can
+exceed this snapshot, particularly with digital modes. Requests are coalesced
+and cached for at least a minute. Both Spots and My Signal honor shared API
+rate-limit backoff. Offline or failed refreshes use only unexpired cached
+reports, reapplying current filters. Settings apply on the next Spots refresh.
+
+CWT, MST, and SST provide membership from their cached call-history files via
+[the shared filter contract](../../../packages/spot-filters/README.md).
+They do not fetch reception reports or expose exchange data. File membership
+does not prove participation in the current contest. Band, age, mode, and
+source controls in the native Spots panel further narrow these results.
 
 ## Install and open the panel
 
@@ -27,7 +61,7 @@ No build tools, map accounts, or custom Ham2K build are required.
 
 ## In Ham2K
 
-Installing the extension makes **RBN · My signal** available in the operation's
+Installing the extension makes **My Signal** available in the operation's
 **Edit Layout → Add a Panel** menu. Choose its **+** button, place it in your
 layout, and save.
 

@@ -6,7 +6,7 @@ install only the ones you want.
 
 | Extension | What it adds |
 | --- | --- |
-| [RBN · My signal](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) | Reception map and sortable CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN, using your operation's callsign and location |
+| [RBN](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) | Reception map and sortable CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN, using your operation's callsign and location |
 | [CWops CWT](extensions/contests/n1rwj-cwt/README.md) (`n1rwj-cwt`) | CWT sessions, exchange suggestions, scoring, and exports |
 | [ICWC MST](extensions/contests/n1rwj-mst/README.md) (`n1rwj-mst`) | MST sessions, name suggestions, outgoing serials, scoring, and exports |
 | [K1USN SST](extensions/contests/n1rwj-sst/README.md) (`n1rwj-sst`) | SST sessions, name/location suggestions, scoring, and exports |
@@ -32,13 +32,17 @@ versions; use the latest release linked above when installing.
 
 ![Installed N1RWJ contest extensions and RBN panel in Ham2K](docs/images/extensions-installed.jpg)
 
-### RBN · My signal
+### RBN and My Signal
 
-The RBN panel requires a Ham2K version with native SVG panel support.
+RBN also supplies native Spots, with optional CWT/MST/SST call-history filters,
+skimmer selection, and receiver grid regions in **Settings → RBN**. CWT file
+filtering is the default when CWT is enabled.
+
+The My Signal panel requires a Ham2K version with native SVG panel support.
 If it shows **App update needed**, update Ham2K before using the panel.
 See the [verification record](docs/VERIFICATION.md) for tested builds.
 
-1. Open an operation and choose **Edit Layout → Add a Panel → RBN · My signal**.
+1. Open an operation and choose **Edit Layout → Add a Panel → My Signal**.
    Turn on **Enable Layout Customization** in app settings if layout editing is
    unavailable. On narrow screens, **Edit Layout** is under **Tools**.
 2. Leave **Watch callsign** and **Map origin grid** blank to follow the operation.

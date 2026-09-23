@@ -95,7 +95,7 @@ export function panelModel(
     args.environment?.brightness ??
     (themeMode === 'light' || themeMode === 'dark' ? themeMode : undefined)
   return {
-    title: test ? 'My signal · TEST observation' : 'My signal',
+    title: test ? 'My Signal · TEST observation' : 'My Signal',
     watchCall: snapshot.call,
     fetchedAt: snapshot.lastSuccessMs === null ? undefined : utcLabel(snapshot.lastSuccessMs),
     generatedAt: utcLabel(now),
@@ -190,7 +190,7 @@ export function createRbnPanel(
       return [
         {
           key: 'my-signal',
-          title: 'RBN · My signal',
+          title: 'My Signal',
           icon: 'radar',
           description:
             'Where your CW, RTTY, FT8, and FT4 signals are heard, with a map and RBN receiver reports provided by Vail ReRBN.',
@@ -208,7 +208,7 @@ export function createRbnPanel(
           kind: 'markdown',
           title: 'RBN · App update needed',
           content:
-            '**RBN · My signal requires SVG scene support.**\n\nThis app build does not supply the native panel environment and placement identity. Install a published Ham2K build with SVG scenes to use the reception map and sortable receiver list. No RBN request was made.',
+            '**My Signal requires SVG scene support.**\n\nThis app build does not supply the native panel environment and placement identity. Install a published Ham2K build with SVG scenes to use the reception map and sortable receiver list. No RBN request was made.',
         }
       }
       const config = readConfig(args.config)
@@ -249,7 +249,7 @@ export function createRbnPanel(
       state.selection = rendered.selection
       return {
         kind: 'svgScene',
-        title: `RBN · ${call || 'My signal'}`,
+        title: `My Signal${call ? ` · ${call}` : ''}`,
         scene: rendered.scene,
       }
     },
