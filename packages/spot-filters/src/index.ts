@@ -2,8 +2,13 @@
 // SPDX-License-Identifier: MIT
 
 import type { HookContext } from '@ham2k/extension-sdk'
+import { type HistoryRecords, matchHistoryCalls } from './history.ts'
 
-/** Extension-to-extension protocol, not a built-in Ham2K UI hook. */
+/**
+ * Temporary extension-to-extension transport, not a native relevance API.
+ * Remove after host relevance/filter support lands; retain history.ts.
+ * See ../README.md for the migration conditions and removal checklist.
+ */
 export const callFilterCategory = 'spotCallFilter:v1'
 export const maxFilterCalls = 2000
 
@@ -21,11 +26,10 @@ export type CallFilterHook = {
   matchCalls(args: MatchRequest, ctx: HookContext): Promise<MatchResult>
 }
 
-type Records = Readonly<Record<string, { call: string }>>
 type ProviderOptions = {
   label(ctx: HookContext): string
   unavailableReason(ctx: HookContext): string
-  records(): Promise<Records | undefined>
+  records(): Promise<HistoryRecords | undefined>
   lookupKeys(call: string): string[]
   defaultSelected?(): Promise<boolean>
 }
@@ -58,9 +62,7 @@ export function createHistoryCallFilter(options: ProviderOptions): CallFilterHoo
       return {
         version: 1,
         available: true,
-        calls: [...new Set(args.calls.map((call) => call.trim().toUpperCase()))].filter((call) =>
-          options.lookupKeys(call).some((key) => records[key]?.call === key),
-        ),
+        calls: matchHistoryCalls(args.calls, records, options.lookupKeys),
       }
     },
   }

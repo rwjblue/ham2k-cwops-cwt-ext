@@ -985,3 +985,22 @@ was performed. Earlier README screenshots retain previous panel names.
 The CWT integration observation is mirrored in the upstream PR source
 branch's `SPOTS.md`; RBN/MST/SST-specific observations and personal candidate
 packaging are exempt from upstream CWT synchronization.
+
+## 2026-09-23: Temporary spot-filter boundary
+
+Extracted pure history matching from the existing protocol adapter, retaining
+normalization, portable-call matching, ambiguity rejection, and missing-file
+handling. No runtime contract, selection default, or contest score changed.
+The shared README and bridge call sites now identify the compatibility code
+to retire when the host can express history relevance and filter it natively.
+The plan preserves explicit preferences and distinguishes file membership
+from QSO scoring eligibility; no future API is implemented speculatively.
+
+`mise run format` and `mise run check` passed: **461 tests across 38 files**,
+lint, strict typechecks, builds, and official packaging for all four extensions.
+The CWT-relevant matcher, test, comments, and documentation were mirrored on
+the upstream PR source branch; its **117 CWT tests**, repository typechecks,
+and CWT build/pack passed.
+RBN/MST/SST-specific adapter comments are exempt from CWT synchronization.
+This behavior-preserving extraction was not reinstalled for another native
+test; the native observations above describe the preceding candidate hashes.

@@ -84,6 +84,7 @@ export function selectSpots(
   const latest = new Map<string, Spot>()
   for (const report of reports) {
     if (report.spot.timeInMillis < now - maxAgeMs || report.spot.timeInMillis > now) continue
+    // Temporary history gate; retire with the bridge in spots/index.ts.
     if (allowedCalls && !allowedCalls.has(report.their.call)) continue
     const info = report.spot.sourceInfo ?? {}
     const receiver = String(info.spotter ?? '')

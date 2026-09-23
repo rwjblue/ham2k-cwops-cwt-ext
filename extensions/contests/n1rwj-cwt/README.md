@@ -168,3 +168,8 @@ See the [installation and development guide](../../../README.md),
 [upstream synchronization guidance](../../../README.md#keep-cwt-aligned-upstream),
 and [verification record](../../../docs/VERIFICATION.md). To build just CWT,
 run `mise run pack n1rwj-cwt` from the repository root.
+
+The cross-extension filter is temporary compatibility code. See the
+[shared migration plan](../../../packages/spot-filters/README.md) for the
+native relevance direction, retained history matching, and removal checklist.
+History membership affects spot display only, never QSO scoring eligibility.

@@ -21,6 +21,9 @@ export function createMiniContest(config: ContestConfig, manifest: ContestManife
     },
   }
   return {
+    // Temporary MST/SST transport; remove with native relevance support.
+    // Keep cached history/matching separate from QSO scoring eligibility.
+    // Migration: packages/spot-filters/README.md.
     callFilter: createHistoryCallFilter({
       label: () => `${config.shortName} call-history file`,
       unavailableReason: () =>

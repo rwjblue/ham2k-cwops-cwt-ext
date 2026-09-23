@@ -5,6 +5,9 @@ import { tFor } from '../cwt/i18n.ts'
 import { callLookupKeys } from '../history/callsign.ts'
 import { fileCache, savedSettings } from './hooks.ts'
 
+// Temporary transport only. Keep cached history and callsign matching when
+// native candidate relevance replaces this hook; never gate QSO points on history.
+// Migration: packages/spot-filters/README.md.
 export const callFilter = createHistoryCallFilter({
   label: (ctx) => tFor(ctx)('spotsFilterLabel'),
   unavailableReason: (ctx) => tFor(ctx)('historyEmpty'),

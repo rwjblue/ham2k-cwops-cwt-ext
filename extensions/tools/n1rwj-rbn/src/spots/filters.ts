@@ -1,4 +1,6 @@
 import { hooks } from '@ham2k/extension-sdk'
+// Temporary consumer of contest history, removable with native relevance filtering.
+// RBN owns reception data, never contest rules. See packages/spot-filters/README.md.
 import {
   callFilterCategory,
   type FilterDescriptor,

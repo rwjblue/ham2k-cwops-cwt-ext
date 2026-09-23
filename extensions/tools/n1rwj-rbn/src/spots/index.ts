@@ -39,6 +39,8 @@ export function createRbnSpots(options: Options) {
     queue = result.catch(() => undefined)
     return result
   }
+  // Temporary source-side preference/discovery. Native relevance will instead
+  // follow the operation in the logger; migrate explicit choices before removal.
   async function selection(online: boolean, forSettings = false) {
     return serialized(async () => {
       const raw = ownSettings(await getSettings())
@@ -87,6 +89,9 @@ export function createRbnSpots(options: Options) {
           status = `${error instanceof Error ? error.message : 'RBN unavailable.'} Showing unexpired cached reports only.`
           reports = await feed.get(false)
         }
+        // Compatibility bridge only: the feed cache above retains every report.
+        // Once native relevance can preserve our history-based preference, remove
+        // this match call and selectSpots' allowedCalls gate, keeping receiver filters.
         const allowed =
           selected.key === allCalls
             ? undefined
