@@ -16,7 +16,7 @@ interface Feature {
 }
 
 const sourceRoot = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/'
-const outputRoot = 'extensions/tools/n1rwj-rbn/src/map/'
+const outputRoot = 'packages/reception/src/map/'
 
 async function source(name: string, expectedHash: string): Promise<Feature[]> {
   const response = await fetch(`${sourceRoot}${name}.geojson`, {

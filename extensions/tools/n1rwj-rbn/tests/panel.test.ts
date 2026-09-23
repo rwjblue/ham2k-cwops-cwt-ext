@@ -377,12 +377,12 @@ describe('RBN native panel integration', () => {
   })
   it('keeps unknown receiver measurements and zero SNR; derives location only from exact coordinates', () => {
     const model = panelModel(args, snapshot, now)
-    expect(model.rows[0]).toMatchObject({ receiver: 'W1NT', snrDb: 0, age: '1 min ago' })
+    expect(model.rows[0]).toMatchObject({ call: 'W1NT', snrDb: 0, age: '1 min ago' })
     expect(model.rows[0].distanceKm).toBeGreaterThan(800)
     expect(model.rows[1].distanceKm).toBeUndefined()
     expect(model.note).toContain('TEST OPERATION — observing K8BTU')
     expect(model.fetchedAt).toBe('14:00:00 UTC')
-    expect(model.mapOptions?.receivers).toHaveLength(1)
+    expect(model.mapOptions?.stations).toHaveLength(1)
     expect(model.bands).toEqual([
       'all',
       '160m',
@@ -409,7 +409,7 @@ describe('RBN native panel integration', () => {
     const model = panelModel(args, { ...snapshot, reports }, now)
     expect(model.rows.map((row) => row.mode)).toEqual(reports.map((report) => report.mode))
     expect(model.rows.map((row) => row.wpm)).toEqual([20, undefined, undefined, undefined])
-    expect(model.mapOptions?.receivers).toHaveLength(1)
+    expect(model.mapOptions?.stations).toHaveLength(1)
     expect(model.note).toContain('CW, RTTY, FT8, and FT4 reports')
     expect(model.note).toContain('Reverse Beacon Network via Vail ReRBN')
     expect(model.note).toContain('HamDB registered grids')

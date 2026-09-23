@@ -3,18 +3,21 @@
 The extension bundles coarse country geometry, simplified state/province
 boundaries, and country label positions; drawing or reopening its map never
 downloads image tiles. The map is a reception diagram, not a navigation map.
-Receiver positions and countries come from the [RBN node directory](https://www.reversebeacon.net/nodes/), cached by Ham2K for seven days, with HamDB registered grids supplied by Vail ReRBN as a fallback. Positions are approximate.
-Lines indicate reports at those receivers, not a measured coverage boundary.
+Station positions come from each extension's feed adapter. RBN uses the
+[RBN node directory](https://www.reversebeacon.net/nodes/) with Vail ReRBN's
+registered-grid fallback; PSK Reporter reports carry sender and receiver grids.
+The PSK preview does not yet connect to that feed. Positions are approximate.
+Lines indicate reported reception, not a measured coverage boundary.
 
-The source file `src/map/earth-110m.json` contains the 177 country geometries in
+The source file `packages/reception/src/map/earth-110m.json` contains the 177 country geometries in
 [`@d3-maps/atlas@1.0.0/world/countries/countries-110m`](https://esm.sh/@d3-maps/atlas@1.0.0/world/countries/countries-110m),
 derived from Natural Earth at 1:110 million scale. TopoJSON arcs were expanded into
 GeoJSON rings, country metadata removed, and longitude/latitude values rounded to
 three decimals. No points were otherwise simplified. This keeps the full world
 data small enough to include directly in the `.h2kext` JavaScript bundle.
 
-The source files `src/map/admin1-boundaries.json` and
-`src/map/geographic-labels.json` derive directly from the Natural Earth repository's
+The source files `packages/reception/src/map/admin1-boundaries.json` and
+`packages/reception/src/map/geographic-labels.json` derive directly from the Natural Earth repository's
 **v5.1.2** snapshot:
 
 - [10m internal administrative boundary lines](https://github.com/nvkelso/natural-earth-vector/blob/v5.1.2/geojson/ne_10m_admin_1_states_provinces_lines.geojson)

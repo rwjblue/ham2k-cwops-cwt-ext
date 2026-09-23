@@ -1,4 +1,4 @@
-import type { MapLabel, MapMarker, MapReceiver, MapTheme } from './types.ts'
+import type { MapLabel, MapMarker, MapStation, MapTheme } from './types.ts'
 
 interface Box {
   x: number
@@ -44,7 +44,7 @@ export function annotationLabels(
 
 /** Greedy placement favors selection and recent reports; labels never hide markers. */
 export function receiverLabels(
-  receivers: readonly MapReceiver[],
+  stations: readonly MapStation[],
   markers: readonly MapMarker[],
   width: number,
   height: number,
@@ -57,7 +57,7 @@ export function receiverLabels(
     ...markers.map((marker) => ({ x: marker.x - 8, y: marker.y - 8, width: 16, height: 16 })),
   ]
   const positions = new Map(markers.map((marker) => [marker.key, marker]))
-  const candidates = [...receivers].sort(
+  const candidates = [...stations].sort(
     (a, b) =>
       Number(Boolean(b.selected)) - Number(Boolean(a.selected)) ||
       a.ageMinutes - b.ageMinutes ||

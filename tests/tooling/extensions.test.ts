@@ -123,6 +123,22 @@ describe('extension discovery and scaffolding', () => {
     await mkdir(join(extension, 'assets/licenses'), { recursive: true })
     await writeFile(join(extension, 'assets/licenses/third-party.txt'), 'Third-party copyright\n')
     await writeFile(join(extension, 'assets/ATTRIBUTION.md'), 'Bundled geography attribution\n')
+    const shared = join(dir, 'packages/reception')
+    await mkdir(join(shared, 'assets'), { recursive: true })
+    await writeFile(
+      join(shared, 'package.json'),
+      JSON.stringify({ name: '@n1rwj/reception', version: '0.2.0' }),
+    )
+    await writeFile(join(shared, 'assets/MAP_LICENSE.txt'), 'Shared map license\n')
+    const pkgPath = join(extension, 'package.json')
+    const pkg = JSON.parse(await readFile(pkgPath, 'utf8'))
+    await writeFile(
+      pkgPath,
+      JSON.stringify({
+        ...pkg,
+        devDependencies: { ...pkg.devDependencies, '@n1rwj/reception': '0.2.0' },
+      }),
+    )
     await buildExtensions(dir)
     await packExtensions(dir)
     expect(await readFile(join(extension, 'build/assets/LICENSE'), 'utf8')).toBe(
@@ -140,6 +156,7 @@ describe('extension discovery and scaffolding', () => {
       'assets/PROVENANCE.md',
       'assets/licenses/third-party.txt',
       'assets/ATTRIBUTION.md',
+      'assets/MAP_LICENSE.txt',
     ]) {
       expect(bundle).toContain(entry)
     }

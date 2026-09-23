@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { MapLabel, MapReceiver, ReceptionMapLayout } from '../../src/map/index.ts'
+import type { MapLabel, MapStation, ReceptionMapLayout } from '../../src/map/index.ts'
 import { layoutReceptionMap } from '../../src/map/index.ts'
 
 const theme = {
@@ -14,7 +14,7 @@ const theme = {
 const americanOrigin = { latitude: 27.73, longitude: -81.63, label: 'N1RWJ' }
 const europeanOrigin = { latitude: 48.1, longitude: 11.6, label: 'DL1TEST' }
 
-function receiver(key: string, latitude: number, longitude: number, ageMinutes = 1): MapReceiver {
+function receiver(key: string, latitude: number, longitude: number, ageMinutes = 1): MapStation {
   return { key, label: key, latitude, longitude, ageMinutes }
 }
 
@@ -77,7 +77,7 @@ function expectReadableLabels(map: ReceptionMapLayout): void {
 
 describe('reception map cartography', () => {
   it('keeps receiver positions stable when resizing across the former compact breakpoint', () => {
-    const base = { origin: americanOrigin, receivers: northAmerica, theme }
+    const base = { origin: americanOrigin, stations: northAmerica, theme }
     const before = layoutReceptionMap({ ...base, width: 419, height: 390 })
     const after = layoutReceptionMap({ ...base, width: 420, height: 390 })
     for (const marker of before.markers) {
@@ -93,7 +93,7 @@ describe('reception map cartography', () => {
       [europeanOrigin, europe],
     ] as const) {
       for (const width of [320, 424, 480, 720]) {
-        const map = layoutReceptionMap({ width, height: 390, origin, receivers, theme })
+        const map = layoutReceptionMap({ width, height: 390, origin, stations: receivers, theme })
         expect(map.markers).toHaveLength(receivers.length)
         expect(map.labels.some((label) => label.key.startsWith('receiver-label:'))).toBe(true)
         expectReadableLabels(map)
@@ -111,7 +111,7 @@ describe('reception map cartography', () => {
           width,
           height: 450,
           origin: americanOrigin,
-          receivers,
+          stations: receivers,
           theme,
         }).labels.filter((label) => label.key.startsWith('receiver-label:')).length,
     )
@@ -133,7 +133,7 @@ describe('reception map cartography', () => {
         width,
         height: 390,
         origin: americanOrigin,
-        receivers,
+        stations: receivers,
         theme,
       })
       for (const label of map.labels.filter((label) => label.key.startsWith('ring:'))) {
@@ -155,7 +155,7 @@ describe('reception map cartography', () => {
           width: 320,
           height,
           origin: europeanOrigin,
-          receivers: europe,
+          stations: europe,
           theme,
           labelScale,
         })
@@ -177,7 +177,7 @@ describe('reception map cartography', () => {
         [424, 390],
         [720, 390],
       ]) {
-        const map = layoutReceptionMap({ width, height, origin, receivers: [], theme })
+        const map = layoutReceptionMap({ width, height, origin, stations: [], theme })
         const message = map.labels.find((label) => label.key === 'no-receivers')
         expect(message).toBeDefined()
         if (!message) throw new Error('Missing empty-report message')

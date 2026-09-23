@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { MapReceiver, ReceptionMapOptions } from '../../src/map/index.ts'
+import type { MapStation, ReceptionMapOptions } from '../../src/map/index.ts'
 import {
   isMapLocation,
   layoutReceptionMap,
@@ -16,7 +16,7 @@ const theme = {
   accent: '#087c73',
 }
 const origin = { latitude: 41.7, longitude: -72.1, label: 'N1RWJ' }
-const receivers: MapReceiver[] = [
+const stations: MapStation[] = [
   { key: 'w3lpl', label: 'W3LPL', latitude: 39.35, longitude: -76.83, ageMinutes: 2 },
   { key: 'k9lc', label: 'K9LC', latitude: 42.1, longitude: -88.2, ageMinutes: 8 },
   {
@@ -29,7 +29,7 @@ const receivers: MapReceiver[] = [
   },
   { key: 'g4pvm', label: 'G4PVM', latitude: 51.75, longitude: 0.7, ageMinutes: 4 },
 ]
-const options: ReceptionMapOptions = { width: 720, height: 380, origin, receivers, theme }
+const options: ReceptionMapOptions = { width: 720, height: 380, origin, stations, theme }
 
 describe('reception map', () => {
   it('uses bundled geographic paths and places receivers inside the desktop viewport', () => {
@@ -62,7 +62,7 @@ describe('reception map', () => {
       [1366, 768],
       [4096, 4096],
     ]) {
-      const map = layoutReceptionMap({ ...options, width, height, receivers: globalReceivers })
+      const map = layoutReceptionMap({ ...options, width, height, stations: globalReceivers })
       expect(map.markers).toHaveLength(500)
       expect(map.svgLayers.length).toBeGreaterThan(1)
       expect(map.svgLayers.reduce((sum, svg) => sum + svg.length, 0)).toBeLessThan(1048576)
@@ -118,7 +118,7 @@ describe('reception map', () => {
       [1280, 800],
       [4096, 4096],
     ]) {
-      const map = layoutReceptionMap({ ...options, width, height, receivers: regionalReceivers })
+      const map = layoutReceptionMap({ ...options, width, height, stations: regionalReceivers })
       expect(map.markers).toHaveLength(500)
       expect(map.svg.includes('admin-land-')).toBe(true)
       expect(map.svgLayers.reduce((sum, layer) => sum + layer.length, 0)).toBeLessThan(1048576)
@@ -130,7 +130,7 @@ describe('reception map', () => {
     }
     const worldwide = layoutReceptionMap({
       ...options,
-      receivers: [
+      stations: [
         { key: 'vk', label: 'VK', latitude: -33, longitude: 151, ageMinutes: 0 },
         { key: 'ja', label: 'JA', latitude: 35, longitude: 140, ageMinutes: 0 },
         { key: 'zs', label: 'ZS', latitude: -33, longitude: 18, ageMinutes: 0 },
@@ -178,7 +178,7 @@ describe('reception map', () => {
       width: 720,
       height: 180,
       projection: 'azimuthal',
-      receivers: [{ key: 'south', label: 'ZL1TEST', latitude: -40, longitude: 170, ageMinutes: 2 }],
+      stations: [{ key: 'south', label: 'ZL1TEST', latitude: -40, longitude: 170, ageMinutes: 2 }],
     })
     expect(map.markers[0].y).toBeGreaterThan(10)
     expect(map.markers[0].y).toBeLessThan(170)
@@ -188,7 +188,7 @@ describe('reception map', () => {
     const map = layoutReceptionMap({
       ...options,
       origin: { latitude: 45, longitude: 179.8 },
-      receivers: [
+      stations: [
         { key: 'dateline', label: 'KL7TEST', latitude: 46, longitude: -179.8, ageMinutes: 2 },
       ],
     })
@@ -208,8 +208,8 @@ describe('reception map', () => {
     expect(missing.labels.map((label) => label.text)).toContain('Set your operation location')
     const invalid = layoutReceptionMap({
       ...options,
-      receivers: [
-        ...receivers,
+      stations: [
+        ...stations,
         { key: 'invalid', label: 'INVALID', latitude: 100, longitude: 0, ageMinutes: 1 },
       ],
     })
@@ -223,7 +223,7 @@ describe('reception map', () => {
   it('does not invent a bearing for the station antipode', () => {
     const map = layoutReceptionMap({
       ...options,
-      receivers: [
+      stations: [
         {
           key: 'antipode',
           label: 'TEST',
@@ -242,7 +242,7 @@ describe('reception map', () => {
     const svg = renderReceptionMap({
       ...options,
       origin: { ...origin, label: '<evil & "call">' },
-      receivers: [{ ...receivers[0], label: '<script>&' }],
+      stations: [{ ...stations[0], label: '<script>&' }],
       theme: { ...theme, accent: 'red"/><script>bad()</script>' },
     })
     expect(svg).not.toContain('<evil')
@@ -252,7 +252,7 @@ describe('reception map', () => {
   })
 
   it('clamps bad dimensions and reports empty reception without fabricating dots', () => {
-    const map = layoutReceptionMap({ ...options, width: Number.NaN, height: -9, receivers: [] })
+    const map = layoutReceptionMap({ ...options, width: Number.NaN, height: -9, stations: [] })
     expect(map.width).toBe(640)
     expect(map.height).toBe(180)
     expect(map.state).toBe('no-receivers')

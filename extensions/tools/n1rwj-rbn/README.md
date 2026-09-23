@@ -213,7 +213,7 @@ fetched and when your signal was last reported.
 
 The simplified world geography is bundled in the package, so the map needs no
 tile downloads or internet connection. New reception reports need internet
-access. See [map attribution and licenses](assets/MAP_ATTRIBUTION.md).
+access. See [map attribution and licenses](../../../packages/reception/assets/MAP_ATTRIBUTION.md).
 
 Reports come from the documented [Vail ReRBN HTTP API](https://vailrerbn.com/docs/endpoints)
 at `https://vailrerbn.com/api/v1/spots`. Vail ReRBN receives both RBN streams:

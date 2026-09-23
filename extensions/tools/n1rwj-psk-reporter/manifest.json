@@ -1,0 +1,25 @@
+{
+  "key": "n1rwj-psk-reporter",
+  "name": "N1RWJ PSK Reporter Preview",
+  "shortName": "PSK Reporter",
+  "version": "0.4.1",
+  "description": "Development preview of PSK Reporter reception maps. Live reception is not connected yet.",
+  "category": "dashboard",
+  "icon": "radar",
+  "accentColor": "#245FC2",
+  "api": 1,
+  "keywords": ["psk-reporter", "ft8", "ft4", "map", "propagation"],
+  "hooks": ["panel"],
+  "domains": [],
+  "sharedDependencies": {
+    "@ham2k/lib-callsigns": "^1.0.2",
+    "@ham2k/lib-country-files": "^1.0.202605301",
+    "@ham2k/lib-dxcc-data": "^1.0.1",
+    "@ham2k/lib-format-tools": "^1.2.0",
+    "@ham2k/lib-geo-tools": "^1.1.1",
+    "@ham2k/lib-operation-data": "^1.1.3",
+    "@ham2k/lib-qson-cabrillo": "^1.2.0",
+    "i18next": "^23.16.8",
+    "liquidjs": "^10.28.0"
+  }
+}

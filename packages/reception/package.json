@@ -1,10 +1,10 @@
 {
-  "name": "n1rwj-rbn",
+  "name": "@n1rwj/reception",
   "version": "0.4.1",
   "private": true,
   "type": "module",
   "license": "MPL-2.0",
-  "devDependencies": {
-    "@n1rwj/reception": "*"
+  "dependencies": {
+    "d3-geo": "3.1.1"
   }
 }

@@ -1,56 +1,12 @@
-import type { PanelEnvironment, SvgScene, SvgSceneLayer } from '@ham2k/extension-sdk'
+import type { SvgScene, SvgSceneLayer } from '@ham2k/extension-sdk'
 import { describe, expect, it } from 'vitest'
 import type { SceneSelection } from '../../src/ui/scene.ts'
-import { renderRbnScene, sortedSceneReports } from '../../src/ui/scene.ts'
+import { renderReceptionScene, sortedSceneReports } from '../../src/ui/scene.ts'
 import type { UiModel, UiReport } from '../../src/ui/types.ts'
-
-function environment(width = 1366, height = 900, scale = 1): PanelEnvironment {
-  const role = (fontSize: number) => ({
-    fontFamily: 'Host font',
-    fontFamilyFallback: [],
-    fontSize,
-    scaledFontSize: fontSize * scale,
-    fontWeight: 400,
-    lineHeight: 1.2,
-    letterSpacing: 0,
-  })
-  return {
-    version: 1,
-    width,
-    height,
-    safeInsets: { left: 0, top: 0, right: 0, bottom: 0 },
-    brightness: 'light',
-    colors: {
-      surface: '#ffffff',
-      surfaceContainer: '#f1f5f7',
-      onSurface: '#172832',
-      onSurfaceVariant: '#526876',
-      accent: '#086f63',
-      primary: '#086f63',
-      onPrimary: '#ffffff',
-      secondary: '#226688',
-      outline: '#cbd8df',
-      outlineVariant: '#cbd8df',
-      error: '#990000',
-      onError: '#ffffff',
-    },
-    typography: {
-      label: role(13),
-      body: role(15),
-      title: role(20),
-      display: role(32),
-      mono: role(14),
-    },
-    locale: 'en-US',
-    textDirection: 'ltr',
-    devicePixelRatio: 1,
-    reducedMotion: false,
-    highContrast: false,
-  }
-}
+import { environment } from '../environment.ts'
 
 const rows: UiReport[] = Array.from({ length: 24 }, (_, index) => ({
-  receiver: `K${index % 10}RX${String(index).padStart(2, '0')}`,
+  call: `K${index % 10}RX${String(index).padStart(2, '0')}`,
   country: index === 23 ? undefined : 'United States',
   band: index % 2 ? '40m' : '20m',
   mode: 'CW',
@@ -64,6 +20,11 @@ const rows: UiReport[] = Array.from({ length: 24 }, (_, index) => ({
 }))
 
 const model: UiModel = {
+  presentation: {
+    source: 'RBN via Vail',
+    stationLabel: 'Receiver',
+    refreshLabel: 'Refresh receiver reports (30-second minimum between requests)',
+  },
   title: 'My signal · TEST observation',
   watchCall: 'KG2GL',
   fetchedAt: '14:48:08 UTC',
@@ -79,9 +40,9 @@ const model: UiModel = {
     width: 520,
     height: 360,
     origin: { latitude: 40.9, longitude: -74.2, label: 'KG2GL' },
-    receivers: rows.slice(0, 23).map((row, index) => ({
-      key: row.receiver,
-      label: row.receiver,
+    stations: rows.slice(0, 23).map((row, index) => ({
+      key: row.call,
+      label: row.call,
       latitude: 30 + index,
       longitude: -90 + index,
       ageMinutes: index,
@@ -141,7 +102,7 @@ describe('RBN native scene', () => {
   it.each([320, 390, 1366])(
     'fits refresh beside details without reducing the map at %ipx',
     (width) => {
-      const { scene } = renderRbnScene(model, environment(width, 900), { view: 'map' })
+      const { scene } = renderReceptionScene(model, environment(width, 900), { view: 'map' })
       const refresh = scene.controls?.find((control) => control.id === 'refresh')
       const details = scene.controls?.find((control) => control.id === 'details')
       if (!refresh || !details) throw new Error('Missing report actions')
@@ -172,10 +133,13 @@ describe('RBN native scene', () => {
         wpm: mode === 'CW' ? 25 : undefined,
       })),
     }
-    const initial = renderRbnScene(source, environment(width, 900), { view: 'list' })
+    const initial = renderReceptionScene(source, environment(width, 900), { view: 'list' })
     let contents = ''
     for (let page = 0; page < initial.pageCount; page++) {
-      const { scene } = renderRbnScene(source, environment(width, 900), { view: 'list', page })
+      const { scene } = renderReceptionScene(source, environment(width, 900), {
+        view: 'list',
+        page,
+      })
       assertSceneBounds(scene)
       contents += text(scene)
       for (let index = 0; index < initial.pageSize; index++) {
@@ -194,7 +158,7 @@ describe('RBN native scene', () => {
   })
 
   it('renders a map beside a receiver table at desktop sizes with native readable text', () => {
-    const { scene, pageSize } = renderRbnScene(model, environment())
+    const { scene, pageSize } = renderReceptionScene(model, environment())
     const map = layer(scene, 'reception-map-0')
     const row = layer(scene, 'row-0-background')
     expect(map.x + map.width).toBeLessThan(row.x)
@@ -208,14 +172,17 @@ describe('RBN native scene', () => {
   })
 
   it.each([320, 390])('uses phone cards and paginates every report at %ipx', (width) => {
-    const initial = renderRbnScene(model, environment(width, 844), { view: 'list', sort: 'age' })
+    const initial = renderReceptionScene(model, environment(width, 844), {
+      view: 'list',
+      sort: 'age',
+    })
     expect(initial.scene.layers.some((layer) => layer.id === 'column-0')).toBe(false)
     expect(initial.scene.layers.some((layer) => layer.id === 'row-0-call')).toBe(true)
     expect(initial.pageSize).toBeGreaterThan(0)
     expect(initial.pageSize).toBeLessThanOrEqual(4)
     const calls: string[] = []
     for (let page = 0; page < initial.pageCount; page++) {
-      const result = renderRbnScene(model, environment(width, 844), {
+      const result = renderReceptionScene(model, environment(width, 844), {
         view: 'list',
         sort: 'age',
         page,
@@ -227,21 +194,21 @@ describe('RBN native scene', () => {
       )
       assertSceneBounds(result.scene)
     }
-    expect(calls).toEqual(rows.map((row) => row.receiver))
+    expect(calls).toEqual(rows.map((row) => row.call))
     expect(initial.scene.controls?.find((control) => control.id === 'next')?.event).toBe(
       'page:next',
     )
     expect(initial.scene.controls?.some((control) => control.id === 'previous')).toBe(false)
-    const end = renderRbnScene(model, environment(width, 844), { view: 'list', page: 999 })
+    const end = renderReceptionScene(model, environment(width, 844), { view: 'list', page: 999 })
     expect(end.selection.page).toBe(end.pageCount - 1)
     expect(end.scene.controls?.some((control) => control.id === 'next')).toBe(false)
   })
 
   it('filters both map and list to the selected band and shows an empty configured band', () => {
-    const selected = renderRbnScene(model, environment(), { band: '40m' })
+    const selected = renderReceptionScene(model, environment(), { band: '40m' })
     expect(selected.totalRows).toBe(12)
     expect(text(selected.scene)).toContain('12 receivers · 1 band')
-    const empty = renderRbnScene(model, environment(390, 844), { view: 'list', band: '10m' })
+    const empty = renderReceptionScene(model, environment(390, 844), { view: 'list', band: '10m' })
     expect(empty.totalRows).toBe(0)
     expect(text(empty.scene)).toContain('No 10m reports in this time window.')
     expect(text(empty.scene)).toContain('10m · 0 receivers')
@@ -257,11 +224,11 @@ describe('RBN native scene', () => {
       ],
       mapOptions: {
         ...model.mapOptions,
-        receivers: [{ ...model.mapOptions.receivers[0], ageMinutes: 0 }],
+        stations: [{ ...model.mapOptions.stations[0], ageMinutes: 0 }],
       },
     }
-    const fresh = renderRbnScene(source, environment(390, 844), { view: 'map', band: '20m' })
-    const old = renderRbnScene(source, environment(390, 844), { view: 'map', band: '40m' })
+    const fresh = renderReceptionScene(source, environment(390, 844), { view: 'map', band: '20m' })
+    const old = renderReceptionScene(source, environment(390, 844), { view: 'map', band: '40m' })
     const geometry = (scene: SvgScene) =>
       scene.layers
         .filter((layer) => layer.id.startsWith('reception-map-'))
@@ -280,7 +247,7 @@ describe('RBN native scene', () => {
   ])(
     'gives the map the panel height after a compact header and footer at %ix%i',
     (width, height) => {
-      const { scene } = renderRbnScene(model, environment(width, height), { view: 'map' })
+      const { scene } = renderReceptionScene(model, environment(width, height), { view: 'map' })
       const map = layer(scene, 'reception-map-0')
       expect(map.height).toBeGreaterThanOrEqual(height - 100)
       expect(scene.controls?.map((control) => control.id)).toEqual(['refresh', 'details'])
@@ -294,30 +261,30 @@ describe('RBN native scene', () => {
     if (!model.mapOptions) throw new Error('Missing fixture map options')
     const reports = Array.from({ length: 500 }, (_, index) => ({
       ...rows[index % rows.length],
-      receiver: `K${index}RX`,
+      call: `K${index}RX`,
     }))
     const source = {
       ...model,
       rows: reports,
       mapOptions: {
         ...model.mapOptions,
-        receivers: reports.map((row, index) => ({
-          key: row.receiver,
-          label: row.receiver,
+        stations: reports.map((row, index) => ({
+          key: row.call,
+          label: row.call,
           ageMinutes: 0,
           latitude: -80 + (index % 160),
           longitude: -179 + ((index * 17) % 358),
         })),
       },
     }
-    const { scene, pageCount } = renderRbnScene(source, environment())
+    const { scene, pageCount } = renderReceptionScene(source, environment())
     expect(pageCount).toBeGreaterThan(60)
     expect(scene.layers.filter((layer) => layer.id.startsWith('reception-map-'))).toHaveLength(3)
     assertSceneBounds(scene)
   })
 
   it('makes controls explicit host events, without HTML or local animation bindings', () => {
-    const { scene } = renderRbnScene(model, environment())
+    const { scene } = renderReceptionScene(model, environment())
     expect(scene.controls?.some((control) => ['view', 'band'].includes(control.id))).toBe(false)
     expect(scene.controls?.find((control) => control.id === 'sort')?.menu).toContainEqual({
       label: 'SNR',
@@ -336,10 +303,10 @@ describe('RBN native scene', () => {
     const warning =
       'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.'
     const source = { ...model, warnings: [warning] }
-    const first = renderRbnScene(source, environment(320, 580), { details: true })
+    const first = renderReceptionScene(source, environment(320, 580), { details: true })
     const details: string[] = []
     for (let page = 0; page < first.pageCount; page++) {
-      const result = renderRbnScene(source, environment(320, 580), { details: true, page })
+      const result = renderReceptionScene(source, environment(320, 580), { details: true, page })
       details.push(text(result.scene))
       assertSceneBounds(result.scene)
     }
@@ -358,16 +325,16 @@ describe('RBN native scene', () => {
   })
 
   it('reserves OS scaled text space once and ignores device pixel ratio', () => {
-    const normal = renderRbnScene(model, environment(390, 740), { view: 'list' })
+    const normal = renderReceptionScene(model, environment(390, 740), { view: 'list' })
     const scaledEnvironment = environment(390, 740, 1.6)
-    const scaled = renderRbnScene(model, scaledEnvironment, { view: 'list' })
+    const scaled = renderReceptionScene(model, scaledEnvironment, { view: 'list' })
     expect(scaled.pageSize).toBeLessThan(normal.pageSize)
     expect(scaled.scene.layers.find((layer) => layer.id === 'status')?.text?.size).toBe(13)
     expect(scaled.scene.layers.find((layer) => layer.id === 'status')?.height).toBeGreaterThan(
       layer(normal.scene, 'status').height,
     )
     expect(
-      renderRbnScene(model, { ...scaledEnvironment, devicePixelRatio: 3 }, { view: 'list' }),
+      renderReceptionScene(model, { ...scaledEnvironment, devicePixelRatio: 3 }, { view: 'list' }),
     ).toEqual(scaled)
     assertSceneBounds(scaled.scene)
   })
@@ -377,7 +344,7 @@ describe('RBN native scene', () => {
       const host = environment(477, height)
       host.typography.label.fontSize = 12
       host.typography.label.scaledFontSize = 12
-      const { scene } = renderRbnScene(model, host, { view: 'both' })
+      const { scene } = renderReceptionScene(model, host, { view: 'both' })
       const row = layer(scene, 'row-0-background')
       const lastLine = layer(scene, 'row-0-distance')
       const pager = layer(scene, 'page-count')
@@ -399,12 +366,15 @@ describe('RBN native scene', () => {
         (_, index) => `Warning ${index}: receiver information is approximate.`,
       ),
     }
-    const first = renderRbnScene(source, environment(477, 8192), { details: true })
+    const first = renderReceptionScene(source, environment(477, 8192), { details: true })
     expect(first.pageSize).toBe(100)
     expect(first.pageCount).toBeGreaterThan(1)
     const shown: string[] = []
     for (let page = 0; page < first.pageCount; page++) {
-      const { scene } = renderRbnScene(source, environment(477, 8192), { details: true, page })
+      const { scene } = renderReceptionScene(source, environment(477, 8192), {
+        details: true,
+        page,
+      })
       shown.push(text(scene))
       assertSceneBounds(scene)
     }
@@ -426,7 +396,7 @@ describe('RBN native scene', () => {
     'bounds scene, touch targets, and payload at %ix%i with text scale %i',
     (width, height, scale) => {
       for (const view of ['both', 'map', 'list'] as SceneSelection['view'][]) {
-        const result = renderRbnScene(model, environment(width, height, scale), { view })
+        const result = renderReceptionScene(model, environment(width, height, scale), { view })
         assertSceneBounds(result.scene)
       }
     },
@@ -438,7 +408,7 @@ describe('RBN native scene', () => {
     host.brightness = 'dark'
     host.colors.surface = '#101923'
     host.colors.onSurface = '#edf4f6'
-    const { scene } = renderRbnScene(model, host, { view: 'map' })
+    const { scene } = renderReceptionScene(model, host, { view: 'map' })
     expect(scene.layers.find((layer) => layer.id === 'status')?.y).toBeGreaterThanOrEqual(28)
     expect(scene.layers.find((layer) => layer.id === 'status')?.text?.color).toBe('#086f63')
     expect(scene.layers.find((layer) => layer.id === 'surface')?.svg).toContain('#101923')
@@ -449,7 +419,7 @@ describe('RBN native scene', () => {
 describe('receiver sorting', () => {
   const reports: UiReport[] = [
     {
-      receiver: 'Z1RX',
+      call: 'Z1RX',
       band: '20m',
       mode: 'CW',
       age: '2 min ago',
@@ -460,7 +430,7 @@ describe('receiver sorting', () => {
       wpm: 30,
     },
     {
-      receiver: 'A1RX',
+      call: 'A1RX',
       band: '40m',
       mode: 'CW',
       age: '1 min ago',
@@ -470,11 +440,11 @@ describe('receiver sorting', () => {
       frequencyKhz: 7000,
       wpm: 20,
     },
-    { receiver: 'M1RX', band: '20m', mode: 'FT8', age: 'unknown', snrDb: Number.NaN },
+    { call: 'M1RX', band: '20m', mode: 'FT8', age: 'unknown', snrDb: Number.NaN },
   ]
   it('sorts all fields in both directions, preserving zero and keeping missing readings last', () => {
     const calls = (sort: SceneSelection['sort'], direction: SceneSelection['direction']) =>
-      sortedSceneReports(reports, sort, direction).map((row) => row.receiver)
+      sortedSceneReports(reports, sort, direction).map((row) => row.call)
     expect(calls('age', 'desc')).toEqual(['A1RX', 'Z1RX', 'M1RX'])
     expect(calls('age', 'asc')).toEqual(['Z1RX', 'A1RX', 'M1RX'])
     expect(calls('snr', 'desc')).toEqual(['A1RX', 'Z1RX', 'M1RX'])

@@ -153,7 +153,7 @@ adequate text contrast against both fills.
 
 The additional geography is generated from checksum-verified Natural Earth
 v5.1.2 sources. Run `mise run rbn:geography`, then `mise run format` to regenerate
-it. The [map attribution](../extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
+it. The [map attribution](../packages/reception/assets/MAP_ATTRIBUTION.md)
 records the source files, simplification and license. No tiles or new runtime
 network requests are required. See the [verification record](VERIFICATION.md)
 for the published package and the remaining native acceptance work.

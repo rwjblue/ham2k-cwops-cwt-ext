@@ -1,15 +1,20 @@
 import type { JSONValue, PanelHook, PanelRenderArgs } from '@ham2k/extension-sdk'
 import { host } from '@ham2k/extension-sdk'
-import type { PanelConfig } from './config.ts'
+import type { MapTheme } from '../../../../packages/reception/src/map/index.ts'
+import {
+  applySceneEvent,
+  createPanelStateStore,
+} from '../../../../packages/reception/src/panel-state.ts'
+import { ageLabel, receptionView, utcLabel } from '../../../../packages/reception/src/reports.ts'
+import { renderReceptionScene } from '../../../../packages/reception/src/ui/scene.ts'
+import type { UiModel } from '../../../../packages/reception/src/ui/types.ts'
 import { configFields, operationOrigin, rbnBands, readConfig, watchedCall } from './config.ts'
 import type { RbnClient } from './data/client.ts'
 import { rbnClient } from './data/host-client.ts'
-import type { MapReceiver, MapTheme } from './map/index.ts'
 import type { RbnReport, RbnSnapshot } from './model.ts'
-import { bearingDegrees, distanceKm, latestReports, receiverCoordinates } from './model.ts'
-import type { SceneSelection } from './ui/scene.ts'
-import { renderRbnScene } from './ui/scene.ts'
-import type { UiModel } from './ui/types.ts'
+import { latestReports, receiverCoordinates } from './model.ts'
+import { rbnPresentation } from './presentation.ts'
+import { toReceptionReport } from './reception.ts'
 
 const mapTheme: MapTheme = {
   surface: '#ffffff',
@@ -18,15 +23,6 @@ const mapTheme: MapTheme = {
   muted: '#526876',
   border: '#cbd8df',
   accent: '#086f63',
-}
-
-function ageLabel(time: number, now: number): string {
-  const minutes = Math.max(0, Math.floor((now - time) / 60_000))
-  return minutes === 0 ? '<1 min ago' : `${minutes} min ago`
-}
-
-function utcLabel(time: number): string {
-  return `${new Date(time).toISOString().slice(11, 19)} UTC`
 }
 
 export function panelModel(
@@ -39,29 +35,10 @@ export function panelModel(
   const origin = operationOrigin(args.operation, config.gridOverride)
   const reports = latestReports(snapshot.reports)
   const bands = [...new Set([...rbnBands, ...reports.map((report) => report.band), config.band])]
-  const pointsFor = (selected: typeof reports): MapReceiver[] => {
-    // One point/path per receiver, even when it has reported on several bands.
-    const receivers = new Map<string, (typeof reports)[number]>()
-    for (const report of selected)
-      if (!receivers.has(report.receiver)) receivers.set(report.receiver, report)
-    return [...receivers.values()].flatMap((report) => {
-      const coordinates = receiverCoordinates(report)
-      return coordinates
-        ? [
-            {
-              ...coordinates,
-              key: report.receiver,
-              label: report.receiver,
-              ageMinutes: Math.max(0, (now - report.timeMs) / 60_000),
-            },
-          ]
-        : []
-    })
-  }
-  const allPoints = pointsFor(reports)
+  const view = receptionView(reports.map(toReceptionReport), snapshot.call, 'outgoing', now, origin)
   const frameOptions = {
     origin: origin ? { ...origin, label: snapshot.call } : undefined,
-    receivers: allPoints,
+    stations: view.stations,
     projection: config.projection,
     theme: mapTheme,
   }
@@ -95,6 +72,7 @@ export function panelModel(
     args.environment?.brightness ??
     (themeMode === 'light' || themeMode === 'dark' ? themeMode : undefined)
   return {
+    presentation: rbnPresentation,
     title: test ? 'My Signal · TEST observation' : 'My Signal',
     watchCall: snapshot.call,
     fetchedAt: snapshot.lastSuccessMs === null ? undefined : utcLabel(snapshot.lastSuccessMs),
@@ -123,23 +101,7 @@ export function panelModel(
     warnings,
     bands,
     mapOptions: { ...frameOptions, width: 520, height: 360 },
-    rows: reports.map((report) => {
-      const coordinates = receiverCoordinates(report)
-      return {
-        receiver: report.receiver,
-        country: report.country ?? undefined,
-        band: report.band,
-        mode: report.mode,
-        frequencyKhz: report.frequencyKhz,
-        snrDb: report.snrDb ?? undefined,
-        wpm: report.wpm ?? undefined,
-        timeMs: report.timeMs,
-        age: ageLabel(report.timeMs, now),
-        ageMinutes: Math.max(0, (now - report.timeMs) / 60_000),
-        distanceKm: origin && coordinates ? distanceKm(origin, coordinates) : undefined,
-        bearingDeg: origin && coordinates ? bearingDegrees(origin, coordinates) : undefined,
-      }
-    }),
+    rows: view.rows,
     defaultBand: config.band,
     defaultSort: config.sort,
     defaultDirection: config.direction,
@@ -159,32 +121,7 @@ export function createRbnPanel(
   const client = dependencies.client ?? rbnClient
   const now = dependencies.now ?? Date.now
   const settings = dependencies.settings ?? (() => host.getSettings())
-  const selections = new Map<
-    string,
-    { signature: string; config: PanelConfig; selection: Partial<SceneSelection> }
-  >()
-  function stateFor(args: PanelRenderArgs) {
-    const config = readConfig(args.config)
-    const signature = JSON.stringify([args.operation?.uuid, args.operation?.stationCall])
-    const key = args.instanceId ?? ''
-    let state = selections.get(key)
-    if (!state || state.signature !== signature) {
-      state = { signature, config, selection: {} }
-      selections.delete(key)
-      selections.set(key, state)
-      // Placements can disappear without a teardown hook; bound session memory.
-      if (selections.size > 32) selections.delete(selections.keys().next().value as string)
-    } else if (JSON.stringify(state.config) !== JSON.stringify(config)) {
-      // Saving one default must not discard unrelated in-panel choices.
-      // A changed default takes effect for that control on the next render.
-      for (const field of ['sort', 'direction'] as const) {
-        if (state.config[field] !== config[field]) delete state.selection[field]
-      }
-      state.selection.page = 0
-      state.config = config
-    }
-    return state
-  }
+  const stateFor = createPanelStateStore()
   return {
     async getPanels() {
       return [
@@ -233,7 +170,7 @@ export function createRbnPanel(
           ? (snapshot.lastSuccessMs ?? realTime ?? now())
           : Math.max(snapshot.lastSuccessMs ?? 0, Math.floor((realTime ?? now()) / 60_000) * 60_000)
       const state = stateFor(args)
-      const rendered = renderRbnScene(
+      const rendered = renderReceptionScene(
         panelModel(
           args,
           {
@@ -278,31 +215,8 @@ export function createRbnPanel(
               : {}),
           },
         )
-      } else if (
-        controlId === 'sort' &&
-        prefix === 'sort' &&
-        ['age', 'call', 'snr', 'distance', 'frequency', 'wpm'].includes(value)
-      ) {
-        state.selection = { ...state.selection, sort: value as SceneSelection['sort'], page: 0 }
-      } else if (controlId === 'direction' && action === 'direction:toggle') {
-        state.selection = {
-          ...state.selection,
-          direction: (state.selection.direction ?? config.direction) === 'asc' ? 'desc' : 'asc',
-          page: 0,
-        }
-      } else if (
-        (controlId === 'previous' && action === 'page:previous') ||
-        (controlId === 'next' && action === 'page:next')
-      ) {
-        state.selection = {
-          ...state.selection,
-          page: Math.max(
-            0,
-            Math.min(499, (state.selection.page ?? 0) + (controlId === 'next' ? 1 : -1)),
-          ),
-        }
-      } else if (controlId === 'details' && action === 'details:toggle') {
-        state.selection = { ...state.selection, details: !state.selection.details, page: 0 }
+      } else {
+        applySceneEvent(state, controlId, action)
       }
       // The host schedules an authoritative render after every scene event.
       // Structural changes (sort/filter/page/view) therefore need no numeric patch.

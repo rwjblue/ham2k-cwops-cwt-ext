@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { receptionMapTheme } from '../../src/map/theme.ts'
-import { renderRbnScene } from '../../src/ui/scene.ts'
+import { renderReceptionScene } from '../../src/ui/scene.ts'
 import type { UiModel } from '../../src/ui/types.ts'
 
 function contrast(a: string, b: string): number {
@@ -50,11 +50,11 @@ describe('reception map palette', () => {
           width: 640,
           height: 400,
           origin: { latitude: 28, longitude: -81 },
-          receivers: [],
+          stations: [],
           theme,
         },
       }
-      const { scene } = renderRbnScene(model)
+      const { scene } = renderReceptionScene(model)
       const mapSvg = scene.layers
         .filter((layer) => layer.id.startsWith('reception-map-'))
         .map((layer) => layer.svg)

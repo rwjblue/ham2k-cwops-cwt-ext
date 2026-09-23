@@ -2,7 +2,7 @@ import type { ReceptionMapOptions } from '../map/types.ts'
 
 /** Presentation data only: rendering performs no storage or network work. */
 export interface UiReport {
-  receiver: string
+  call: string
   country?: string
   band: string
   mode: string
@@ -22,6 +22,13 @@ export type UiView = 'both' | 'map' | 'list'
 
 export interface UiModel {
   title: string
+  presentation?: {
+    source: string
+    stationLabel?: 'Receiver' | 'Transmitter' | 'Station'
+    refreshLabel?: string
+    cwSpeed?: boolean
+    details?: string[]
+  }
   watchCall: string
   generatedAt?: string
   fetchedAt?: string

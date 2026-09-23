@@ -27,7 +27,7 @@ export interface SceneResult {
   totalRows: number
 }
 
-const sorts: Array<{ key: UiSort; label: string }> = [
+const allSorts: Array<{ key: UiSort; label: string }> = [
   { key: 'age', label: 'Heard' },
   { key: 'call', label: 'Receiver' },
   { key: 'snr', label: 'SNR' },
@@ -48,7 +48,7 @@ export function sortedSceneReports(
   direction: UiDirection,
 ): UiReport[] {
   const value = (row: UiReport): string | number | undefined => {
-    if (sort === 'call') return row.receiver.toUpperCase()
+    if (sort === 'call') return row.call.toUpperCase()
     if (sort === 'age') return row.timeMs
     if (sort === 'snr') return row.snrDb
     if (sort === 'distance') return row.distanceKm
@@ -65,7 +65,7 @@ export function sortedSceneReports(
       const order = av < bv ? -1 : av > bv ? 1 : 0
       if (order) return direction === 'asc' ? order : -order
     }
-    return a.receiver.localeCompare(b.receiver) || a.band.localeCompare(b.band)
+    return a.call.localeCompare(b.call) || a.band.localeCompare(b.band)
   })
 }
 
@@ -90,11 +90,17 @@ function size(value: number | undefined, fallback: number): number {
 }
 
 /** Pure, bounded scene generation. Only the selected map and visible page are built. */
-export function renderRbnScene(
+export function renderReceptionScene(
   model: UiModel,
   environment?: PanelEnvironment,
   requested: Partial<SceneSelection> = {},
 ): SceneResult {
+  const source = model.presentation?.source ?? 'Reception'
+  const stationLabel = model.presentation?.stationLabel ?? 'Station'
+  const station = stationLabel.toLowerCase()
+  const sorts = allSorts
+    .filter((sort) => sort.key !== 'wpm' || model.presentation?.cwSpeed !== false)
+    .map((sort) => (sort.key === 'call' ? { ...sort, label: stationLabel } : sort))
   const width = size(environment?.width, 640)
   const height = size(environment?.height, 640)
   const inset = (value: number | undefined): number => (finite(value) ? Math.max(0, value) : 0)
@@ -236,25 +242,25 @@ export function renderRbnScene(
     `<rect width="${width}" height="${height}" fill="${colors.surface}"/>`,
   )
   if (w < 180 || bottom - top < labelLine * 2 + buttonHeight + 20) {
-    text('small-panel', 'Enlarge this panel to see RBN reports.', left, top, w)
+    text('small-panel', `Enlarge this panel to see ${source} reports.`, left, top, w)
     return result
   }
 
   let y = top
   const testObservation = /\bTEST\b/.test(model.title)
-  const receivers = new Set(rows.map((row) => row.receiver)).size
+  const receivers = new Set(rows.map((row) => row.call)).size
   const bands = new Set(rows.map((row) => row.band)).size
   const farthest = Math.max(
     0,
     ...rows.flatMap((row) => (finite(row.distanceKm) ? [row.distanceKm] : [])),
   )
   const bandLabel = selection.band === 'all' ? 'All bands' : selection.band
-  const summary = `${receivers} receiver${receivers === 1 ? '' : 's'} · ${bands} band${bands === 1 ? '' : 's'}${farthest ? ` · ${Math.round(farthest).toLocaleString('en-US')} km max` : ''}`
+  const summary = `${receivers} ${station}${receivers === 1 ? '' : 's'} · ${bands} band${bands === 1 ? '' : 's'}${farthest ? ` · ${Math.round(farthest).toLocaleString('en-US')} km max` : ''}`
   // The host tab already names the watched call. Keep status and the active
   // filter beside refresh/details instead of spending a row on a title.
   text(
     'status',
-    `${testObservation ? 'TEST · ' : ''}${model.status ?? 'Receiver reports'}`,
+    `${testObservation ? 'TEST · ' : ''}${model.status ?? `${stationLabel} reports`}`,
     left,
     y,
     w - 112,
@@ -265,15 +271,16 @@ export function renderRbnScene(
     'summary',
     w >= 600 * (label.scaledFontSize / label.fontSize)
       ? `${bandLabel} · ${summary}`
-      : `${bandLabel} · ${receivers} receiver${receivers === 1 ? '' : 's'}`,
+      : `${bandLabel} · ${receivers} ${station}${receivers === 1 ? '' : 's'}`,
     left,
     y + labelLine,
     w - 112,
   )
-  button('refresh', '↻', right - 104, y, 48, {
-    event: 'refresh:reports',
-    label: 'Refresh receiver reports (30-second minimum between requests)',
-  })
+  if (model.presentation?.refreshLabel)
+    button('refresh', '↻', right - 104, y, 48, {
+      event: 'refresh:reports',
+      label: model.presentation.refreshLabel,
+    })
   button(
     'details',
     selection.details ? '×' : model.warnings?.length ? '!' : 'ⓘ',
@@ -296,8 +303,8 @@ export function renderRbnScene(
       ...(model.warnings ?? []),
       model.locationLabel,
       `Data checked: ${model.fetchedAt ?? 'never'}. Last report: ${model.lastReport ?? 'none'}. Report ages as of ${model.generatedAt ?? 'unknown'}.`,
-      'Reception paths connect your station to receivers that reported it. They are not a coverage boundary. Signal-to-noise readings are measured at each receiver; receiver sites have different antennas and noise levels.',
-      'Source: Reverse Beacon Network. Map geography: Natural Earth. Receiver locations are approximate. No map tiles are downloaded.',
+      ...(model.presentation?.details ?? []),
+      'Map geography: Natural Earth. Station locations are approximate. No map tiles are downloaded.',
     ].filter((paragraph): paragraph is string => Boolean(paragraph))
     const characters = Math.max(12, Math.floor(w / (body.scaledFontSize * 0.58)))
     const lines: string[] = []
@@ -366,13 +373,13 @@ export function renderRbnScene(
           )
         : available
     if (mapHeight >= 180 && mapWidth >= 220 && model.mapOptions) {
-      const calls = new Set(rows.map((row) => row.receiver))
+      const calls = new Set(rows.map((row) => row.call))
       const receiverAges = new Map<string, number>()
       for (const row of rows) {
         if (finite(row.ageMinutes)) {
           receiverAges.set(
-            row.receiver,
-            Math.min(receiverAges.get(row.receiver) ?? Infinity, row.ageMinutes),
+            row.call,
+            Math.min(receiverAges.get(row.call) ?? Infinity, row.ageMinutes),
           )
         }
       }
@@ -381,7 +388,7 @@ export function renderRbnScene(
         ...model.mapOptions,
         width: mapWidth,
         height: mapHeight,
-        receivers: model.mapOptions.receivers
+        stations: model.mapOptions.stations
           .filter((receiver) => calls.has(receiver.key))
           .map((receiver) => {
             const ageMinutes = receiverAges.get(receiver.key)
@@ -448,7 +455,7 @@ export function renderRbnScene(
       text('list-compact', 'Enlarge this panel to display reports.', listX, listY, listWidth)
       text(
         'source',
-        `RBN via Vail · ${receivers} receivers · ${model.fetchedAt ?? model.status ?? 'No recent reports'}`,
+        `${source} · ${receivers} ${station}s · ${model.fetchedAt ?? model.status ?? 'No recent reports'}`,
         left,
         footerTop,
         w,
@@ -459,7 +466,7 @@ export function renderRbnScene(
     }
     const sortLabel = sorts.find((sort) => sort.key === selection.sort)?.label ?? 'Heard'
     button('sort', `Sort: ${sortLabel} ▾`, listX, listY, listWidth - 56, {
-      label: 'Sort receiver reports',
+      label: `Sort ${station} reports`,
       menu: sorts.map((sort) => ({ label: sort.label, event: `sort:${sort.key}` })),
     })
     button(
@@ -489,7 +496,7 @@ export function renderRbnScene(
     )
     const columns = [0, 0.25, 0.43, 0.53, 0.64, 0.84, 1]
     if (table && capacity > 0) {
-      const labels = ['Receiver', 'Band / kHz', 'SNR', 'Mode', 'km / bearing', 'Heard']
+      const labels = [stationLabel, 'Band / kHz', 'SNR', 'Mode', 'km / bearing', 'Heard']
       for (const [index, caption] of labels.entries()) {
         text(
           `column-${index}`,
@@ -519,7 +526,7 @@ export function renderRbnScene(
         : 'Location unknown'
       if (table) {
         const fields = [
-          row.receiver,
+          row.call,
           row.band,
           `${number(row.snrDb)} dB`,
           row.mode,
@@ -578,7 +585,7 @@ export function renderRbnScene(
       } else {
         text(
           `row-${index}-call`,
-          row.receiver,
+          row.call,
           listX + 10,
           ry + 8,
           listWidth - 110,
@@ -639,7 +646,7 @@ export function renderRbnScene(
     else if (capacity < 1)
       text(
         'list-compact',
-        'Enlarge this panel to display receiver reports.',
+        `Enlarge this panel to display ${station} reports.`,
         listX,
         listY,
         listWidth,
@@ -648,11 +655,11 @@ export function renderRbnScene(
     if (capacity > 0 && rows.length) {
       button('previous', '‹', listX, pagerY, 48, {
         event: selection.page > 0 ? 'page:previous' : undefined,
-        label: 'Previous receiver page',
+        label: `Previous ${station} page`,
       })
       button('next', '›', listX + listWidth - 48, pagerY, 48, {
         event: selection.page + 1 < result.pageCount ? 'page:next' : undefined,
-        label: 'Next receiver page',
+        label: `Next ${station} page`,
       })
       const first = selection.page * result.pageSize + 1
       const last = Math.min(rows.length, first + result.pageSize - 1)
@@ -672,8 +679,8 @@ export function renderRbnScene(
   text(
     'source',
     w >= 800 * (label.scaledFontSize / label.fontSize)
-      ? `RBN via Vail · Checked ${model.fetchedAt ?? 'never'} · Heard ${model.lastReport ?? '—'} · Ages as of ${model.generatedAt ?? '—'}`
-      : `RBN via Vail · ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
+      ? `${source} · Checked ${model.fetchedAt ?? 'never'} · Heard ${model.lastReport ?? '—'} · Ages as of ${model.generatedAt ?? '—'}`
+      : `${source} · ${model.generatedAt ?? model.fetchedAt ?? '—'}`,
     left,
     footerTop,
     w,

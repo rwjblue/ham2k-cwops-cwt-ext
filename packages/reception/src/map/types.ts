@@ -4,7 +4,7 @@ export interface MapLocation {
   label?: string
 }
 
-export interface MapReceiver extends MapLocation {
+export interface MapStation extends MapLocation {
   key: string
   label: string
   ageMinutes: number
@@ -23,8 +23,9 @@ export interface MapTheme {
 export interface ReceptionMapOptions {
   width: number
   height: number
+  stationLabel?: 'receiver' | 'transmitter' | 'station'
   origin?: MapLocation
-  receivers: readonly MapReceiver[]
+  stations: readonly MapStation[]
   projection?: 'regional' | 'azimuthal'
   /** Native text scale used only to reserve label space; font sizes stay unscaled. */
   labelScale?: number

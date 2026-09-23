@@ -113,9 +113,19 @@ locations from HamDB registered callsign grids; these can differ from the actual
 skimmer locations, so map paths, distances, and bearings are estimates.
 Receivers without valid grids remain in the list. The bundled map uses
 Natural Earth geometry and ISC-licensed projection libraries; the
-[map attribution](https://github.com/rwjblue/ham2k-n1rwj-extensions/blob/main/extensions/tools/n1rwj-rbn/assets/MAP_ATTRIBUTION.md)
+[map attribution](https://github.com/rwjblue/ham2k-n1rwj-extensions/blob/main/packages/reception/assets/MAP_ATTRIBUTION.md)
 records their sources and retained notices. RBN does not change CWT behavior
 or participate in its temporary upstream synchronization.
+
+### Shared reception code and PSK Reporter preview
+
+`packages/reception/` extracts the original N1RWJ RBN map, scene renderer,
+configuration, geography, and panel state. RBN and the PSK Reporter preview
+consume that source in independent bundles; each retains the map notices.
+The PSK payload parser follows the [M0LTE MQTT feed documentation](https://www.mqtt.pskreporter.info/).
+Its transport-independent code does not connect, transmit reports, or log QSOs.
+These reception-only changes and packaging work do not affect CWT behavior
+and are exempt from the upstream CWT synchronization requirement.
 
 ### Existing CWT operations and exchanges
 

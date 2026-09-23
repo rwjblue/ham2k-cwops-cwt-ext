@@ -7,7 +7,7 @@ import type {
   MapLabel,
   MapLocation,
   MapMarker,
-  MapReceiver,
+  MapStation,
   MapTheme,
   ReceptionMapLayout,
   ReceptionMapOptions,
@@ -17,7 +17,7 @@ export type {
   MapLabel,
   MapLocation,
   MapMarker,
-  MapReceiver,
+  MapStation,
   MapTheme,
   ReceptionMapLayout,
   ReceptionMapOptions,
@@ -99,7 +99,7 @@ function niceRadius(distanceKm: number): number {
 
 function createProjection(
   origin: MapLocation,
-  receivers: readonly MapReceiver[],
+  stations: readonly MapStation[],
   width: number,
   height: number,
   kind: 'regional' | 'azimuthal',
@@ -111,13 +111,13 @@ function createProjection(
     .clipAngle(179.99)
     .precision(0.6)
 
-  const points = [origin, ...receivers].flatMap((location) => {
+  const points = [origin, ...stations].flatMap((location) => {
     const point = projected(projection, location)
     return point ? [point] : []
   })
   const padding = Math.max(26, Math.min(44, width / 12))
   if (kind === 'azimuthal') {
-    const farthest = receivers.reduce(
+    const farthest = stations.reduce(
       (distance, receiver) =>
         Math.max(distance, geoDistance(coordinates(origin), coordinates(receiver)) * earthRadiusKm),
       0,
@@ -149,9 +149,9 @@ function createProjection(
   ])
 }
 
-function mappedReceivers(origin: MapLocation, receivers: readonly MapReceiver[]): MapReceiver[] {
+function mappedReceivers(origin: MapLocation, stations: readonly MapStation[]): MapStation[] {
   // The exact antipode has no unique bearing; leave it in the receiver list.
-  return receivers.filter(
+  return stations.filter(
     (receiver) =>
       isMapLocation(receiver) &&
       geoDistance(coordinates(origin), coordinates(receiver)) < Math.PI - 0.0002,
@@ -319,11 +319,12 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
   const height = safeSize(options.height, 360, 180)
   const theme = safeTheme(options.theme)
   const labelScale = safeLabelScale(options.labelScale)
+  const stationLabel = options.stationLabel ?? 'receiver'
   const origin = options.origin
   if (!isMapLocation(origin))
-    return emptyMap(width, height, theme, options.receivers.length, labelScale)
+    return emptyMap(width, height, theme, options.stations.length, labelScale)
 
-  const receivers = mappedReceivers(origin, options.receivers)
+  const receivers = mappedReceivers(origin, options.stations)
   const plotHeight = Math.max(70, height - 15 - 16 * labelScale)
   const projection = createProjection(
     origin,
@@ -348,7 +349,7 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
           ? 'Natural Earth'
           : width < 420
             ? 'Natural Earth · approximate locations'
-            : 'Natural Earth · receiver locations approximate',
+            : `Natural Earth · ${stationLabel} locations approximate`,
       x: 10,
       y: height - 5 - 16 * labelScale,
       width: width - 20,
@@ -362,7 +363,7 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
   if (receivers.length === 0) {
     labels.push({
       key: 'no-receivers',
-      text: labelScale > 1.4 ? 'No mapped reports' : 'Waiting for receiver reports',
+      text: labelScale > 1.4 ? 'No mapped reports' : `Waiting for ${stationLabel} reports`,
       x: 12,
       y: 12,
       width: width - 24,
@@ -513,7 +514,7 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
     labelBackings(labels, theme),
     `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="none" stroke="${theme.border}" stroke-width="1"/>`,
   ]
-  const description = `${originText} reception map: ${receivers.length} receiver${receivers.length === 1 ? '' : 's'}. Diamond marks the station; circles mark receivers. Lines show reported reception, not a coverage boundary.`
+  const description = `${originText} reception map: ${receivers.length} ${stationLabel}${receivers.length === 1 ? '' : 's'}. Diamond marks the station; circles mark ${stationLabel}s. Lines show reported reception, not a coverage boundary.`
   const svgLayers = geometryLayers([background, body], width, height, description)
   svgLayers.push(svgDocument(overlay.join(''), width, height, description))
   return {
@@ -530,7 +531,7 @@ export function layoutReceptionMap(options: ReceptionMapOptions): ReceptionMapLa
     height,
     state: receivers.length ? 'ready' : 'no-receivers',
     description,
-    unmappedCount: options.receivers.length - receivers.length,
+    unmappedCount: options.stations.length - receivers.length,
   }
 }
 
