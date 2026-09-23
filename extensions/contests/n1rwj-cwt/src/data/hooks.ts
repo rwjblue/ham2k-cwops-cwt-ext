@@ -65,7 +65,6 @@ export const Settings: DynamicSettingsPanel = {
     const t = tFor(ctx)
     await fileCache.load()
     const source = await savedSource()
-    const settings = await savedSettings()
     const loaded = fileCache.current()
     const status = loaded
       ? t('historyStatus', {
@@ -98,13 +97,6 @@ export const Settings: DynamicSettingsPanel = {
           value: source || DEFAULT_SOURCE,
         },
         { type: 'markdown', text: t('historyHelp') },
-        {
-          type: 'field',
-          fieldType: 'checkbox',
-          key: 'spotsHistoryOnly',
-          label: t('spotsHistoryOnlyLabel'),
-          value: settings.spotsHistoryOnly !== false,
-        },
         { type: 'markdown', text: t('spotsHelp') },
       ],
     }
@@ -114,9 +106,6 @@ export const Settings: DynamicSettingsPanel = {
     return sourceValidationError(value) ? tFor(ctx)('historyInvalidSource') : null
   },
   async onChangeField({ fieldKey, value }, ctx) {
-    if (fieldKey === 'spotsHistoryOnly' && typeof value === 'boolean') {
-      await host.setSettings({ spotsHistoryOnly: value })
-    }
     if (fieldKey === 'source' && typeof value === 'string') {
       if (sourceValidationError(value)) throw new Error(tFor(ctx)('historyInvalidSource'))
       await host.setSettings({ source: value.trim() })

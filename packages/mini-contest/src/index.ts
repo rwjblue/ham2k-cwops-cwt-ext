@@ -1,5 +1,7 @@
 import type { ScoringHook } from '@ham2k/extension-sdk'
 import { contestScorer } from '@ham2k/extension-sdk'
+import { callLookupKeys } from '../../n1mm/src/callsign.ts'
+import { createHistoryCallFilter } from '../../spot-filters/src/index.ts'
 import { createActivity } from './activity.ts'
 import { createHistoryData } from './data.ts'
 import { createExports } from './exports.ts'
@@ -19,6 +21,13 @@ export function createMiniContest(config: ContestConfig, manifest: ContestManife
     },
   }
   return {
+    callFilter: createHistoryCallFilter({
+      label: () => `${config.shortName} call-history file`,
+      unavailableReason: () =>
+        `Download the ${config.shortName} call-history file in extension settings.`,
+      records: async () => data.current()?.records,
+      lookupKeys: callLookupKeys,
+    }),
     activity,
     refHandler,
     adifFields,

@@ -12,9 +12,9 @@ import type {
   RegisterHookParams,
   ScoringHook,
   ScoringScope,
-  SpotsHook,
 } from '@ham2k/extension-sdk'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
+import type { CallFilterHook } from '../../../../../packages/spot-filters/src/index.ts'
 import manifest from '../../manifest.json'
 import { DEFAULT_SOURCE } from '../../src/data/source'
 
@@ -26,7 +26,7 @@ type HookTypes = {
   export: ExportHook
   settingsPanel: DynamicSettingsPanel
   scoring: ScoringHook & { scope: ScoringScope }
-  spots: SpotsHook
+  'spotCallFilter:v1': CallFilterHook
 }
 let bundle: string
 let sharedModules: Record<string, unknown>
@@ -119,51 +119,32 @@ const ctx: HookContext = {
 const body = '#CWOPS\n!!Order!!,Call,Name,Exch1\nK1ABC,AL,4567\n'
 
 describe('the installable bundle with a simulated host bridge', () => {
-  it('feeds native spots from the history file by default and honors the saved opt-out', async () => {
-    const runtime = harness({}, (params) => {
-      const url = new URL(String(params.url))
-      expect(url.hostname).toBe('vailrerbn.com')
-      return {
-        status: 200,
-        body: JSON.stringify({
-          spots:
-            url.searchParams.get('band') === '20m'
-              ? ['K1ABC/P', 'W9NEW'].map((callsign) => ({
-                  callsign,
-                  frequency: 14032.5,
-                  mode: 'CW',
-                  timestamp: new Date(Date.now() - 60_000).toISOString(),
-                }))
-              : [],
-        }),
-      }
+  it('exposes portable calls from the current file without fetching reports', async () => {
+    const runtime = harness()
+    const filter = runtime.hook('spotCallFilter:v1')
+    expect(await filter.describe({}, ctx)).toMatchObject({
+      available: false,
+      defaultSelected: true,
     })
-    const spots = runtime.hook('spots')
-    expect(await spots.fetchSpots({}, { ...ctx, online: true })).toEqual([])
-    const dataFile = runtime.hook('dataFile')
-    dataFile.onLoadRawData?.({
+    runtime.hook('dataFile').onLoadRawData?.({
       schema: 1,
       body,
       url: 'https://n1mm.hamdocs.com/cwops.txt',
       fetchedAt: new Date().toISOString(),
     })
-    const selected = await spots.fetchSpots({}, { ...ctx, online: true })
-    expect(selected.map((spot) => spot.their.call)).toEqual(['K1ABC/P'])
-    expect(selected[0]).toMatchObject({ freq: 14032.5, mode: 'CW', spot: { source: manifest.key } })
-    expect(selected[0]?.refs).toBeUndefined()
-    await runtime.hook('settingsPanel').onChangeField(
-      {
-        panelKey: manifest.key,
-        fieldKey: 'spotsHistoryOnly',
-        value: false,
-        state: {},
-      },
-      ctx,
-    )
-    expect(
-      (await spots.fetchSpots({}, { ...ctx, online: true })).map((spot) => spot.their.call),
-    ).toEqual(['K1ABC/P', 'W9NEW'])
-    expect(runtime.hostCall.mock.calls.filter(([method]) => method === 'fetch')).toHaveLength(6)
+    expect(await filter.matchCalls({ version: 1, calls: ['K1ABC/P', 'W9NEW'] }, ctx)).toEqual({
+      version: 1,
+      available: true,
+      calls: ['K1ABC/P'],
+    })
+    await runtime.hook('dataFile').onRemoveRawData?.()
+    expect(await filter.matchCalls({ version: 1, calls: ['K1ABC'] }, ctx)).toMatchObject({
+      available: false,
+      calls: [],
+    })
+    runtime.settingsGroups['extension_n1rwj-cwt'] = { spotsHistoryOnly: false }
+    expect(await filter.describe({}, ctx)).toMatchObject({ defaultSelected: false })
+    expect(runtime.hostCall.mock.calls.some(([method]) => method === 'fetch')).toBe(false)
   })
 
   it('registers the manifest identity and every declared hook without Node/DOM globals', () => {

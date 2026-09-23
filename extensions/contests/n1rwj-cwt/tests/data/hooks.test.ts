@@ -14,31 +14,6 @@ beforeEach(async () => {
 })
 afterEach(() => vi.restoreAllMocks())
 
-it('defaults spots to file entries and persists an explicit opt-out in both locales', async () => {
-  const setSettings = vi.spyOn(host, 'setSettings').mockResolvedValue(undefined)
-  for (const locale of ['en', 'es']) {
-    const form = await Settings.getDefinition({ panelKey }, { ...ctx, locale })
-    expect(form.elements).toContainEqual(
-      expect.objectContaining({
-        key: 'spotsHistoryOnly',
-        fieldType: 'checkbox',
-        value: true,
-      }),
-    )
-    expect(JSON.stringify(form)).not.toContain('{{')
-  }
-  const args = { panelKey, fieldKey: 'spotsHistoryOnly', value: false, state: {} }
-  await Settings.onChangeField(args, ctx)
-  expect(setSettings).toHaveBeenCalledWith({ spotsHistoryOnly: false })
-  vi.mocked(host.getSettings).mockResolvedValue({
-    extensions: { 'extension_n1rwj-cwt': { spotsHistoryOnly: false } },
-  })
-  const form = await Settings.getDefinition({ panelKey }, ctx)
-  expect(form.elements).toContainEqual(
-    expect.objectContaining({ key: 'spotsHistoryOnly', value: false }),
-  )
-})
-
 it('localizes dataset and freshness labels while retaining personal cache identity', async () => {
   fileCache.accept({
     schema: 1,

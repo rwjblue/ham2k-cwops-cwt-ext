@@ -1,17 +1,10 @@
-import { contestScorer, defineExtension, host } from '@ham2k/extension-sdk'
+import { contestScorer, defineExtension } from '@ham2k/extension-sdk'
+import { callFilterCategory } from '../../../../packages/spot-filters/src/index.ts'
 import manifest from '../manifest.json'
 import { AdifFieldsHook, CWTScorer, ExportHook, RefHandler } from './cwt/index.ts'
-import { DataFile, fileCache, Settings, savedSettings } from './data/hooks.ts'
+import { DataFile, fileCache, Settings } from './data/hooks.ts'
+import { callFilter } from './data/spot-filter.ts'
 import { createPrefill } from './integration/prefill.ts'
-
-import { createSpotsHook } from './spots/hook.ts'
-
-const spots = createSpotsHook({
-  fetch: (url, options) => host.fetch(url, options),
-  source: manifest.key,
-  fileCache,
-  historyOnly: async () => (await savedSettings()).spotsHistoryOnly !== false,
-})
 
 const prefill = createPrefill(fileCache)
 
@@ -28,7 +21,7 @@ defineExtension({
     registerHook('lookup', { hook: prefill.lookup })
     registerHook('dataFile', { key: DataFile.key, hook: DataFile })
     registerHook('settingsPanel', { hook: Settings })
-    registerHook('spots', { hook: spots })
+    registerHook(callFilterCategory, { hook: callFilter })
     void fileCache.load()
   },
 })

@@ -36,6 +36,6 @@
   "prefillSourceCurrentOperation": "current operation",
   "prefillSourceSelectedFile": "selected file",
   "prefillSourceOlderHistory": "older CWT history",
-  "spotsHistoryOnlyLabel": "Only show spots for calls in the call-history file",
-  "spotsHelp": "CWT · RBN supplies recent CW spots on the six CWT bands through Vail ReRBN. By default, only calls in the downloaded call-history file are shown, including portable calls with an unambiguous base-call match. This includes nonmembers in the file. With no valid file loaded, no spots are shown. Turn this off to show all received CW spots on those bands. Spots do not confirm CWT participation. Ham2K controls refreshing; this source is available in the Spots panel across operations and outside CWT sessions."
+  "spotsHelp": "The RBN extension can use this file to filter spots. Choose the call-history filter in RBN settings. File membership does not prove current CWT participation.",
+  "spotsFilterLabel": "CWT call-history file"
 }

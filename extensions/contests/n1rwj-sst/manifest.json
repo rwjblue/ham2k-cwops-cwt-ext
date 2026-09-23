@@ -9,7 +9,16 @@
   "accentColor": "#1565C0",
   "api": 1,
   "keywords": ["contest", "sst", "cw", "mini-test", "cabrillo", "call-history"],
-  "hooks": ["activity", "adifFields", "dataFile", "export", "ref:sst", "scoring", "settingsPanel"],
+  "hooks": [
+    "activity",
+    "adifFields",
+    "dataFile",
+    "export",
+    "ref:sst",
+    "scoring",
+    "settingsPanel",
+    "spotCallFilter:v1"
+  ],
   "domains": ["n1mm.hamdocs.com", "n1mmwp.hamdocs.com"],
   "relevance": {
     "interests": ["cw"]

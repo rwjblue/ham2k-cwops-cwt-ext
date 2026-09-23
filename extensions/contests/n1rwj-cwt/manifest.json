@@ -18,9 +18,9 @@
     "ref:cwt",
     "scoring",
     "settingsPanel",
-    "spots"
+    "spotCallFilter:v1"
   ],
-  "domains": ["n1mm.hamdocs.com", "n1mmwp.hamdocs.com", "vailrerbn.com"],
+  "domains": ["n1mm.hamdocs.com", "n1mmwp.hamdocs.com"],
   "relevance": {
     "interests": ["cw"]
   },

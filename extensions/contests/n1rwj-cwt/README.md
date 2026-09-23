@@ -89,35 +89,25 @@ remain available without a new download. See the
 [verification record](../../../docs/VERIFICATION.md) for tested offline/cache
 behavior and its limits.
 
-## RBN spots
+## Call-history spot filter
 
-The **CWT · RBN** source supplies receive-only spots to Ham2K's native Spots
-panel using the [Vail ReRBN API](https://vailrerbn.com/docs/endpoints).
-**Only show spots for calls in the call-history file** is enabled by default
-in **CWT Prefill** settings. It uses the currently loaded N1MM file, including
-nonmembers and entries without an exchange. Exact calls and unambiguous
-base-call matches are accepted: `K1ABC/P` can match `K1ABC`, but a file entry
-for `EA8/K1ABC` does not admit every other portable variation.
+Enable the RBN extension to supply reports to Ham2K's native Spots panel.
+CWT contributes the **CWT call-history file** filter, selected by default in
+RBN settings. Download the CWT data file first; a selected filter with no
+file yields no spots. Failed updates retain the last good file. Select
+**All calls** explicitly in RBN settings to disable membership filtering.
+An earlier explicit CWT opt-out is retained as a default-selection hint.
 
-Download the CWT call-history data file first. With no valid file loaded, the
-default filter shows no spots. A failed file update leaves the last good file
-active. Turn the filter off to show all received CW spots on the six CWT bands.
-The filter does not use prior logged contacts and never infers membership or
-CWT participation. Spots do not add CWT references to a station's log entry.
+The filter includes all file entries, including nonmembers and calls with
+no exchange. Exact calls and unambiguous base-call matches are accepted:
+`K1ABC/P` can match `K1ABC`. It uses no prior logged contacts and does not
+prove current CWT participation or CWops membership.
 
-Reports cover the last ten minutes on 160, 80, 40, 20, 15, and 10 meters.
-Multiple receivers are collapsed to the newest report for each full callsign
-and band, so a frequency change replaces the older frequency. Each refresh
-reads at most two pages of 1,000 reports per band; heavy activity may exceed
-that snapshot, so this is not an exhaustive list of stations on the air.
-
-Ham2K controls refresh timing (currently about two minutes in the checked
-host). Requests are coalesced and cached for at least one minute, with backoff
-on errors and rate limits. No network requests happen while typing a call.
-The source is available across operations and outside CWT sessions: the
-published spots hook receives no active-operation context. Use the native
-Spots source filter to hide it when not wanted. On an outage, the host may
-retain earlier spots with their original timestamps; check the displayed age.
+CWT fetches no RBN reports. Its versioned `spotCallFilter:v1` hook answers
+bounded callsign batches from cached history; the shared
+`packages/spot-filters` contract also supports MST and SST providers.
+The filter has no active-operation context and does not switch contests
+automatically. Choose the desired filter in the supplying extension.
 
 ## How exchange suggestions work
 

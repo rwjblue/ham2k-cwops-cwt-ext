@@ -10,6 +10,7 @@ import type {
 import { describe, expect, it } from 'vitest'
 import mstManifest from '../../../extensions/contests/n1rwj-mst/manifest.json'
 import sstManifest from '../../../extensions/contests/n1rwj-sst/manifest.json'
+import type { CallFilterHook } from '../../spot-filters/src/index.ts'
 
 function required<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('Missing required bundle hook or method')
@@ -68,6 +69,11 @@ for (const manifest of [mstManifest, sstManifest]) {
     it('replays a last-good offline file and keeps it after a failed refresh', async () => {
       const { registered } = await harness()
       const dataFile = required(registered.get('dataFile')).hook as DataFileDefinition
+      const filter = required(registered.get('spotCallFilter:v1')).hook as CallFilterHook
+      expect(await filter.describe({}, { online: false })).toMatchObject({
+        available: false,
+        defaultSelected: false,
+      })
       const activity = required(registered.get('activity')).hook as ActivityHook
       const operation = { refs: [{ type }], stationCall: 'N1RWJ' }
       const qso = { their: { call: 'K1ABC' } }
@@ -79,6 +85,11 @@ for (const manifest of [mstManifest, sstManifest]) {
         fetchedAt: '2026-09-21T12:00:00Z',
       }
       dataFile.onLoadRawData?.(JSON.parse(JSON.stringify(snapshot)))
+      expect(await filter.matchCalls({ version: 1, calls: ['K1ABC/P', 'W9NEW'] }, ctx)).toEqual({
+        version: 1,
+        available: true,
+        calls: ['K1ABC/P'],
+      })
       const controls = await required(activity.loggingControls)({ operation, qso }, ctx)
       expect(controls.find((row) => row.key.endsWith('/name'))?.input).toMatchObject({
         suggestedValue: 'BOB',
@@ -104,6 +115,10 @@ for (const manifest of [mstManifest, sstManifest]) {
         )?.input,
       ).toMatchObject({ suggestedValue: 'BOB' })
       await dataFile.onRemoveRawData?.()
+      expect(await filter.matchCalls({ version: 1, calls: ['K1ABC'] }, ctx)).toMatchObject({
+        available: false,
+        calls: [],
+      })
       expect(
         (await required(activity.loggingControls)({ operation, qso }, ctx)).find((row) =>
           row.key.endsWith('/name'),
