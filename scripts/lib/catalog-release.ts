@@ -5,12 +5,12 @@ import { join } from 'node:path'
 import { valid } from 'semver'
 import { discoverExtensions } from './extensions.ts'
 import { validateRelease } from './release.ts'
+import { catalogNotesByExtension } from './release-notes.ts'
 
 export interface CatalogRelease {
   tag: string
-  notes: string
   prerelease: boolean
-  bundles: Array<{ key: string; version: string; path: string }>
+  bundles: Array<{ key: string; version: string; path: string; notes: string }>
 }
 
 interface Dependencies {
@@ -60,6 +60,11 @@ export async function withCatalogRelease<T>(
     throw new Error(`GitHub release ${tag} must be published with matching tag and valid metadata.`)
   }
 
+  // Validate all audiences even for a single-extension retry, before downloading or submitting.
+  const notes = catalogNotesByExtension(
+    metadata.body,
+    extensions.map(({ manifest }) => manifest),
+  )
   const directory = await mkdtemp(join(tmpdir(), 'h2k-catalog-release-'))
   try {
     const patterns = extensions.flatMap(({ manifest }) => {
@@ -71,13 +76,17 @@ export async function withCatalogRelease<T>(
     await validateRelease(root, tag, directory)
     return await callback({
       tag,
-      notes: metadata.body,
       prerelease: metadata.isPrerelease,
-      bundles: selected.map(({ manifest }) => ({
-        key: manifest.key,
-        version: manifest.version,
-        path: join(directory, `${manifest.key}-${manifest.version}.h2kext`),
-      })),
+      bundles: selected.map(({ manifest }) => {
+        const bundleNotes = notes.get(manifest.key)
+        if (!bundleNotes) throw new Error(`Missing catalog notes for ${manifest.key}`)
+        return {
+          key: manifest.key,
+          version: manifest.version,
+          path: join(directory, `${manifest.key}-${manifest.version}.h2kext`),
+          notes: bundleNotes,
+        }
+      }),
     })
   } finally {
     await rm(directory, { recursive: true, force: true })

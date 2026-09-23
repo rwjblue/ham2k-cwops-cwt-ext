@@ -204,19 +204,28 @@ that CWT synchronization requirement.
 ## Release
 
 All extensions and shared workspaces use one synchronized repository version.
-Choose an unused version. For example, preparation for v0.3.3 used:
+Choose an unused version; for example:
 
 ```sh
-mise run release:prepare 0.3.3
+mise run release:prepare 0.3.5
+mise run release:notes v0.3.5 --create
+# Edit docs/releases/v0.3.5.md, then validate and preview catalog notes:
+mise run release:notes v0.3.5
 mise run format
-mise run release v0.3.3 --dry-run
+mise run release v0.3.5 --dry-run
 ```
 
 `release:prepare` updates the root package, every extension's manifest and
 package, shared packages, and lockfile. `release --dry-run` runs `check` and
 validates matching versions and SHA-256 files without uploading anything.
 Commit the prepared files, push, then publish a GitHub release tagged with
-that version at the tested commit.
+that version at the tested commit, using the notes file as its body.
+
+Release notes have one section per extension plus optional shared changes.
+GitHub shows the whole document; each catalog entry shows only its own section
+and shared changes. Unchanged extensions explicitly say so, while root
+dependency updates belong in shared changes. See the
+[release notes format](docs/PUBLISHING.md#one-release-document-separate-catalog-audiences).
 
 The **Release** workflow responds to published releases and prereleases,
 checks out the tagged commit, and runs `mise run release`. It attaches only

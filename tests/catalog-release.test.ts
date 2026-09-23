@@ -20,7 +20,10 @@ async function fixture() {
   for (const key of ['n1rwj-cwt', 'n1rwj-sst']) {
     const path = `extensions/contests/${key}`
     await mkdir(join(root, path), { recursive: true })
-    await writeFile(join(root, path, 'manifest.json'), JSON.stringify({ key, version: '0.2.0' }))
+    await writeFile(
+      join(root, path, 'manifest.json'),
+      JSON.stringify({ key, name: key, version: '0.2.0' }),
+    )
     await writeFile(
       join(root, path, 'package.json'),
       JSON.stringify({ name: key, version: '0.2.0' }),
@@ -40,7 +43,7 @@ async function fixture() {
     tagName: 'v0.2.0',
     isDraft: false,
     isPrerelease: false,
-    body: 'Release notes from GitHub',
+    body: '# Release overview\n\n## Shared changes\n\nUpdated SDK.\n\n## n1rwj-cwt\n\nCWT fix.\n\n## n1rwj-sst\n\nNo extension-specific changes for SST.',
   }
   let downloadDirectory = ''
   const runGh = vi.fn(async (args: string[], cwd: string) => {
@@ -77,7 +80,6 @@ describe('GitHub release catalog inputs', () => {
       async (release) => {
         expect(release).toMatchObject({
           tag: 'v0.2.0',
-          notes: 'Release notes from GitHub',
           prerelease: true,
         })
         expect(release.bundles.map(({ path }) => basename(path))).toEqual([
@@ -88,6 +90,12 @@ describe('GitHub release catalog inputs', () => {
           expect(bundle.version).toBe('0.2.0')
           expect(await readFile(bundle.path, 'utf8')).toBe(`release bundle for ${bundle.key}`)
         }
+        expect(release.bundles[0].notes).toBe(
+          '## n1rwj-cwt\n\nCWT fix.\n\n## Shared changes\n\nUpdated SDK.',
+        )
+        expect(release.bundles[1].notes).toBe(
+          '## n1rwj-sst\n\nNo extension-specific changes for SST.\n\n## Shared changes\n\nUpdated SDK.',
+        )
         return 'published'
       },
       data,
@@ -127,6 +135,17 @@ describe('GitHub release catalog inputs', () => {
       expect(publish).not.toHaveBeenCalled()
     },
   )
+
+  it('rejects missing unselected notes before downloading or publishing', async () => {
+    const data = await fixture()
+    data.metadata.body = '## n1rwj-cwt\n\nCWT fix.'
+    const publish = vi.fn(async () => undefined)
+    await expect(
+      withCatalogRelease(data.root, 'v0.2.0', 'n1rwj-cwt', publish, data),
+    ).rejects.toThrow('Missing or empty release notes section "## n1rwj-sst"')
+    expect(data.runGh).toHaveBeenCalledTimes(1)
+    expect(publish).not.toHaveBeenCalled()
+  })
 
   it.each([
     { tag: '--latest', key: undefined, error: 'valid SemVer' },

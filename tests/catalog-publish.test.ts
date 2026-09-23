@@ -12,14 +12,18 @@ async function fixture(version = '0.2.0') {
   directories.push(root)
   const release: CatalogRelease = {
     tag: `v${version}`,
-    notes: 'Release notes\n\nFixes and improvements.',
     prerelease: false,
     bundles: [],
   }
   for (const key of ['n1rwj-cwt', 'n1rwj-mst', 'n1rwj-sst']) {
     const path = join(root, `${key}-${version}.h2kext`)
     await writeFile(path, `Previously verified release archive for ${key}`)
-    release.bundles.push({ key, version, path })
+    release.bundles.push({
+      key,
+      version,
+      path,
+      notes: `## ${key}\n\nChanges for ${key}.\n\n## Shared changes\n\nUpdated SDK.`,
+    })
   }
   const runPublisher = vi.fn<CatalogPublisher>()
   const log = vi.fn<(message: string) => void>()
@@ -45,7 +49,7 @@ describe('catalog publishing', () => {
       expect(dependencies.runPublisher).toHaveBeenNthCalledWith(
         index + 1,
         join(root, 'node_modules/.bin/h2kext-publish'),
-        [bundle.path, '--channel', 'stable', '--notes', release.notes],
+        [bundle.path, '--channel', 'stable', '--notes', bundle.notes],
         {
           cwd: root,
           env: expect.objectContaining({
@@ -143,6 +147,16 @@ describe('catalog publishing', () => {
     expect(dependencies.runPublisher).not.toHaveBeenCalled()
   })
 
+  it('preflights every bundle’s notes before uploading any bundle', async () => {
+    const { root, release, dependencies } = await fixture()
+    release.bundles[2].notes = '  \n '
+
+    expect(() => publishCatalogRelease(root, release, { token: 'token' }, dependencies)).toThrow(
+      'catalog release notes must not be empty',
+    )
+    expect(dependencies.runPublisher).not.toHaveBeenCalled()
+  })
+
   it.each([0, 16 * 1024 * 1024 + 1])(
     'preflights all bundle sizes before uploading: %i bytes',
     async (size) => {
@@ -184,10 +198,15 @@ describe('catalog publishing', () => {
     publishCatalogRelease(root, release, { dryRun: true }, dependencies)
 
     expect(dependencies.runPublisher).not.toHaveBeenCalled()
-    expect(dependencies.log).toHaveBeenCalledTimes(3)
+    expect(dependencies.log).toHaveBeenCalledTimes(6)
     expect(dependencies.log).toHaveBeenCalledWith(
       `Would submit n1rwj-cwt 0.2.0 to stable: ${release.bundles[0].path}`,
     )
+    for (const bundle of release.bundles) {
+      expect(dependencies.log).toHaveBeenCalledWith(
+        `Catalog notes for ${bundle.key}:\n\n${bundle.notes}`,
+      )
+    }
   })
 
   it('still rejects an invalid bundle in a dry run', async () => {

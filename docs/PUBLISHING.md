@@ -52,17 +52,23 @@ the already uploaded GitHub release assets remain available.
 
 ## Prepare and publish a release
 
-All extensions and shared workspaces retain one synchronized version. Choose
-an unused version. For example, preparation for v0.3.3 used:
+All extensions and shared workspaces retain one synchronized version, including
+extensions with no behavior changes. Choose an unused version; for example:
 
 ```sh
-mise run release:prepare 0.3.3
+mise run release:prepare 0.3.5
+mise run release:notes v0.3.5 --create
+# Edit docs/releases/v0.3.5.md after reviewing changes since the previous release.
+mise run release:notes v0.3.5
 mise run format
-mise run release v0.3.3 --dry-run
+mise run release v0.3.5 --dry-run
 ```
 
 Commit the prepared files using the repository's signed Jujutsu workflow and
-push them, then publish a GitHub release tagged `v0.3.3` at that tested commit.
+push them, then publish a GitHub release tagged `v0.3.5` at that tested commit.
+Use `docs/releases/v0.3.5.md` as its body (`gh release create` accepts
+`--notes-file docs/releases/v0.3.5.md`), so GitHub and the catalog share one
+authored document.
 The workflow checks out the release commit, runs `check`, and attaches the
 exact current bundle/checksum pairs. Drafts do not trigger it. Keep GitHub
 release immutability disabled because these assets are attached after
@@ -73,28 +79,102 @@ temporary directory. It checks synchronized versions and every checksum
 before submitting any bundle, and limits publication to `n1rwj-*` keys.
 Archives larger than 16 MiB are refused. It uses the pinned official
 `h2kext-publish` from `@ham2k/extension-tools`, passing existing archives so
-they are never rebuilt or repackaged for the catalog. GitHub's release body
-becomes the catalog release notes.
+they are never rebuilt or repackaged for the catalog. Each catalog entry gets
+only its extension's section and the shared changes from GitHub's release body.
+
+### One release document, separate catalog audiences
+
+`release:notes <tag> --create` creates `docs/releases/<tag>.md` from the
+discovered extensions and refuses to overwrite an existing file. It scaffolds
+headings and author prompts; it does not infer user-facing changes from commit
+subjects or assume untouched extension directories mean unchanged behavior.
+Review the release diff and replace every `[TODO: ...]` prompt. Run
+`release:notes <tag>` to validate the whole document and preview every catalog
+entry, or add an extension key to preview just that entry. `--file <path>`
+supports a different source file. These previews need no release, network,
+catalog token, or version bump.
+
+Use these level-two headings (extension keys are stable, exact identifiers):
+
+```markdown
+# v0.3.5 — Better maps and dependency updates
+
+A short overview for readers of the GitHub release.
+
+## Shared changes
+
+- Updated the root SDK dependency used by all extension builds.
+
+## n1rwj-cwt
+
+No extension-specific changes for CWT.
+
+## n1rwj-mst
+
+No extension-specific changes for ICWC MST.
+
+## n1rwj-rbn
+
+- Improved receiver map coverage.
+
+## n1rwj-sst
+
+No extension-specific changes for K1USN SST.
+
+## Repository notes
+
+Build verification and installation details for the GitHub release.
+```
+
+This is a format example, not a claim about the next release's contents.
+
+- The title and introductory summary appear only on GitHub. Put any actual
+  universal changes in **Shared changes**, even if the summary mentions them.
+- Treat root dependency updates (including root development/build dependencies
+  and transitive dependency updates in the root lockfile) as universal and put
+  them in **Shared changes**. A synchronized version bump alone is not a
+  dependency update. Omit the shared section when there are no universal changes.
+- Describe extension changes under that extension's key. For shared workspace
+  code, include the note under every affected consumer, following transitive
+  usage; a contest-only shared library change need not appear for RBN. Use
+  **Shared changes** only if every extension is affected.
+- Every extension requires a nonempty section. Explicitly write
+  `No extension-specific changes for <name>.` after reviewing its own changes
+  and shared consumers. With no shared changes this is the entire catalog note;
+  with shared changes it is followed by those updates. All versions still advance.
+- **Repository notes** is optional and stays on GitHub, for tooling,
+  validation, installation details, and other repository context. Use `###`
+  for subsections within any audience and inline Markdown links so each
+  extracted section is self-contained. HTML author comments are omitted.
+
+Catalog publication validates every extension's section before downloading
+or submitting anything, even when selecting a single extension. Missing,
+empty, unknown, or duplicate sections and unfinished scaffold prompts fail
+explicitly. The publisher never falls back to broadcasting the whole document.
+Older unstructured release bodies must be reorganized into this format before
+retrying with this tooling; preview first, and retain their existing release
+facts and archives. Historical release files are not automatically rewritten.
 
 Normal releases use `stable`; GitHub prereleases and SemVer prerelease
 versions use `unstable`. To preview an **existing** published GitHub release
 from a checkout with the same version and extensions:
 
 ```sh
-mise run release:catalog v0.3.1 --dry-run
+mise run release:catalog v0.3.5 --dry-run
 ```
 
-This downloads and validates assets but needs no catalog token and submits
-nothing. Unlike `release --dry-run`, it reads GitHub's published assets rather
+This downloads and validates assets and prints the exact notes for each
+catalog entry, but needs no catalog token and submits nothing. Unlike
+`release --dry-run`, it reads GitHub's published assets rather
 than building the working tree. After resolving any catalog outage and
 checking for earlier accepted submissions, omit `--dry-run` to submit locally.
 The following are alternative commands; choose the one matching the intended
 scope and channel:
 
 ```sh
-mise run release:catalog v0.3.1
-mise run release:catalog v0.3.1 n1rwj-mst
-mise run release:catalog v0.3.1 --channel bleeding
+mise run release:catalog v0.3.5
+mise run release:catalog v0.3.5 n1rwj-mst
+mise run release:catalog v0.3.5 --channel bleeding
 ```
 
 The optional extension key limits submission to one extension. All release

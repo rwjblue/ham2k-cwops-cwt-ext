@@ -48,5 +48,13 @@ commit-message-default: auto
   Do not inline them or silently widen the manifest compatibility ranges.
 - Add deterministic Vitest tests for substantive behavior changes. Distinguish
   unit/bundle verification from an actual Ham2K runtime test.
+- Keep one synchronized release version and one authored release notes file.
+  Use `mise run release:notes <tag> --create` to scaffold, then review the diff
+  and run `mise run release:notes <tag>` to validate and preview. Follow
+  `docs/PUBLISHING.md`: root dependency updates are universal shared changes;
+  shared workspace changes belong to every affected consumer. Every extension
+  needs its own section, explicitly stating no extension-specific changes when
+  applicable. Use that same file for the GitHub release body; the catalog
+  extracts each extension's section plus shared changes.
 - Follow the user's Jujutsu workflow for commits and pushes. If RTK is
   available, prefix shell commands with `rtk`, or `rtk proxy` for full output.

@@ -6,7 +6,7 @@
 //[USAGE] flag "--channel <channel>" help="Override the default stable/unstable release channel" {
 //[USAGE]   choices "stable" "unstable" "bleeding"
 //[USAGE] }
-//[USAGE] flag "--dry-run" help="Download and validate release assets without submitting to the catalog"
+//[USAGE] flag "--dry-run" help="Validate release assets and preview each extension's notes without submitting"
 
 import { publishCatalogRelease } from '../../../scripts/lib/catalog-publish.ts'
 import { withCatalogRelease } from '../../../scripts/lib/catalog-release.ts'

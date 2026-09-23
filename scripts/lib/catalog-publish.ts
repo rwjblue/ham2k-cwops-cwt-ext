@@ -53,6 +53,9 @@ export function publishCatalogRelease(
   // Preflight every selected archive before the first upload. Passing files
   // directly to the official publisher preserves the GitHub release bytes.
   const bundles = release.bundles.map((bundle) => {
+    if (!bundle.notes?.trim()) {
+      throw new Error(`${bundle.key}: catalog release notes must not be empty`)
+    }
     if (!/^n1rwj-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(bundle.key)) {
       throw new Error(`${bundle.key}: only approved n1rwj-* extension keys may be published`)
     }
@@ -70,9 +73,12 @@ export function publishCatalogRelease(
     log(
       `${options.dryRun ? 'Would submit' : 'Submitting'} ${bundle.key} ${bundle.version} to ${channel}: ${bundle.path}`,
     )
-    if (options.dryRun) continue
+    if (options.dryRun) {
+      log(`Catalog notes for ${bundle.key}:\n\n${bundle.notes}`)
+      continue
+    }
     try {
-      runPublisher(command, [bundle.path, '--channel', channel, '--notes', release.notes], {
+      runPublisher(command, [bundle.path, '--channel', channel, '--notes', bundle.notes], {
         cwd: root,
         env: { ...process.env, H2K_CATALOG_TOKEN: token },
         stdio: 'inherit',
