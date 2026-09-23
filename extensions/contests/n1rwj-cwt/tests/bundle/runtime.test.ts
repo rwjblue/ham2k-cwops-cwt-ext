@@ -12,6 +12,7 @@ import type {
   RegisterHookParams,
   ScoringHook,
   ScoringScope,
+  SpotsHook,
 } from '@ham2k/extension-sdk'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import manifest from '../../manifest.json'
@@ -25,6 +26,7 @@ type HookTypes = {
   export: ExportHook
   settingsPanel: DynamicSettingsPanel
   scoring: ScoringHook & { scope: ScoringScope }
+  spots: SpotsHook
 }
 let bundle: string
 let sharedModules: Record<string, unknown>
@@ -42,13 +44,17 @@ beforeAll(async () => {
 })
 
 /** Runs the shipped IIFE, with only the published bridge and pinned libraries. */
-function harness(settingsGroups: Record<string, Record<string, unknown>> = {}) {
+function harness(
+  settingsGroups: Record<string, Record<string, unknown>> = {},
+  fetch?: (params: Record<string, unknown>) => unknown,
+) {
   // Host KV belongs to this runtime only. Durable state lives in settings
   // or the native data-file JSON cache replayed by the host after startup.
   const storage = new Map<string, unknown>()
   const definitions: ExtensionDefinition[] = []
   const registered = new Map<string, RegisterHookParams>()
   const hostCall = vi.fn(async (method: string, params: Record<string, unknown>) => {
+    if (method === 'fetch' && fetch) return fetch(params)
     if (method === 'getSettings') return structuredClone({ extensions: settingsGroups })
     if (method === 'setSettings') {
       if (!params.values || typeof params.values !== 'object' || Array.isArray(params.values)) {
@@ -71,6 +77,8 @@ function harness(settingsGroups: Record<string, Record<string, unknown>> = {}) {
       defineExtension: (definition: ExtensionDefinition) => definitions.push(definition),
     },
   })
+  // Object.hasOwn is ES2022; the extension sandbox only guarantees ES2020.
+  runInContext('delete Object.hasOwn', context)
   runInContext(bundle, context, { filename: 'built-extension.js', timeout: 5000 })
   expect(definitions).toHaveLength(1)
   const definition = definitions[0]
@@ -111,6 +119,53 @@ const ctx: HookContext = {
 const body = '#CWOPS\n!!Order!!,Call,Name,Exch1\nK1ABC,AL,4567\n'
 
 describe('the installable bundle with a simulated host bridge', () => {
+  it('feeds native spots from the history file by default and honors the saved opt-out', async () => {
+    const runtime = harness({}, (params) => {
+      const url = new URL(String(params.url))
+      expect(url.hostname).toBe('vailrerbn.com')
+      return {
+        status: 200,
+        body: JSON.stringify({
+          spots:
+            url.searchParams.get('band') === '20m'
+              ? ['K1ABC/P', 'W9NEW'].map((callsign) => ({
+                  callsign,
+                  frequency: 14032.5,
+                  mode: 'CW',
+                  timestamp: new Date(Date.now() - 60_000).toISOString(),
+                }))
+              : [],
+        }),
+      }
+    })
+    const spots = runtime.hook('spots')
+    expect(await spots.fetchSpots({}, { ...ctx, online: true })).toEqual([])
+    const dataFile = runtime.hook('dataFile')
+    dataFile.onLoadRawData?.({
+      schema: 1,
+      body,
+      url: 'https://n1mm.hamdocs.com/cwops.txt',
+      fetchedAt: new Date().toISOString(),
+    })
+    const selected = await spots.fetchSpots({}, { ...ctx, online: true })
+    expect(selected.map((spot) => spot.their.call)).toEqual(['K1ABC/P'])
+    expect(selected[0]).toMatchObject({ freq: 14032.5, mode: 'CW', spot: { source: manifest.key } })
+    expect(selected[0]?.refs).toBeUndefined()
+    await runtime.hook('settingsPanel').onChangeField(
+      {
+        panelKey: manifest.key,
+        fieldKey: 'spotsHistoryOnly',
+        value: false,
+        state: {},
+      },
+      ctx,
+    )
+    expect(
+      (await spots.fetchSpots({}, { ...ctx, online: true })).map((spot) => spot.their.call),
+    ).toEqual(['K1ABC/P', 'W9NEW'])
+    expect(runtime.hostCall.mock.calls.filter(([method]) => method === 'fetch')).toHaveLength(6)
+  })
+
   it('registers the manifest identity and every declared hook without Node/DOM globals', () => {
     const runtime = harness()
     expect(runtime.definition.key).toBe('n1rwj-cwt')

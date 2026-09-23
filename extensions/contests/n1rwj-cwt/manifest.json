@@ -17,9 +17,10 @@
     "lookup",
     "ref:cwt",
     "scoring",
-    "settingsPanel"
+    "settingsPanel",
+    "spots"
   ],
-  "domains": ["n1mm.hamdocs.com", "n1mmwp.hamdocs.com"],
+  "domains": ["n1mm.hamdocs.com", "n1mmwp.hamdocs.com", "vailrerbn.com"],
   "relevance": {
     "interests": ["cw"]
   },

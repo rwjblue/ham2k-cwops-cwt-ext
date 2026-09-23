@@ -35,5 +35,7 @@
   "prefillSourceOperator": "operador",
   "prefillSourceCurrentOperation": "operación actual",
   "prefillSourceSelectedFile": "archivo seleccionado",
-  "prefillSourceOlderHistory": "historial anterior de CWT"
+  "prefillSourceOlderHistory": "historial anterior de CWT",
+  "spotsHistoryOnlyLabel": "Mostrar solo spots de indicativos del archivo de historial",
+  "spotsHelp": "CWT · RBN ofrece spots recientes de CW en las seis bandas CWT a través de Vail ReRBN. Por defecto, solo muestra indicativos del archivo de historial descargado, incluidos los portátiles con una coincidencia inequívoca del indicativo base. Incluye a los no socios que figuran en el archivo. Sin un archivo válido cargado, no se muestran spots. Desactive esta opción para mostrar todos los spots de CW recibidos en esas bandas. Los spots no confirman la participación en CWT. Ham2K controla la actualización; esta fuente está disponible en el panel Spots en todas las operaciones y fuera de las sesiones CWT."
 }

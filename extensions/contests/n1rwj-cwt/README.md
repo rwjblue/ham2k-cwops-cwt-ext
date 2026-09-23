@@ -89,6 +89,36 @@ remain available without a new download. See the
 [verification record](../../../docs/VERIFICATION.md) for tested offline/cache
 behavior and its limits.
 
+## RBN spots
+
+The **CWT · RBN** source supplies receive-only spots to Ham2K's native Spots
+panel using the [Vail ReRBN API](https://vailrerbn.com/docs/endpoints).
+**Only show spots for calls in the call-history file** is enabled by default
+in **CWT Prefill** settings. It uses the currently loaded N1MM file, including
+nonmembers and entries without an exchange. Exact calls and unambiguous
+base-call matches are accepted: `K1ABC/P` can match `K1ABC`, but a file entry
+for `EA8/K1ABC` does not admit every other portable variation.
+
+Download the CWT call-history data file first. With no valid file loaded, the
+default filter shows no spots. A failed file update leaves the last good file
+active. Turn the filter off to show all received CW spots on the six CWT bands.
+The filter does not use prior logged contacts and never infers membership or
+CWT participation. Spots do not add CWT references to a station's log entry.
+
+Reports cover the last ten minutes on 160, 80, 40, 20, 15, and 10 meters.
+Multiple receivers are collapsed to the newest report for each full callsign
+and band, so a frequency change replaces the older frequency. Each refresh
+reads at most two pages of 1,000 reports per band; heavy activity may exceed
+that snapshot, so this is not an exhaustive list of stations on the air.
+
+Ham2K controls refresh timing (currently about two minutes in the checked
+host). Requests are coalesced and cached for at least one minute, with backoff
+on errors and rate limits. No network requests happen while typing a call.
+The source is available across operations and outside CWT sessions: the
+published spots hook receives no active-operation context. Use the native
+Spots source filter to hide it when not wanted. On an outage, the host may
+retain earlier spots with their original timestamps; check the displayed age.
+
 ## How exchange suggestions work
 
 Your edits, including deliberately cleared fields, take priority. For each
