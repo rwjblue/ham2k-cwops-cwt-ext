@@ -939,6 +939,49 @@ extensions build, pack, and load successfully.
 The installed Ham2K Next 26.9.0 build 170 JavaScript kernel also accepts all
 four bundles and their hook registrations (`mise run verify-host`).
 
-These bundle and unit checks are not a native UI test. The new Spots settings,
-source, and My Signal title have not yet been exercised in the native app.
-Earlier screenshots show previous panel names and released behavior.
+### Native macOS acceptance
+
+On September 23, 2026, at approximately 15:56–16:05 UTC, installed all four
+local candidates in **Ham2K Next 26.9.0 build 170** and exercised the existing
+empty **W8CAR/TEST** operation. The candidates contain the changes through
+`2d69a2f1` and still declare 0.3.4; they are not the published v0.3.4 assets.
+
+| Candidate bundle | SHA-256 |
+| --- | --- |
+| `n1rwj-cwt-0.3.4.h2kext` | `c5b2525ab327ef2723fc0fae83be7b6ac2aa29c5a1d45d38f921cb8e006c3de8` |
+| `n1rwj-mst-0.3.4.h2kext` | `7a93701108e32053f3449fcb7e31bbd4867f70abcd6c1163dcbfd2018ca39307` |
+| `n1rwj-rbn-0.3.4.h2kext` | `9813be1ca915a949244be51f8bc6502f68f2f608bcd87eab6183b457811ba09e` |
+| `n1rwj-sst-0.3.4.h2kext` | `17143da933e4b75a0cf4659b68726244ee765288b8420042fc44bc703c7dd978` |
+
+- **RBN** settings defaulted to **CWT call-history file**, with **CW** mode
+  and blank skimmer/grid restrictions. The selector discovered CWT, MST,
+  and SST independently, plus **All calls**.
+- With the native POTA source temporarily disabled, RBN supplied 31 spots
+  under CWT filtering, with five visible on the native automatic 40m/CW
+  view. **All calls** supplied 227 spots, with 56 visible on 40m. These are
+  successive live snapshots, not a fixed-fixture count comparison.
+- Selecting exact skimmer **KM3T** narrowed the source to 62 spots. Adding
+  receiver region **JO** yielded zero spots; changing that region to **FN**
+  restored reports (67 spots in the later snapshot). Both restrictions
+  therefore applied together and changed the native results on refresh.
+- Selecting **MST call-history file** produced 31 spots (six visible on
+  40m); **SST call-history file** produced 38 (ten visible). No contest
+  operation switch was required to use either provider.
+- The operation panel retained the **My Signal** name. Temporarily watching
+  public **F8DGY** reports with synthetic test origin **FN42** rendered a
+  map and receiver table with 60 receivers on two bands at 15:59:50 UTC.
+  The origin was only a rendering fixture, not F8DGY's actual location.
+- Restored CWT filtering, CW mode, blank receiver restrictions, the original
+  enabled POTA source, and both blank My Signal overrides. After a clean
+  quit/relaunch, settings persisted and RBN again supplied 31 spots. The
+  app remained responsive and the test operation remained at zero QSOs.
+
+No contacts or self-spots were submitted. Radio tuning was not tested;
+the radio connection reported failure. Native checks covered CW and loaded
+history providers; missing-provider/file behavior, other modes, and network
+failure/backoff remain deterministic-test coverage. No phone UI acceptance
+was performed. Earlier README screenshots retain previous panel names.
+
+The CWT integration observation is mirrored in the upstream PR source
+branch's `SPOTS.md`; RBN/MST/SST-specific observations and personal candidate
+packaging are exempt from upstream CWT synchronization.
