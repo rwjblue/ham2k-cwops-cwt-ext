@@ -11,9 +11,10 @@ install only the ones you want.
 | [ICWC MST](extensions/contests/n1rwj-mst/README.md) (`n1rwj-mst`) | MST sessions, name suggestions, outgoing serials, scoring, and exports |
 | [K1USN SST](extensions/contests/n1rwj-sst/README.md) (`n1rwj-sst`) | SST sessions, name/location suggestions, scoring, and exports |
 
-The [PSK Reporter preview](extensions/tools/n1rwj-psk-reporter/README.md) is
-in development and builds locally. It shares the reception map/UI with RBN;
-live reception is not connected yet.
+The [PSK Reporter extension](extensions/tools/n1rwj-psk-reporter/README.md)
+now builds with live MQTT reception using the published SDK and tools. It shares
+the reception map/UI with RBN and requires Ham2K build 171 or newer. Native app
+testing remains pending before publication.
 
 ## Install
 
@@ -158,7 +159,7 @@ extensions/contests/n1rwj-cwt/   CWT manifest, source, and tests
 extensions/contests/n1rwj-mst/   MST manifest and configuration
 extensions/contests/n1rwj-sst/   SST manifest and configuration
 extensions/tools/n1rwj-rbn/     RBN feed, receiver directory, Spots, and panel adapter
-extensions/tools/n1rwj-psk-reporter/  Offline preview and PSK feed foundations
+extensions/tools/n1rwj-psk-reporter/  Live MQTT reception maps and transport
 packages/reception/             Shared reception model, map, UI, and geography
 packages/n1mm/                 Generic N1MM parsing, callsigns, and downloads
 packages/contest-history/      Shared CWT/MST/SST operation-history adapter

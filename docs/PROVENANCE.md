@@ -117,13 +117,17 @@ Natural Earth geometry and ISC-licensed projection libraries; the
 records their sources and retained notices. RBN does not change CWT behavior
 or participate in its temporary upstream synchronization.
 
-### Shared reception code and PSK Reporter preview
+### Shared reception code and PSK Reporter
 
 `packages/reception/` extracts the original N1RWJ RBN map, scene renderer,
-configuration, geography, and panel state. RBN and the PSK Reporter preview
+configuration, geography, and panel state. RBN and PSK Reporter
 consume that source in independent bundles; each retains the map notices.
 The PSK payload parser follows the [M0LTE MQTT feed documentation](https://www.mqtt.pskreporter.info/).
-Its transport-independent code does not connect, transmit reports, or log QSOs.
+Its original MQTT subscriber follows the [MQTT 3.1.1 specification](https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html).
+The live build uses the published SDK 0.6.0 socket contract, first verified in
+[Ham2K/halo 17b15fdcafdd](https://github.com/ham2k/halo/commit/17b15fdcafdd).
+No SDK implementation is vendored. Normal packaging uses API 2 and published
+tools 0.5.0. The extension does not submit reports or log QSOs.
 These reception-only changes and packaging work do not affect CWT behavior
 and are exempt from the upstream CWT synchronization requirement.
 

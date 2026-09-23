@@ -19,6 +19,7 @@ import {
 } from '../../../../packages/reception/src/reports.ts'
 import { renderReceptionScene } from '../../../../packages/reception/src/ui/scene.ts'
 import type { UiModel } from '../../../../packages/reception/src/ui/types.ts'
+import type { LiveReception, LiveSnapshot } from './live.ts'
 
 export const configFields: SettingsField[] = [
   {
@@ -35,11 +36,12 @@ export const configFields: SettingsField[] = [
   ...receptionConfigFields('Station', false),
 ]
 
-/** Pure presentation seam for recorded fixtures now, a live snapshot later. */
+/** Pure presentation shared by recorded fixtures and live snapshots. */
 export function pskPanelModel(
   args: PanelRenderArgs,
   reports: readonly ReceptionReport[],
   now: number,
+  live: Pick<LiveSnapshot, 'state' | 'message' | 'retryAt' | 'capped'>,
 ): UiModel {
   const config = readConfig(args.config)
   const incoming = args.config.receptionDirection === 'incoming'
@@ -51,15 +53,33 @@ export function pskPanelModel(
   )
   const view = receptionView(selected, call, incoming ? 'incoming' : 'outgoing', now, origin)
   return {
-    title: 'PSK Reporter · Preview',
+    title: call ? `PSK Reporter · ${call}` : 'PSK Reporter',
     watchCall: call,
     generatedAt: utcLabel(now),
     lastReport: view.rows.length
       ? ageLabel(Math.max(...view.rows.map((row) => row.timeMs ?? 0)), now)
       : undefined,
-    status: 'Preview · live reception not connected',
-    statusKind: 'empty',
-    note: 'This development preview does not receive live reports yet. Who I hear requires reception reports uploaded by your receiving software. Reports are observations, not confirmed contacts or a coverage boundary.',
+    status:
+      live.state === 'live'
+        ? view.rows.length
+          ? 'Live reception'
+          : 'Connected · waiting for reports'
+        : live.state === 'retrying'
+          ? `${live.message} · retry in ${Math.max(0, Math.ceil(((live.retryAt ?? now) - now) / 1000))}s`
+          : live.message ||
+            (live.state === 'subscribing'
+              ? 'Subscribing to reception reports'
+              : 'Connecting to PSK Reporter'),
+    statusKind:
+      live.state === 'live'
+        ? 'live'
+        : view.rows.length
+          ? 'cached'
+          : live.state === 'retrying'
+            ? 'error'
+            : 'empty',
+    warnings: live.capped ? ['Report capacity reached; this window is incomplete.'] : [],
+    note: 'Live reports while this panel is visible; no historical backfill. Who I hear requires uploads from your receiving software. Reports are observations, not confirmed contacts.',
     locationLabel: origin
       ? `Map origin ${origin.label}`
       : 'Set an operation location or map origin grid.',
@@ -68,7 +88,7 @@ export function pskPanelModel(
       stationLabel: incoming ? 'Transmitter' : 'Receiver',
       cwSpeed: false,
       details: [
-        'Feed planned: PSK Reporter via the MQTT service operated by M0LTE. SNR is measured at the receiver.',
+        'Feed: PSK Reporter via the MQTT service operated by M0LTE. SNR is measured at the receiver.',
       ],
     },
     bands: [...new Set([...receptionBands, ...view.rows.map((row) => row.band)])],
@@ -89,38 +109,46 @@ export function pskPanelModel(
   }
 }
 
-export function createPskPanel(): PanelHook {
+export function createPskPanel(live: LiveReception): PanelHook {
   const stateFor = createPanelStateStore()
   return {
     async getPanels() {
       return [
         {
           key: 'psk-reporter',
-          title: 'PSK Reporter · Preview',
+          title: 'PSK Reporter',
           icon: 'radar',
-          description:
-            'Development preview of reception maps. Live reception is not connected yet.',
-          on: ['operation'],
+          description: 'Live PSK Reporter reception maps for a watched callsign.',
+          on: ['operation', 'tick:5'],
           multiple: true,
           form: configFields,
         },
       ]
     },
-    async render(args) {
+    async render(args, ctx) {
       if (!args.environment || !args.instanceId)
         return {
           kind: 'markdown',
-          content: 'PSK Reporter preview requires a Ham2K build with native SVG panels.',
+          content: 'PSK Reporter requires Ham2K build 171 or newer with native SVG panels.',
         }
       const state = stateFor(args, String(args.config.receptionDirection ?? 'outgoing'))
       const config = readConfig(args.config)
-      const rendered = renderReceptionScene(
-        pskPanelModel(args, [], args.clock?.realNowMillis ?? Date.now()),
-        args.environment,
-        { ...state.selection, view: config.view, band: config.band },
+      const now = args.clock?.realNowMillis ?? Date.now()
+      const snapshot = live.snapshot(
+        args.instanceId,
+        watchedCall(args.operation, config.watchCall),
+        args.config.receptionDirection === 'incoming' ? 'incoming' : 'outgoing',
+        config.windowMinutes,
+        ctx.online !== false,
       )
+      const model = pskPanelModel(args, snapshot.reports, now, snapshot)
+      const rendered = renderReceptionScene(model, args.environment, {
+        ...state.selection,
+        view: config.view,
+        band: config.band,
+      })
       state.selection = rendered.selection
-      return { kind: 'svgScene', title: 'PSK Reporter · Preview', scene: rendered.scene }
+      return { kind: 'svgScene', title: model.title, scene: rendered.scene }
     },
     async onEvent(args) {
       if (args.instanceId && args.environment && args.event.phase === 'activate') {

@@ -64,6 +64,8 @@ interface HostMessage {
 
 interface Kernel {
   sharedVersions: Record<string, string>
+  registerSocket?: unknown
+  socketEvent?: unknown
   hostResponse(callId: string, success: boolean, value: string): void
   defineExtension(extension: {
     key: string
@@ -120,6 +122,15 @@ export async function verifyInstalledHost(
   const kernel = context.__polo as Kernel
   const problems: string[] = []
   for (const manifest of manifests) {
+    if (
+      Array.isArray(manifest.webSockets) &&
+      manifest.webSockets.length &&
+      (typeof kernel.registerSocket !== 'function' || typeof kernel.socketEvent !== 'function')
+    ) {
+      problems.push(
+        `${manifest.key}: installed kernel lacks the API-2 WebSocket bridge; use build 171 or newer`,
+      )
+    }
     for (const [name, range] of Object.entries(manifest.sharedDependencies ?? {})) {
       const actual = kernel.sharedVersions[name]
       if (!actual || !satisfies(actual, range)) {

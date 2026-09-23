@@ -1,57 +1,14 @@
 import { readFile } from 'node:fs/promises'
-import { createContext, runInContext } from 'node:vm'
-import type { ExtensionDefinition, PanelHook, RegisterHookParams } from '@ham2k/extension-sdk'
+import { fileURLToPath } from 'node:url'
 import { expect, it } from 'vitest'
-import { environment } from '../../../../packages/reception/tests/environment.ts'
+import { verifyPskBundle } from '../../../../scripts/lib/psk-smoke.ts'
 import manifest from '../manifest.json'
 
-it('loads and renders the built preview in an ES2020-style sandbox without network calls', async () => {
-  const source = await readFile(new URL('../build/index.js', import.meta.url), 'utf8')
-  const sharedModules = Object.fromEntries(
-    await Promise.all(
-      Object.keys(manifest.sharedDependencies).map(async (name) => {
-        const loaded = await import(name)
-        return [name, name === 'i18next' ? loaded.default : loaded]
-      }),
-    ),
-  )
-  const definitions: ExtensionDefinition[] = []
-  const registered = new Map<string, RegisterHookParams>()
-  runInContext(
-    source,
-    createContext({
-      __polo: {
-        sharedModules,
-        defineExtension: (definition: ExtensionDefinition) => definitions.push(definition),
-      },
-    }),
-    { timeout: 5000 },
-  )
-  expect(definitions).toHaveLength(1)
-  definitions[0].onActivation({
-    registerHook: (category, hook) => registered.set(category, hook),
-    hostCall: async (method) => {
-      throw new Error(`Unexpected host call ${method}`)
-    },
-  })
-  expect([...registered.keys()]).toEqual(['panel'])
-  const panel = registered.get('panel')?.hook as PanelHook
-  const content = await panel.render(
-    {
-      panelKey: 'psk-reporter',
-      instanceId: 'preview',
-      environment: environment(),
-      operation: { stationCall: 'N1RWJ', grid: 'FN42' },
-      qsoCount: 0,
-      config: {},
-      reason: 'operation',
-    },
-    { online: true },
-  )
-  expect(content.kind).toBe('svgScene')
-  expect(JSON.stringify(content)).toContain('live reception not connected')
+it('loads the normal API-2 bundle and receives binary MQTT reports through the published SDK', async () => {
+  expect(manifest.api).toBe(2)
+  expect(manifest.webSockets).toEqual(['mqtt.pskreporter.info'])
   expect(manifest.domains).toEqual([])
-  expect(manifest).not.toHaveProperty('webSockets')
+  await verifyPskBundle(fileURLToPath(new URL('../build/index.js', import.meta.url)), manifest)
 })
 
 it.each(['n1rwj-rbn', 'n1rwj-psk-reporter'])('preserves shared map notices in %s', async (key) => {

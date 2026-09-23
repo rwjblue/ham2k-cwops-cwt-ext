@@ -1,10 +1,12 @@
 import type { PanelRenderArgs } from '@ham2k/extension-sdk'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { renderReceptionScene } from '../../../../packages/reception/src/ui/scene.ts'
 import { environment } from '../../../../packages/reception/tests/environment.ts'
 import { parsePskPayload } from '../src/data/parser.ts'
+import { createLiveReception } from '../src/live.ts'
 import { createPskPanel, pskPanelModel } from '../src/panel.ts'
 
+const connection = { state: 'live' as const, message: '', capped: false }
 const now = Date.UTC(2026, 8, 23, 18)
 const args: PanelRenderArgs = {
   panelKey: 'psk-reporter',
@@ -42,6 +44,7 @@ it('uses the same renderer for both directions without RBN branding or invented 
       },
       [report],
       now,
+      connection,
     )
     expect(model.rows).toHaveLength(1)
     expect(model.rows[0]).toMatchObject({
@@ -61,21 +64,25 @@ it('uses the same renderer for both directions without RBN branding or invented 
 })
 
 it('keeps suffixes exact and filters stale or unrelated reports', () => {
-  expect(pskPanelModel({ ...args, config: { watchCall: 'N1RWJ/P' } }, [report], now).rows).toEqual(
-    [],
-  )
-  expect(pskPanelModel(args, [report], now + 16 * 60_000).rows).toEqual([])
-  expect(pskPanelModel(args, [report], now - 120_000).rows).toEqual([])
+  expect(
+    pskPanelModel({ ...args, config: { watchCall: 'N1RWJ/P' } }, [report], now, connection).rows,
+  ).toEqual([])
+  expect(pskPanelModel(args, [report], now + 16 * 60_000, connection).rows).toEqual([])
+  expect(pskPanelModel(args, [report], now - 120_000, connection).rows).toEqual([])
 })
 
-it('ships an honest offline preview, with no polling triggers or sample reports', async () => {
-  const hook = createPskPanel()
+it('does not open a socket or fabricate reports while offline', async () => {
+  const open = vi.fn(() => {
+    throw new Error('Unexpected socket')
+  })
+  const hook = createPskPanel(createLiveReception(open))
   const panels = await hook.getPanels({}, { online: false })
-  expect(panels[0].on).toEqual(['operation'])
+  expect(panels[0].on).toEqual(['operation', 'tick:5'])
   const content = await hook.render(args, { online: false })
   expect(content.kind).toBe('svgScene')
   if (content.kind !== 'svgScene') throw new Error('Expected scene')
   const text = content.scene.layers.map((layer) => layer.text?.literal ?? '').join('\n')
-  expect(text).toContain('live reception not connected')
+  expect(text).toContain('Offline · reception paused')
+  expect(open).not.toHaveBeenCalled()
   expect(text).not.toContain('CU3AT')
 })
