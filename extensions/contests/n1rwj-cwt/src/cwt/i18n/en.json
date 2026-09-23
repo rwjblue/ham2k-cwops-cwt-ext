@@ -1,4 +1,6 @@
 {
+  "scoreLabel": "CWT: {{score}} points",
+  "scoreCalculation": "{{qsos}} QSOs × {{mults}} unique callsigns",
   "activityLabel": "CWops CWT",
   "setupLabel": "CWT Setup",
   "sessionLabel": "Session",

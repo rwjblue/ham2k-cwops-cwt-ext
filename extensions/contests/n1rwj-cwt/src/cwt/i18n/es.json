@@ -1,4 +1,6 @@
 {
+  "scoreLabel": "CWT: {{score}} puntos",
+  "scoreCalculation": "{{qsos}} QSO × {{mults}} indicativos únicos",
   "activityLabel": "CWT de CWops",
   "setupLabel": "Configuración CWT",
   "sessionLabel": "Sesión",

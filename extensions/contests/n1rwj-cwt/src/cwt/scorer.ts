@@ -18,6 +18,8 @@
 import type { ContestScorer, JSONValue, QsoScoreVerdict, ScoreTally } from '@ham2k/extension-sdk'
 import { fmtInteger } from '@ham2k/lib-format-tools'
 
+import { tFor } from './i18n.ts'
+
 export const VALID_BANDS = ['160m', '80m', '40m', '20m', '15m', '10m']
 
 export type CwtScoresheet = {
@@ -90,7 +92,8 @@ export const CWTScorer: ContestScorer<CwtScoresheet> = {
     return { scoresheet: base, score }
   },
 
-  summarizeScore({ scoresheet, scope }): Record<string, ScoreTally> {
+  summarizeScore({ scoresheet, scope }, ctx): Record<string, ScoreTally> {
+    const t = tFor(ctx)
     const isDay = scope === 'day'
     const mults = Object.keys(scoresheet.workedByCall).length
     const points = isDay ? scoresheet.dayPoints : scoresheet.points
@@ -107,9 +110,13 @@ export const CWTScorer: ContestScorer<CwtScoresheet> = {
         points,
         mults,
         qsos: isDay ? scoresheet.dayQsos : scoresheet.qsos,
-        label: `${fmtInteger(points)} × ${fmtInteger(mults)}`,
+        // The information page hides summary when longSummary is present.
+        label: t('scoreLabel', { score: fmtInteger(total) }),
         summary: `${fmtInteger(total)}`,
-        longSummary: bandBreakdown(scoresheet),
+        longSummary: [
+          t('scoreCalculation', { qsos: fmtInteger(points), mults: fmtInteger(mults) }),
+          bandBreakdown(scoresheet),
+        ].join('\n\n'),
       },
     }
   },

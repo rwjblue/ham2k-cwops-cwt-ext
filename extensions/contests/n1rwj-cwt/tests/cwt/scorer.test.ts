@@ -108,3 +108,44 @@ test("a day's summary scores its own points against the running multipliers", ()
   assert.equal(day.for, 'day')
   assert.equal(day.total, 4)
 })
+
+// The host renders label + longSummary and suppresses the numeric summary.
+// Exercise that visible contract with a repeated station on another band and
+// a same-band dupe, so neither contact count nor multiplier can be confused.
+test('the information page shows the total and explains the unique-call multiplier', () => {
+  const { sheet } = run([
+    qso('W1AW', '20m'),
+    qso('W1AW', '40m'),
+    qso('K5XYZ', '20m'),
+    qso('W1AW', '20m'),
+  ])
+  for (const scope of ['operation', 'day'] as const) {
+    const tally = CWTScorer.summarizeScore(
+      { scoresheet: sheet, operation, ref: sessionRef, scope },
+      ctx,
+    ).cwt
+    assert.equal(tally.total, 6)
+    assert.equal(tally.label, 'CWT: 6 points')
+    assert.equal(tally.summary, '6')
+    assert.ok(tally.longSummary)
+    assert.match(tally.longSummary, /^3 QSOs × 2 unique callsigns\n\n/)
+    assert.ok(tally.longSummary?.includes('**20m**: 2 QSOs'))
+    assert.ok(tally.longSummary?.includes('**40m**: 1 QSOs'))
+  }
+})
+
+test('the screenshot example displays 169 points with localized scoring details', () => {
+  const { sheet } = run(Array.from({ length: 13 }, (_, i) => qso(`W1A${i}`)))
+  for (const [locale, label, calculation] of [
+    ['en', 'CWT: 169 points', '13 QSOs × 13 unique callsigns'],
+    ['es', 'CWT: 169 puntos', '13 QSO × 13 indicativos únicos'],
+  ]) {
+    const tally = CWTScorer.summarizeScore(
+      { scoresheet: sheet, operation, ref: sessionRef, scope: 'operation' },
+      { online: false, locale },
+    ).cwt
+    assert.equal(tally.label, label)
+    assert.equal(tally.total, 169)
+    assert.ok(tally.longSummary?.startsWith(`${calculation}\n\n`))
+  }
+})
