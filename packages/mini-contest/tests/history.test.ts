@@ -52,6 +52,42 @@ describe('contest-aware N1MM files', () => {
   })
 })
 describe('prefill source precedence and bounded reads', () => {
+  it.each([mst, sst])(
+    'scopes older history to $type before the host caps results',
+    async (config) => {
+      const operation: Qson = { uuid: 'op', refs: [{ type: config.type }] }
+      const older: Qson = {
+        uuid: 'older',
+        their: { call: 'K1ABC' },
+        refs: [{ type: config.type, name: 'BOB', location: 'MA' }],
+      }
+      const unrelated: Qson = {
+        their: { call: 'K1ABC' },
+        refs: [{ type: 'cwt', name: 'OTHER', number: '1234' }],
+      }
+      const rows = [...Array.from({ length: 5 }, () => unrelated), older]
+      const history = createHistory(config)
+      history.update({ operation, qsos: [] })
+      expect(
+        await history.suggestions(
+          operation,
+          { their: { call: 'K1ABC' } },
+          {
+            online: false,
+            getHistoryForCall: async (_call, options) =>
+              rows
+                .filter(
+                  (row) =>
+                    !options?.refType ||
+                    (row.refs as Qson[]).some((ref) => ref.type === options.refType),
+                )
+                .slice(0, 5),
+          },
+        ),
+      ).toEqual(config.type === 'mst' ? { name: 'BOB' } : { name: 'BOB', location: 'MA' })
+    },
+  )
+
   const operation: Qson = {
     uuid: 'op',
     createdAtMillis: 12,

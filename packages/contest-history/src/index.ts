@@ -127,7 +127,10 @@ export function createHistoryAdapter<T>({
         ? await Promise.all(
             keys.map(async (key) => {
               try {
-                return { rows: await getHistory(key), ok: true }
+                // Filter before the host's result cap so other activities
+                // cannot crowd out this contest's older exchanges. Keep
+                // toContact's checks for older hosts that ignore options.
+                return { rows: await getHistory(key, { refType }), ok: true }
               } catch {
                 return { rows: [], ok: false }
               }

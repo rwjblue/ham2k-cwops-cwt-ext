@@ -103,6 +103,12 @@ Explicit edits and intentional clearing take priority. Data downloads occur
 during refresh, with the last successful dataset retained after a failed
 replacement. No download or full-log read is required for each keystroke.
 
+QSO-history suggestions request only the active contest (CWT, MST, or SST)
+before the host applies its five-contact limit. This keeps newer contacts in
+other activities from hiding an older contest exchange. Older Ham2K builds
+ignore this filter; suggestions still reject unrelated contacts, but can only
+use matching contacts among the latest five returned for each exact/base call.
+
 Use one callsign per contact for these exchange-based contests: batch call
 entry shares exchange controls. ADIF and Cabrillo exports preserve the
 contest exchange. MST and SST scores are reported through

@@ -1,5 +1,52 @@
 # Verification and compatibility
 
+## Dependency updates and contest history filtering — 2026-09-23
+
+Checked all root/workspace npm dependencies, the separate `mise/tasks` package,
+installed transitive packages, project Node tooling, and GitHub Actions.
+Updated SDK 0.5.0 → 0.5.7, tools 0.3.0 → 0.4.0, TypeScript 6.0.3 → 7.0.2
+(root and tasks), LiquidJS 10.28.0 → 10.29.0, D3 Geo types 3.1.0 → 3.1.1,
+and semver types 7.7.1 → 7.8.0. The root lock also updates magic-string,
+Rolldown (including platform bindings), and its OXC types within parent ranges.
+TypeScript 7's platform packages account for most of the added lockfile entries.
+
+Kept Node 24.21.0 and Node types 24.13.6 aligned with the declared Node 24
+runtime; kept i18next 23.16.8 aligned with the host compatibility range.
+Other direct npm dependencies were current. Transitive packages whose latest
+release falls outside their parent's range were left to their upstream owners;
+no overrides or shared-library range changes were introduced.
+
+Updated Actions to [checkout v7](https://github.com/actions/checkout/releases/tag/v7.0.1),
+[upload-artifact v7](https://github.com/actions/upload-artifact/releases/tag/v7.0.1),
+and [mise-action v4](https://github.com/jdx/mise-action/releases/tag/v4.3.0).
+The workflows use GitHub-hosted Ubuntu runners, retain their current inputs,
+and pass `mise exec actionlint@1.7.12 shellcheck@0.11.0 -- actionlint`.
+These workflow updates have not yet run on GitHub.
+
+The installed SDK's `HistoryForCallOptions` and `docs/hooks.md` confirm the
+optional `refType` filter. Host source at
+`652eeb84f89b837de336d40eec34563cde8b8dd1` was inspected in
+`app/lib/services/extension_service.dart` and
+`packages/halo_core/lib/src/repo/qsos_repository.dart`: the filter is applied
+in the database query before ordering and limiting. CWT, MST, and SST now pass
+their own contest type on every exact/base history query. Local validation,
+source precedence, and bounded current-operation revalidation remain intact.
+
+`mise run check` passed: **473 tests across 39 files**, lint, all three
+TypeScript projects, all four ES2020 bundles, and official packaging.
+`npm audit` reported zero vulnerabilities. `mise run release:notes v0.4.1`
+validated the next release's notes; package/manifest versions remain 0.4.0
+until release preparation. This does not replace the published 0.4.0 artifacts.
+
+The CWT filter, three regression cases, documentation, and required SDK/tools
+updates are mirrored in the checkout based on PR #1's verified source branch
+`codex/cwt-call-history`; upstream CWT's **120 tests**, typecheck, build, and
+official packaging passed, as did the **96 repository bundle checks**.
+MST/SST changes and general monorepo dependency/CI
+tooling are exempt from that synchronization. These checks are unit/build
+verification, not a new native Ham2K runtime test. Older hosts ignore options
+and can still miss matching history beyond their five unfiltered results.
+
 ## Release 0.4.0 publication — 2026-09-23
 
 Published [v0.4.0](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.4.0)
@@ -927,9 +974,12 @@ compatible.
   comma-separated call-list batches; each call would receive the same exchange.
   The extension cannot distinguish shared typed data from a previous prefill
   at that point, so batch entry is not supported for CWT exchanges.
-- The inspected `getHistoryForCall` implementation returns at most five recent
-  QSOs per exact/base call. Unrelated contacts can crowd out older CWT evidence;
-  unlimited cross-operation history is unavailable through this API. History
+- Older `getHistoryForCall` implementations return at most five recent
+  QSOs per exact/base call, so unrelated contacts can crowd out older CWT evidence.
+  With SDK 0.5.7, the adapter requests the contest's `refType` before the host's
+  default five-contact cap. Supporting hosts return matching contest history;
+  older hosts ignore options, so local contest checks remain necessary.
+  Unlimited cross-operation history is unavailable through this API. History
   rows lack operation IDs, so scoring snapshots or a cached initial log read
   establish current-operation ownership. Fresh data prevents reuse of stale
   corrections and deleted contacts. Whole-log reads are shared/cached, not

@@ -15,10 +15,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v4
       - run: mise run release
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
@@ -31,10 +31,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v4
       - name: Submit GitHub release bundles to the Ham2K catalog
         run: mise run release:catalog
         env:

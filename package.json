@@ -9,11 +9,11 @@
     "node": "24.x"
   },
   "dependencies": {
-    "@ham2k/extension-sdk": "0.5.0"
+    "@ham2k/extension-sdk": "0.5.7"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
-    "@ham2k/extension-tools": "0.3.0",
+    "@ham2k/extension-tools": "0.4.0",
     "@ham2k/lib-callsigns": "1.0.2",
     "@ham2k/lib-country-files": "1.0.202605301",
     "@ham2k/lib-dxcc-data": "1.0.1",
@@ -21,14 +21,14 @@
     "@ham2k/lib-geo-tools": "1.1.1",
     "@ham2k/lib-operation-data": "1.1.3",
     "@ham2k/lib-qson-cabrillo": "1.2.0",
-    "@types/d3-geo": "3.1.0",
+    "@types/d3-geo": "3.1.1",
     "@types/node": "24.13.6",
-    "@types/semver": "7.7.1",
+    "@types/semver": "7.8.0",
     "esbuild": "0.28.2",
     "i18next": "23.16.8",
-    "liquidjs": "10.28.0",
+    "liquidjs": "10.29.0",
     "semver": "7.8.5",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vitest": "5.0.1"
   },
   "allowScripts": {

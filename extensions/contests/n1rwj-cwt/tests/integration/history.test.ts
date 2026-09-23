@@ -12,6 +12,61 @@ function qso(uuid: string, number = '1234', call = 'K1ABC'): Qson {
 }
 
 describe('history adapter', () => {
+  it.each(['K1ABC', 'K1ABC/P'])(
+    'finds older CWT history behind five unrelated contacts for %s',
+    async (call) => {
+      const older = qso('older', '2345')
+      const rows: Qson[] = [
+        ...Array.from({ length: 5 }, (_, i) => ({
+          ...qso(`other-${i}`),
+          refs: [{ type: 'sst', name: 'OTHER', location: 'CT' }],
+        })),
+        older,
+      ]
+      const getHistoryForCall = vi.fn<NonNullable<HookContext['getHistoryForCall']>>(
+        async (key, options) =>
+          rows
+            .filter(
+              (row) =>
+                row.their &&
+                (row.their as Qson).call === key &&
+                (!options?.refType ||
+                  (row.refs as Qson[]).some((ref) => ref.type === options.refType)),
+            )
+            .slice(0, 5),
+      )
+      const getQsos = vi.fn()
+      const history = createHistoryAdapter()
+      history.update({ operation, qsos: [] })
+      expect(
+        await history.find(
+          operation,
+          { their: { call } },
+          {
+            online: false,
+            getHistoryForCall,
+            getQsos,
+          },
+        ),
+      ).toEqual({ currentOperation: [], olderHistory: [contact(older)] })
+      expect(getHistoryForCall.mock.calls).toEqual(
+        (call === 'K1ABC' ? [call] : [call, 'K1ABC']).map((key) => [key, { refType: 'cwt' }]),
+      )
+      expect(getQsos).not.toHaveBeenCalled()
+    },
+  )
+
+  it('still rejects unrelated history when an older host ignores the filter', async () => {
+    const older = qso('older')
+    const unrelated = { ...qso('other'), refs: [{ type: 'sst', name: 'OTHER', location: 'CT' }] }
+    expect(
+      await createHistoryAdapter().find(operation, candidate, {
+        online: false,
+        getHistoryForCall: async () => [unrelated, older],
+      }),
+    ).toEqual({ currentOperation: [], olderHistory: [contact(older)] })
+  })
+
   it('connects native UUID-less lookup/control payloads to the UUID supplied by scoring', async () => {
     const history = createHistoryAdapter()
     const nativeOperation = {
@@ -72,7 +127,7 @@ describe('history adapter', () => {
     expect(result).toEqual({ currentOperation: [contact(current)], olderHistory: [contact(older)] })
     await history.find(operation, candidate, ctx)
     expect(getQsos).toHaveBeenCalledExactlyOnceWith('op')
-    expect(getHistoryForCall).toHaveBeenCalledWith('K1ABC')
+    expect(getHistoryForCall).toHaveBeenCalledWith('K1ABC', { refType: 'cwt' })
   })
 
   it('uses corrected history rather than the cached exchange and does not resurrect deletions', async () => {
