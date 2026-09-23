@@ -186,3 +186,48 @@ it('RBN runs alone; adding CWT later supplies a default unless the operator sele
   const optedOut = await harness({ 'extension_n1rwj-cwt': { spotsHistoryOnly: false } })
   expect(await optedOut.fetch()).toHaveLength(3)
 })
+
+it('persists geography settings, needs directory continents, and rejects stale origin edits', async () => {
+  const runtime = await harness({}, [])
+  const edit = (fieldKey: string, value: JSONValue) =>
+    runtime.settings.onChangeField(
+      { panelKey: 'n1rwj-rbn', fieldKey, value, state: {} },
+      { online: true },
+    )
+  await expect(edit('spotRadiusMiles', 100)).rejects.toThrow('origin')
+  await edit('spotRadiusGrid', ' fn42 ')
+  await edit('spotRadiusMiles', '100')
+  await edit('spotContinents', ['NA', 'NA'])
+  expect(runtime.preferences['extension_n1rwj-rbn']).toEqual({
+    spotRadiusGrid: 'FN42',
+    spotRadiusMiles: 100,
+    spotContinents: ['NA'],
+  })
+  const restored = await harness(runtime.preferences, [])
+  expect(await restored.fetch()).toEqual([]) // Unknown continent is excluded.
+  restored.hook<DataFileDefinition>('n1rwj-rbn', 'dataFile').onLoadRawData?.({
+    schema: 1,
+    nodes: [{ call: 'KM3T-5', grid: 'FN42', country: 'United States', continent: 'NA' }],
+  })
+  expect(await restored.fetch()).toHaveLength(3)
+  const form = await restored.settings.getDefinition({ panelKey: 'n1rwj-rbn' }, { online: true })
+  expect(form.elements).toContainEqual(
+    expect.objectContaining({ key: 'spotContinents', fieldType: 'multiselect', value: ['NA'] }),
+  )
+  expect(form.elements).toContainEqual(
+    expect.objectContaining({ key: 'spotRadiusMiles', value: 100 }),
+  )
+  await expect(edit('spotRadiusGrid', '')).rejects.toThrow('origin')
+  await edit('spotRadiusMiles', '')
+  await edit('spotRadiusGrid', '')
+  await edit('spotContinents', [])
+  expect(await runtime.fetch()).toHaveLength(3)
+  // Form state can be stale: queue revalidation prevents concurrent writes
+  // from leaving an enabled radius with a cleared origin.
+  await edit('spotRadiusGrid', 'FN42')
+  const results = await Promise.allSettled([
+    edit('spotRadiusMiles', 10),
+    edit('spotRadiusGrid', ''),
+  ])
+  expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected'])
+})

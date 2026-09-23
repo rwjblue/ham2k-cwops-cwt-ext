@@ -1004,3 +1004,36 @@ and CWT build/pack passed.
 RBN/MST/SST-specific adapter comments are exempt from CWT synchronization.
 This behavior-preserving extraction was not reinstalled for another native
 test; the native observations above describe the preceding candidate hashes.
+
+## 2026-09-23: Receiver continents and distance limits
+
+RBN now retains directory continents in its backward-compatible schema-1
+cache and filters receivers by selected continents and/or great-circle miles
+from an explicit origin grid. Legacy caches load with unknown continents
+until refreshed. All receiver filters intersect before deduplication; grid
+locations prefer the directory, falling back to the report grid. Unknown
+continent/location is excluded only when the corresponding filter is enabled.
+Contest matching and scoring contracts are unchanged.
+
+`mise run format` and `mise run check` passed **467 tests across 39 files**,
+lint, strict typechecks, builds, and packaging. Tests cover cache upgrades,
+invalid preferences, persistence, concurrent edits, missing origins, unknown
+receivers, filter combinations, directory precedence, distance boundaries,
+and the date line. The parser also accepted a live 350-row RBN directory.
+`mise run verify-host n1rwj-rbn` passed against Next 26.9.0 build 170.
+
+Installed the local RBN 0.3.4 candidate (not a published release), SHA-256
+`5dca83a6e0f03cc4f6c928f2d6b7593cb0610347fb207f2b1a2dc4704f94b749`,
+in that native macOS build at approximately 16:54–16:59 UTC. The continent
+multi-select rendered all seven choices. Saving a radius without an origin
+displayed the validation message. North America, synthetic test origin FN42,
+and 250 miles saved and survived a clean restart. Directory refresh succeeded.
+Clearing the distance, then origin, then continent selection restored the
+unrestricted receiver defaults; the original CWT filter was restored too.
+The existing W8CAR/TEST operation remained at zero QSOs.
+
+Live Vail fetches repeatedly hit the existing two-second timeout, so this
+native session verifies controls, persistence, validation, and directory refresh,
+not live filtered counts. Deterministic source/bundle tests verify the filtering.
+These changes affect only RBN receiver selection and documentation, exempt
+from upstream CWT synchronization.

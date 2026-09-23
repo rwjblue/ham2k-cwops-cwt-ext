@@ -35,19 +35,19 @@ async function refresh(data: ReturnType<typeof createReceiverData>, body = direc
 describe('RBN receiver directory', () => {
   it('locates every receiver from the reported screenshot using verified directory locations', () => {
     expect(parseReceiverDirectory(directory).sort((a, b) => a.call.localeCompare(b.call))).toEqual([
-      { call: 'BD8CS', grid: 'OM30BP', country: 'China' },
-      { call: 'JJ2VLY', grid: 'PM95JG', country: 'Japan' },
-      { call: 'KD7EFG', grid: 'DN31UO', country: 'United States' },
-      { call: 'ND7K', grid: 'DM34OB', country: 'United States' },
-      { call: 'VK6ANC', grid: 'OF78WE', country: 'Australia' },
-      { call: 'ZL2KS', grid: 'RE68XQ', country: 'New Zealand' },
-      { call: 'ZL3X', grid: 'RE66IR', country: 'New Zealand' },
+      { call: 'BD8CS', grid: 'OM30BP', country: 'China', continent: 'AS' },
+      { call: 'JJ2VLY', grid: 'PM95JG', country: 'Japan', continent: 'AS' },
+      { call: 'KD7EFG', grid: 'DN31UO', country: 'United States', continent: 'NA' },
+      { call: 'ND7K', grid: 'DM34OB', country: 'United States', continent: 'NA' },
+      { call: 'VK6ANC', grid: 'OF78WE', country: 'Australia', continent: 'OC' },
+      { call: 'ZL2KS', grid: 'RE68XQ', country: 'New Zealand', continent: 'OC' },
+      { call: 'ZL3X', grid: 'RE66IR', country: 'New Zealand', continent: 'OC' },
     ])
   })
 
   it('normalizes text and grids, decodes entities, and preserves receiver suffixes', () => {
     expect(parseReceiverDirectory(row(' km3t-5 ', ' fn42 ', 'Trinidad &amp; Tobago'))).toEqual([
-      { call: 'KM3T-5', grid: 'FN42', country: 'Trinidad & Tobago' },
+      { call: 'KM3T-5', grid: 'FN42', country: 'Trinidad & Tobago', continent: 'OC' },
     ])
     expect(
       parseReceiverDirectory(row('K1ABC/P', 'FN31', 'C&#244;te d&#39;Ivoire'))[0].country,
@@ -113,10 +113,32 @@ describe('RBN receiver directory', () => {
       null,
       { ...saved, schema: 2 },
       { schema: 1, nodes: [] },
-      { schema: 1, nodes: [{ call: 'VK6ANC', grid: 'ZZ99', country: 'Australia' }] },
+      {
+        schema: 1,
+        nodes: [{ call: 'VK6ANC', grid: 'ZZ99', country: 'Australia', continent: 'OC' }],
+      },
       { schema: 1, nodes: [saved.nodes[0], saved.nodes[0]] },
+      { schema: 1, nodes: [{ ...saved.nodes[0], continent: 'XX' }] },
     ])
       expect(() => data.dataFile.onLoadRawData(raw)).toThrow()
     expect(data.enrichReports(reports())).toEqual(before)
+  })
+
+  it('loads legacy caches without continents, then persists fresh continents across restart', async () => {
+    const data = createReceiverData()
+    data.dataFile.onLoadRawData({
+      schema: 1,
+      nodes: [{ call: 'VK6ANC', grid: 'OF78WE', country: 'Australia' }],
+    })
+    expect(data.lookup('VK6ANC')).toMatchObject({ grid: 'OF78WE', continent: null })
+    const saved = await refresh(data)
+    const restarted = createReceiverData()
+    restarted.dataFile.onLoadRawData(JSON.parse(JSON.stringify(saved)))
+    expect(restarted.lookup('VK6ANC')?.continent).toBe('OC')
+    expect(restarted.lookup('KD7EFG')?.continent).toBe('NA')
+    expect(
+      parseReceiverDirectory(row('VK6ANC', 'OF78WE').replace('<td>OC</td>', '<td>?</td>'))[0]
+        .continent,
+    ).toBeNull()
   })
 })

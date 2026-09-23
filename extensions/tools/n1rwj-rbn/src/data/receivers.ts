@@ -1,5 +1,6 @@
 import type { DataFileDefinition } from '@ham2k/extension-sdk'
 import { normalizeCall, type RbnReport } from '../model.ts'
+import { type Continent, continentCode } from './continents.ts'
 import { isValidReceiver, receiverLocation, record } from './parser.ts'
 
 export const receiverDirectoryUrl = 'https://www.reversebeacon.net/cont_includes/status.php?t=skt'
@@ -10,6 +11,7 @@ interface Receiver {
   call: string
   grid: string | null
   country: string | null
+  continent: Continent | null
 }
 
 interface ReceiverSnapshot {
@@ -63,9 +65,19 @@ export function parseReceiverDirectory(body: string): Receiver[] {
     const countryTitle = cells[3].match(/title=["']([^"']*?) - show spots from this dxcc["']/i)
     const country = countryTitle ? text(countryTitle[1]) : null
     if (country && country.length > 100) throw new Error(invalidDirectory)
-    const node = { call, grid: normalizedGrid(text(cells[2])), country: country || null }
+    const node = {
+      call,
+      grid: normalizedGrid(text(cells[2])),
+      country: country || null,
+      continent: continentCode(text(cells[4])),
+    }
     const previous = nodes.get(call)
-    if (previous && (previous.grid !== node.grid || previous.country !== node.country))
+    if (
+      previous &&
+      (previous.grid !== node.grid ||
+        previous.country !== node.country ||
+        previous.continent !== node.continent)
+    )
       throw new Error(invalidDirectory)
     nodes.set(call, node)
     if (nodes.size > maxNodes) throw new Error(invalidDirectory)
@@ -92,6 +104,9 @@ function readSnapshot(raw: unknown): ReceiverSnapshot {
       !isValidReceiver(node.call) ||
       (node.grid !== null &&
         (typeof node.grid !== 'string' || normalizedGrid(node.grid) !== node.grid)) ||
+      (node.continent !== undefined &&
+        node.continent !== null &&
+        continentCode(node.continent) !== node.continent) ||
       (node.country !== null &&
         (typeof node.country !== 'string' || !node.country.trim() || node.country.length > 100))
     )
@@ -100,6 +115,9 @@ function readSnapshot(raw: unknown): ReceiverSnapshot {
       call: node.call,
       grid: node.grid as string | null,
       country: node.country as string | null,
+      // Additive schema-1 field: old persisted directories remain usable for
+      // grids/countries until a refresh supplies receiver continents.
+      continent: continentCode(node.continent),
     }
   })
   if (
@@ -116,7 +134,7 @@ export function createReceiverData() {
     key: 'n1rwj-rbn_receivers',
     name: 'RBN receiver directory',
     description:
-      'Receiver grids and countries from the Reverse Beacon Network. Refreshes when older than seven days.',
+      'Receiver grids, countries and continents from the Reverse Beacon Network. Refreshes when older than seven days.',
     category: 'n1rwj-rbn',
     url: receiverDirectoryUrl,
     fetchType: 'raw',

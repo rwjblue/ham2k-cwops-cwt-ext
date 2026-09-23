@@ -22,13 +22,26 @@ Open **Settings → RBN** to choose:
 - **Only these skimmers:** exact IDs, including suffixes such as `KM3T-5`.
 - **Receiver grid regions:** Maidenhead prefixes, for example `FN, EM`, `JO`,
   or `FN42`. These select the receiving skimmers, not the spotted stations.
+- **Receiver continents:** select one or more continents; no selection allows
+  all. Uses the receiver's continent from the RBN directory. Refresh that data
+  file after upgrading to populate this field in older caches. Unknown
+  continents are excluded only while this filter is enabled.
+- **Distance origin grid:** your 4, 6, or 8 character grid, such as `FN42FK`.
+  This explicit origin is shared across operations; update it when you move.
+- **Maximum receiver distance (miles):** a positive distance, such as `250`.
+  Leave blank for no limit. Set the origin first; clear the limit before
+  clearing its origin. Distances use the great-circle path between grid centers.
 
 Separate skimmers or regions with spaces or commas. Blank means unrestricted.
-When both are set, a receiver must match both. Receiver selection happens
+Every enabled filter must match; multiple entries within a filter are alternatives.
+Receiver selection happens
 before reports are collapsed to the newest station/band/mode observation.
 Regions use the cached RBN directory grid first, then the report grid; unknown
-locations are excluded when a region is selected. Locations are approximate,
+locations are excluded when a region or distance limit is selected. Locations are approximate,
 and reception by a nearby skimmer does not guarantee reception at your station.
+These receiver filters remain RBN responsibilities when native contest-relevance
+filtering replaces the temporary call-history bridge. The logger's native
+continent filter applies to the spotted station, independently of these controls.
 
 Reports cover ten minutes on 160, 80, 40, 30, 20, 17, 15, 12, and 10 meters.
 Each refresh is capped at two pages of 1,000 reports per band; a busy band can

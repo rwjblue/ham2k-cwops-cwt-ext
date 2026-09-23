@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import type { Spot } from '@ham2k/extension-sdk'
+import type { Continent } from '../data/continents.ts'
 import { isValidReceiver, receiverLocation } from '../data/parser.ts'
-import { isValidCall, normalizeCall } from '../model.ts'
+import { type Coordinates, distanceKm, isValidCall, normalizeCall } from '../model.ts'
 
 export const maxAgeMs = 10 * 60_000
 export const bands = [
@@ -70,8 +71,12 @@ export function parseReports(rows: readonly unknown[], source: string, now: numb
 export interface ReceiverSelection {
   skimmers: string[]
   grids: string[]
+  continents?: Continent[]
+  radius?: { origin: Coordinates; miles: number }
 }
-export type ReceiverLookup = (call: string) => { grid: string | null } | undefined
+export type ReceiverLookup = (
+  call: string,
+) => { grid: string | null; continent?: Continent | null } | undefined
 
 /** Filter receivers before collapsing duplicate station reports. */
 export function selectSpots(
@@ -89,9 +94,25 @@ export function selectSpots(
     const info = report.spot.sourceInfo ?? {}
     const receiver = String(info.spotter ?? '')
     if (receivers.skimmers.length && !receivers.skimmers.includes(receiver)) continue
-    const grid = lookup(receiver)?.grid ?? String(info.spotterGrid ?? '')
+    const directory = lookup(receiver)
+    const grid = directory?.grid ?? String(info.spotterGrid ?? '')
+    if (
+      receivers.continents?.length &&
+      (!directory?.continent || !receivers.continents.includes(directory.continent))
+    )
+      continue
     if (receivers.grids.length && !receivers.grids.some((prefix) => grid.startsWith(prefix)))
       continue
+    if (receivers.radius) {
+      const [latitude, longitude] = receiverLocation(grid)
+      if (
+        latitude === null ||
+        longitude === null ||
+        distanceKm(receivers.radius.origin, { latitude, longitude }) >
+          receivers.radius.miles * 1.609344
+      )
+        continue
+    }
     const key = `${report.their.call}:${report.band}:${report.mode}`
     const previous = latest.get(key)
     if (!previous || report.spot.timeInMillis > previous.spot.timeInMillis) {

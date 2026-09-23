@@ -35,7 +35,8 @@ versions; use the latest release linked above when installing.
 ### RBN and My Signal
 
 RBN also supplies native Spots, with optional CWT/MST/SST call-history filters,
-skimmer selection, and receiver grid regions in **Settings → RBN**. CWT file
+skimmer selection, receiver continents/grid regions, and a distance limit in
+miles from your chosen grid in **Settings → RBN**. CWT file
 filtering is the default when CWT is enabled.
 
 The My Signal panel requires a Ham2K version with native SVG panel support.
