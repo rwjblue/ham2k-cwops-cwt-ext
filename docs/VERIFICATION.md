@@ -1,5 +1,31 @@
 # Verification and compatibility
 
+## Release 0.4.0 publication — 2026-09-23
+
+Published [v0.4.0](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.4.0)
+from signed commit `bf6fa7a4b0afb415628c98ae88c259aa943e8d66` at 17:58 UTC
+on September 23. GitHub verified the commit signature. The
+[release workflow](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35899278672)
+passed, attached all four bundles and checksum files, and submitted every
+bundle with its extension-specific notes to catalog channel `stable`.
+All four submissions were accepted as **pending review** at 17:59 UTC;
+catalog approval remains unverified.
+
+`mise run release:catalog v0.4.0 --dry-run` downloaded the published assets
+and validated matching versions, every checksum, and per-extension notes
+without resubmitting. Published archive digests:
+
+| Published bundle | SHA-256 |
+| --- | --- |
+| `n1rwj-cwt-0.4.0.h2kext` | `332547b31e5f5048b864f956db25de9ebf8efdd1651c06cd55dc387034e57aeb` |
+| `n1rwj-mst-0.4.0.h2kext` | `6a9cfbc1f0efcae31939235079cc0cb3d126230398bc2e411f39c400b06e4e6f` |
+| `n1rwj-rbn-0.4.0.h2kext` | `fa15e9fb74f92d90935b8fbf03823ac10c0719a51ee39f074cd3ddf9c5694fcf` |
+| `n1rwj-sst-0.4.0.h2kext` | `5ecbed5f1ba54617f51e504bf0cc74e66a84d17fe8eb4ba4c050fd0ec593dfa1` |
+
+No new native installation or interaction acceptance was performed during
+publication. This record is personal packaging documentation, exempt from
+CWT upstream synchronization.
+
 ## Release 0.4.0 preparation — 2026-09-23
 
 Prepared synchronized version **0.4.0** with native RBN Spots, reusable
