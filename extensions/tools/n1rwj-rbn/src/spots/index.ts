@@ -138,8 +138,22 @@ export function createRbnSpots(options: Options) {
       return {
         elements: [
           {
+            type: 'header',
+            style: 'section',
+            title: 'My Signal — Who hears me',
+          },
+          {
             type: 'markdown',
-            text: 'Spots show stations heard by RBN receivers. Nearby receivers can help you find stations to try; reception at your station is not guaranteed. These preferences apply across operations. My Signal map settings are separate.',
+            text: 'The My Signal map and receiver reports show who hears your station. Configure them with the tune button beside the My Signal panel title in your operation. The Spots filters below never affect My Signal.',
+          },
+          {
+            type: 'header',
+            style: 'section',
+            title: 'Spots — Who I might hear',
+          },
+          {
+            type: 'markdown',
+            text: 'All settings below apply only to the RBN source in Spots, across operations. Nearby receivers can help you find stations to try; reception at your station is not guaranteed.',
           },
           {
             type: 'field',

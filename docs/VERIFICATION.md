@@ -1037,3 +1037,23 @@ native session verifies controls, persistence, validation, and directory refresh
 not live filtered counts. Deterministic source/bundle tests verify the filtering.
 These changes affect only RBN receiver selection and documentation, exempt
 from upstream CWT synchronization.
+
+## 2026-09-23: Separate My Signal and Spots settings
+
+RBN settings now has explicit **My Signal — Who hears me** and
+**Spots — Who I might hear** sections. The first points to the operation
+panel's tune settings; the second contains all existing Spots preferences.
+The page states that Spots filters never affect My Signal. No filtering
+behavior changed. A regression test applies restrictive history, mode,
+skimmer, continent, region, and radius preferences and confirms identical
+My Signal scenes and queries, including unlocated receivers and a recreated
+panel instance.
+
+`mise run format` and `mise run check` passed **468 tests across 39 files**,
+lint, strict typechecks, builds, and official packaging. Installed the local
+RBN 0.3.4 candidate, SHA-256
+`55525e3607538dd67e4b766d959d6d2d060188407d9baea2821972c1a261e521`,
+in native macOS Next 26.9.0 build 170. Both section headings and explanatory
+copy rendered correctly, and existing preferences remained intact. This UI
+check does not extend the live-feed verification above. RBN-only code,
+tests, and documentation are exempt from upstream CWT synchronization.

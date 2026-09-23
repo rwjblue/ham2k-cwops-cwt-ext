@@ -1,4 +1,9 @@
-import type { PanelContent, PanelEnvironment, PanelRenderArgs } from '@ham2k/extension-sdk'
+import type {
+  JSONValue,
+  PanelContent,
+  PanelEnvironment,
+  PanelRenderArgs,
+} from '@ham2k/extension-sdk'
 import { describe, expect, it, vi } from 'vitest'
 import { createRbnClient } from '../src/data/client.ts'
 import { createReceiverData } from '../src/data/receivers.ts'
@@ -118,6 +123,44 @@ function event(controlId: string, action: string, extra: Partial<PanelRenderArgs
 }
 
 describe('RBN native panel integration', () => {
+  it('keeps My Signal queries, maps, and receiver reports independent of Spots filters', async () => {
+    let preferences: Record<string, JSONValue> = {}
+    const getSnapshot = vi.fn().mockResolvedValue(snapshot)
+    const panel = createRbnPanel({
+      client: { getSnapshot },
+      now: () => now,
+      settings: async () => preferences,
+    })
+    const before = await panel.render(args, { online: true })
+    expect(sceneText(before)).toContain('W1NT')
+    expect(sceneText(before)).toContain('UNKNOWN')
+    preferences = {
+      extensions: {
+        'extension_n1rwj-rbn': {
+          spotCallFilter: 'unavailable-history-provider',
+          spotMode: 'FT8',
+          spotSkimmers: 'DL1AAA',
+          spotGrids: 'JO',
+          spotContinents: ['EU'],
+          spotRadiusGrid: 'JO31',
+          spotRadiusMiles: 1,
+        },
+      },
+    }
+    // These restrictions exclude both fixture receivers from Spots. Neither
+    // located nor unlocated My Signal reports may disappear, even after restart.
+    expect(await panel.render(args, { online: true })).toEqual(before)
+    const restarted = createRbnPanel({
+      client: { getSnapshot },
+      now: () => now,
+      settings: async () => preferences,
+    })
+    expect(await restarted.render(args, { online: true })).toEqual(before)
+    expect(getSnapshot).toHaveBeenCalledTimes(3)
+    for (const [query] of getSnapshot.mock.calls) {
+      expect(query).toEqual({ call: 'K8BTU', windowMinutes: 15 })
+    }
+  })
   it('applies directory updates to cached reports on the next render and falls back after removal', async () => {
     const receivers = createReceiverData()
     const current = { ...snapshot, reports: [{ ...snapshot.reports[0], country: null }] }

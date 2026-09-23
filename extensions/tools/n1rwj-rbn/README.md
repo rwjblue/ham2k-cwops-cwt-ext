@@ -12,7 +12,7 @@ Part of the [N1RWJ extension family](../../../README.md).
 ## Find stations in Spots
 
 Enable **N1RWJ RBN** and select **RBN** in the native Spots source filter.
-Open **Settings → RBN** to choose:
+Open **Settings → RBN → Spots — Who I might hear** to choose:
 
 - **Call-history filter:** CWT is selected by default when installed. Choose
   MST, SST, or **All calls** explicitly. A selected missing extension or file
@@ -33,6 +33,9 @@ Open **Settings → RBN** to choose:
   clearing its origin. Distances use the great-circle path between grid centers.
 
 Separate skimmers or regions with spaces or commas. Blank means unrestricted.
+All these settings apply only to Spots, across operations. They never filter
+the **My Signal** map or its receiver reports. The **My Signal — Who hears me**
+section points to that panel's separate tune settings in your operation.
 Every enabled filter must match; multiple entries within a filter are alternatives.
 Receiver selection happens
 before reports are collapsed to the newest station/band/mode observation.
@@ -246,8 +249,8 @@ the same receiver, band, and mode are most useful. Reception paths do not outlin
 coverage boundary, and no recent reports do not establish a transmitter problem.
 CW, RTTY, FT8, and FT4 reports are included without a mode filter. WSPR is not
 provided by this source.
-This version focuses on your signal; it does not add a hunting feed or a
-native Spots source.
+These My Signal reports are independent of the native RBN Spots source and
+its call-history, mode, skimmer, continent, grid-region, and distance filters.
 
 ## Try it without transmitting
 

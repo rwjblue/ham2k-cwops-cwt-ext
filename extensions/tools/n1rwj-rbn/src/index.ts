@@ -9,6 +9,8 @@ defineExtension({
   ...manifest,
   onActivation({ registerHook }) {
     const receivers = createReceiverData()
+    // Share receiver metadata, never receiver selection. Spots preferences are
+    // owned by createRbnSpots; My Signal uses its own per-panel configuration.
     const { spots, settings } = createRbnSpots({ fetch: rbnFetch, lookup: receivers.lookup })
     registerHook('spots', { hook: spots })
     registerHook('settingsPanel', { hook: settings })
