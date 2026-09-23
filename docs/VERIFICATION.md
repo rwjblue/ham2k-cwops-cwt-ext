@@ -1,5 +1,32 @@
 # Verification and compatibility
 
+## Release 0.4.0 preparation — 2026-09-23
+
+Prepared synchronized version **0.4.0** with native RBN Spots, reusable
+CWT/MST/SST call-history filters, receiver geography controls, and distinct
+My Signal/Spots settings. The authored release document gives each catalog
+entry only its own extension notes. Corrected the RBN installation instructions
+to use the current **My Signal** panel name.
+
+`mise run release:notes v0.4.0`, `mise run format`, and
+`mise run release v0.4.0 --dry-run` passed: **468 tests across 39 files**,
+lint, both strict TypeScript checks, four official builds and package
+validations, synchronized versions, and archive checksums.
+`mise run verify-host` accepted all four 0.4.0 bundles and their registered
+hooks against the installed Next **26.9.0 build 170** JavaScript kernel.
+This kernel check runs under Node VM; no new native installation or interaction
+acceptance was performed for the versioned 0.4.0 archives. Earlier native
+candidate observations and their limits are recorded below.
+
+The CWT implementation and shared spot-filter sources are mirrored on
+[upstream PR #1](https://github.com/ham2k/extensions/pull/1), whose source
+branch remains `codex/cwt-call-history`. Its four queued commits were signed
+and pushed after **117 CWT tests**, repository-wide typechecks, and CWT
+build/pack passed. The reusable matcher and contract match byte-for-byte;
+the CWT adapter differs only in its repository-specific i18n import path.
+RBN/MST/SST changes, personal versioning/packaging, and release tooling are
+exempt from the temporary CWT synchronization requirement.
+
 ## Release 0.3.4 publication — 2026-09-21
 
 Published [v0.3.4](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.3.4)

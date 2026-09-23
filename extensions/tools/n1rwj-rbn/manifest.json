@@ -2,7 +2,7 @@
   "key": "n1rwj-rbn",
   "name": "N1RWJ RBN",
   "shortName": "RBN",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Find stations heard by selected RBN receivers in Spots, and see where your own signal is heard in the My Signal map. Reports provided by Vail ReRBN.",
   "category": "dashboard",
   "icon": "radar",

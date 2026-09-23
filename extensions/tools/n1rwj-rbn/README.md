@@ -67,7 +67,7 @@ source controls in the native Spots panel further narrow these results.
    [latest GitHub release](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/latest).
 3. In Ham2K, open **Settings → Features & Extensions → Install from file**
    and select the downloaded package.
-4. Open an operation, choose **Edit Layout → Add a Panel → RBN · My signal**,
+4. Open an operation, choose **Edit Layout → Add a Panel → My Signal**,
    and save the layout. On narrow layouts, **Edit Layout** is under **Tools**.
    If editing is unavailable, enable **Enable Layout Customization** in settings.
 5. Leave **Watch callsign** and **Map origin grid** blank to follow the operation.
