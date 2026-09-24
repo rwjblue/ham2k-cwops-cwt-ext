@@ -79,14 +79,15 @@ export function createHistoryAdapter<T>({
       operation,
       qsos,
       resumeFrom,
-    }: Pick<ScoreQsosRequest, 'operation' | 'qsos' | 'resumeFrom'>) {
+      resumeKey,
+    }: Pick<ScoreQsosRequest, 'operation' | 'qsos' | 'resumeFrom' | 'resumeKey'>) {
       const uuid = text(operation.uuid)
       if (!uuid) return
       const index = entry(uuid)
       index.operationIdentity = operationIdentity(operation)
       index.generation++
       index.validations.clear()
-      if (resumeFrom !== undefined) {
+      if (resumeFrom !== undefined || typeof resumeKey === 'string') {
         // A resumed scorer receives only a tail; it cannot tell us which
         // earlier rows were edited/deleted. Invalidate once, not per call.
         index.loading = undefined

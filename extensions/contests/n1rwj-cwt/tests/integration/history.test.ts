@@ -204,6 +204,31 @@ describe('history adapter', () => {
     expect(getQsos).toHaveBeenCalledTimes(1)
   })
 
+  it('reloads membership once after a named checkpoint append and preserves current precedence', async () => {
+    const history = createHistoryAdapter()
+    const current = qso('current', '5555')
+    const appended = qso('appended', '1234', 'K2XYZ')
+    history.update({ operation, qsos: [current] })
+    history.update({ operation, qsos: [appended], resumeKey: 'checkpoint' })
+    const getQsos = vi.fn().mockResolvedValue([current, appended])
+    const ctx = { online: false, getQsos, getHistoryForCall: async () => [current] }
+    const results = await Promise.all([
+      history.find(operation, candidate, ctx),
+      history.find(operation, candidate, ctx),
+    ])
+    for (const result of results) {
+      expect(
+        resolveCwtExchange({
+          call: 'K1ABC',
+          ...result,
+          selectedFile: { K1ABC: { call: 'K1ABC', number: '1234', membership: 'member' } },
+        }).number,
+      ).toMatchObject({ value: '5555', source: 'current-operation' })
+    }
+    await history.find(operation, candidate, ctx)
+    expect(getQsos).toHaveBeenCalledExactlyOnceWith('op')
+  })
+
   it.each(['full', 'resumed'] as const)(
     '%s scoring supersedes a pending initial read without losing current precedence',
     async (mode) => {
