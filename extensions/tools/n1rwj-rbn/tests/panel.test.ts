@@ -123,6 +123,45 @@ function event(controlId: string, action: string, extra: Partial<PanelRenderArgs
 }
 
 describe('RBN native panel integration', () => {
+  it('puts the failure and attempt/retry times on the first phone details page without duplicating the error', async () => {
+    const fetch = vi.fn().mockRejectedValue(new Error('TimeoutException: Future not completed'))
+    const panel = createRbnPanel({ client: createRbnClient({ fetch }), settings: async () => ({}) })
+    const phoneArgs = {
+      ...args,
+      environment: { ...environment, width: 393, height: 700 },
+      clock: { nowMillis: now, realNowMillis: now },
+    }
+    await panel.render(phoneArgs, { online: true })
+    await panel.onEvent?.(event('details', 'details:toggle', phoneArgs), { online: true })
+    const result = sceneText(await panel.render(phoneArgs, { online: true })).replace(/\s+/g, ' ')
+    expect(result).toContain('request timed out')
+    expect(result).toContain('Host detail: TimeoutException: Future not completed')
+    expect(result).toContain('Last request attempt: 14:00:00 UTC')
+    expect(result).toContain('Last successful check: never')
+    expect(result).toContain('No new request sent: local refresh cooldown')
+    expect(result).toContain('Manual refresh allowed from 14:00:30 UTC')
+    expect(result).toContain('Automatic check eligible from 14:01:00 UTC')
+    expect(result.match(/Host detail:/g)).toHaveLength(1)
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['rate-limit', 'rate limited'],
+    ['timeout', 'request timed out'],
+    ['request', 'request failed'],
+    ['http', 'HTTP error'],
+    ['response', 'invalid response'],
+    ['offline', 'offline'],
+  ] as const)('identifies %s in the collapsed status', (failureKind, label) => {
+    const model = panelModel(
+      args,
+      { ...snapshot, status: 'stale', error: 'Failure detail.', failureKind },
+      now,
+    )
+    expect(model.status).toBe(`Cached · ${label}`)
+    expect(model.note).not.toContain('Failure detail.')
+    expect(model.warnings?.join(' ')).toContain('Failure detail.')
+  })
   it('keeps My Signal queries, maps, and receiver reports independent of Spots filters', async () => {
     let preferences: Record<string, JSONValue> = {}
     const getSnapshot = vi.fn().mockResolvedValue(snapshot)

@@ -25,6 +25,26 @@ const mapTheme: MapTheme = {
   accent: '#086f63',
 }
 
+function refreshDetails(snapshot: RbnSnapshot): string {
+  const refresh = snapshot.refresh
+  return [
+    `Last request attempt: ${snapshot.lastAttemptMs === null ? 'never' : utcLabel(snapshot.lastAttemptMs)}.`,
+    `Last successful check: ${snapshot.lastSuccessMs === null ? 'never' : utcLabel(snapshot.lastSuccessMs)}.`,
+    refresh?.state === 'offline'
+      ? 'No request sent: Ham2K reports the device is offline.'
+      : refresh?.state === 'cooldown'
+        ? 'No new request sent: local refresh cooldown; reusing the last result.'
+        : refresh?.state === 'rate-limit'
+          ? 'Requests paused after HTTP 429, shared with other My Signal panels and RBN Spots.'
+          : '',
+    refresh?.manualAtMs != null && refresh.automaticAtMs != null
+      ? `Manual refresh allowed from ${utcLabel(refresh.manualAtMs)}. Automatic check eligible from ${utcLabel(refresh.automaticAtMs)} while visible.`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
 export function panelModel(
   args: PanelRenderArgs,
   snapshot: RbnSnapshot,
@@ -47,7 +67,7 @@ export function panelModel(
     .split(/[/,]/)
     .some((part) => part === 'TEST' || part === 'T')
   const warnings = [
-    snapshot.error ?? '',
+    snapshot.error ? `${snapshot.error} ${refreshDetails(snapshot)}` : '',
     snapshot.capped ? '500-report limit reached; some reports may be missing.' : '',
     reports.some((report) => !receiverCoordinates(report))
       ? 'Unlocated receivers are listed but not mapped.'
@@ -57,7 +77,7 @@ export function panelModel(
     test
       ? `TEST OPERATION — observing ${snapshot.call}; these reports belong to that station.`
       : '',
-    snapshot.error ?? '',
+    snapshot.error ? '' : refreshDetails(snapshot),
     `Last ${config.windowMinutes} minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Automatic checks at most once a minute while this panel is visible. Manual refresh waits at least 30 seconds between requests.`,
     'Receiver locations and countries use the cached RBN receiver directory, with HamDB registered grids supplied by Vail ReRBN as a fallback. Distances and bearings are estimates. Refresh the receiver directory in Data Files settings.',
     snapshot.capped
@@ -68,6 +88,16 @@ export function panelModel(
       : '',
   ].filter(Boolean)
   const themeMode = settings.themeMode
+  const failureLabel = snapshot.failureKind
+    ? {
+        'rate-limit': 'rate limited',
+        timeout: 'request timed out',
+        request: 'request failed',
+        http: 'HTTP error',
+        response: 'invalid response',
+        offline: 'offline',
+      }[snapshot.failureKind]
+    : 'refresh unavailable'
   const brightness =
     args.environment?.brightness ??
     (themeMode === 'light' || themeMode === 'dark' ? themeMode : undefined)
@@ -86,8 +116,10 @@ export function panelModel(
         : snapshot.status === 'empty'
           ? 'No recent reports'
           : snapshot.status === 'stale'
-            ? 'Cached · refresh unavailable'
-            : 'Vail ReRBN unavailable',
+            ? `Cached · ${failureLabel}`
+            : snapshot.failureKind
+              ? `Vail ReRBN · ${failureLabel}`
+              : 'Vail ReRBN unavailable',
     statusKind:
       snapshot.status === 'ready'
         ? 'live'

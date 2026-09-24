@@ -299,8 +299,8 @@ export function renderReceptionScene(
   if (selection.details) {
     const paragraphs = [
       `${model.watchCall} · ${bandLabel} · ${summary}`,
-      model.note,
       ...(model.warnings ?? []),
+      model.note,
       model.locationLabel,
       `Data checked: ${model.fetchedAt ?? 'never'}. Last report: ${model.lastReport ?? 'none'}. Report ages as of ${model.generatedAt ?? 'unknown'}.`,
       ...(model.presentation?.details ?? []),

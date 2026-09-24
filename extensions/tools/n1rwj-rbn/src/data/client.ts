@@ -1,6 +1,7 @@
 import type { FetchOptions, FetchResponse } from '@ham2k/extension-sdk'
 import type { RbnSnapshot } from '../model.ts'
 import { isValidCall, normalizeCall } from '../model.ts'
+import { RbnRequestError, requestFailure } from './errors.ts'
 import { parseRbnPayload, record } from './parser.ts'
 
 const endpoint = 'https://vailrerbn.com/api/v1/spots'
@@ -9,7 +10,7 @@ const maxEntries = 8
 const maxResponseLength = 1_000_000
 // One bounded snapshot request leaves time to render within the host's five-second deadline.
 const requestTimeoutMs = 3000
-const rateLimitMessage = 'Vail ReRBN rate limit reached. Waiting before retrying.'
+const rateLimitMessage = 'Vail ReRBN rate limit reached (HTTP 429). Waiting before retrying.'
 
 export interface RbnQuery {
   call: string
@@ -40,8 +41,13 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
   const cache = new Map<string, Entry>()
   let rateLimitedUntil = 0
 
-  async function getJson(url: string, requestNow: () => number): Promise<unknown> {
-    const response = await options.fetch(url, { timeout: requestTimeoutMs })
+  async function getJson(url: string, requestNow: () => number) {
+    let response: FetchResponse
+    try {
+      response = await options.fetch(url, { timeout: requestTimeoutMs })
+    } catch (error) {
+      throw requestFailure(error)
+    }
     if (response.status === 429) {
       let retryAfter: unknown
       // The host does not expose Retry-After headers; Vail documents this JSON field.
@@ -59,20 +65,27 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
       // Supplied panel clocks are frozen at render start. Allow the whole request
       // budget so the response's retryAfter period cannot expire early.
       rateLimitedUntil = Math.max(rateLimitedUntil, requestNow() + requestTimeoutMs + delay)
-      throw new Error(rateLimitMessage)
+      throw new RbnRequestError('rate-limit', rateLimitMessage, { retryAtMs: rateLimitedUntil })
     }
     const success = response.status >= 200 && response.status < 300
-    if (!success) throw new Error(`Vail ReRBN request failed (${response.status}).`)
+    if (!success)
+      throw new RbnRequestError('http', `Vail ReRBN request failed (HTTP ${response.status}).`)
     if (response.body.length > maxResponseLength)
-      throw new Error('Vail ReRBN response was too large.')
+      throw new RbnRequestError(
+        'response',
+        `Vail ReRBN response was too large (HTTP ${response.status}; limit ${maxResponseLength} characters).`,
+      )
     try {
-      return JSON.parse(response.body) as unknown
+      return { payload: JSON.parse(response.body) as unknown, status: response.status }
     } catch {
-      throw new Error('Vail ReRBN returned an unsupported data format.')
+      throw new RbnRequestError(
+        'response',
+        `Vail ReRBN returned invalid JSON (HTTP ${response.status}).`,
+      )
     }
   }
 
-  function getReports(query: RbnQuery, requestNow: () => number): Promise<unknown> {
+  function getReports(query: RbnQuery, requestNow: () => number) {
     const since = Math.floor(requestNow() / 1000) - query.windowMinutes * 60
     // Vail's call search is partial; the parser enforces an exact callsign match.
     // Fetch a fresh, bounded window across modes instead of accumulating a stream.
@@ -82,12 +95,27 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
     )
   }
 
-  function clip(snapshot: RbnSnapshot, at: number): RbnSnapshot {
+  function clip(
+    snapshot: RbnSnapshot,
+    at: number,
+    state: NonNullable<RbnSnapshot['refresh']>['state'] = snapshot.refresh?.state ?? 'attempted',
+  ): RbnSnapshot {
     const reports = snapshot.reports.filter(
       (report) => report.timeMs >= at - snapshot.windowMinutes * 60_000,
     )
     return {
       ...snapshot,
+      refresh: {
+        state,
+        manualAtMs:
+          state === 'offline'
+            ? null
+            : Math.max(rateLimitedUntil, (snapshot.lastAttemptMs ?? 0) + 30_000),
+        automaticAtMs:
+          state === 'offline'
+            ? null
+            : Math.max(rateLimitedUntil, (snapshot.lastAttemptMs ?? 0) + refreshIntervalMs),
+      },
       reports,
       status:
         snapshot.status === 'ready' || snapshot.status === 'empty'
@@ -140,8 +168,10 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
           ...previous,
           status: previous.lastSuccessMs === null ? 'error' : 'stale',
           error: 'RBN is offline. Cached reports are shown when available.',
+          failureKind: 'offline',
         },
         requestNow(),
+        'offline',
       )
     }
     if (time < rateLimitedUntil) {
@@ -151,8 +181,10 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
           ...previous,
           status: previous.lastSuccessMs === null ? 'error' : 'stale',
           error: rateLimitMessage,
+          failureKind: 'rate-limit',
         },
         requestNow(),
+        'rate-limit',
       )
     }
     if (entry) {
@@ -161,7 +193,7 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
       if (entry.inFlight) return entry.inFlight.then((snapshot) => clip(snapshot, requestNow()))
       const cooldown = requestOptions.force ? 30_000 : refreshIntervalMs
       if (entry.snapshot.lastAttemptMs !== null && time - entry.snapshot.lastAttemptMs < cooldown) {
-        return clip(entry.snapshot, requestNow())
+        return clip(entry.snapshot, requestNow(), 'cooldown')
       }
     } else {
       // Concurrent calls for many different queries cannot grow this cache indefinitely.
@@ -179,8 +211,16 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
     const current = entry
     current.inFlight = (async () => {
       try {
-        const payload = await getReports(normalized, requestNow)
-        const result = parseRbnPayload(payload, call, windowMinutes, requestNow(), maxReports)
+        const response = await getReports(normalized, requestNow)
+        let result: ReturnType<typeof parseRbnPayload>
+        try {
+          result = parseRbnPayload(response.payload, call, windowMinutes, requestNow(), maxReports)
+        } catch {
+          throw new RbnRequestError(
+            'response',
+            `Vail ReRBN returned an unsupported data format (HTTP ${response.status}).`,
+          )
+        }
         current.snapshot = {
           ...normalized,
           ...result,
@@ -190,20 +230,25 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
           error: null,
         }
       } catch (error) {
+        const failure = requestFailure(error)
+        if (failure.retryAtMs !== undefined)
+          rateLimitedUntil = Math.max(rateLimitedUntil, failure.retryAtMs)
         current.snapshot = {
           ...current.snapshot,
           status: current.snapshot.lastSuccessMs === null ? 'error' : 'stale',
-          lastAttemptMs: time,
-          error:
-            error instanceof Error && error.message.startsWith('Vail ReRBN ')
-              ? error.message
-              : 'Unable to refresh Vail ReRBN. Check your connection.',
+          lastAttemptMs: failure.requestSent ? time : current.snapshot.lastAttemptMs,
+          failureKind: failure.kind,
+          error: failure.message,
         }
       } finally {
         current.inFlight = undefined
         pruneCache()
       }
-      return clip(current.snapshot, requestNow())
+      return clip(
+        current.snapshot,
+        requestNow(),
+        time < rateLimitedUntil ? 'rate-limit' : 'attempted',
+      )
     })()
     return current.inFlight
   }

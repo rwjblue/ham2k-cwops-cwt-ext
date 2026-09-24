@@ -1,4 +1,5 @@
 import type { FetchOptions, FetchResponse } from '@ham2k/extension-sdk'
+import { RbnRequestError } from './errors.ts'
 import { record } from './parser.ts'
 
 /** Share API throttling between My Signal and native Spots in this bundle. */
@@ -10,7 +11,13 @@ export function createRbnTransport(
   const pending = new Map<string, Promise<FetchResponse>>()
   return (url: string, options?: FetchOptions): Promise<FetchResponse> => {
     if (now() < blockedUntil)
-      return Promise.reject(new Error('Vail ReRBN rate limit reached. Waiting before retrying.'))
+      return Promise.reject(
+        new RbnRequestError(
+          'rate-limit',
+          'Vail ReRBN rate limit (HTTP 429) from another RBN request. Waiting before retrying.',
+          { retryAtMs: blockedUntil, requestSent: false },
+        ),
+      )
     const key = `${url}:${options?.timeout ?? ''}`
     const current = pending.get(key)
     if (current) return current

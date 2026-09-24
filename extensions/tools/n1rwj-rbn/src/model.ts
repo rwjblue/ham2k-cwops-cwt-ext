@@ -1,6 +1,7 @@
 import type { Coordinates } from '../../../../packages/reception/src/geography.ts'
 import { distanceKm } from '../../../../packages/reception/src/geography.ts'
 import { latestBy } from '../../../../packages/reception/src/reports.ts'
+import type { RbnFailureKind } from './data/errors.ts'
 
 export { isValidCall, normalizeCall } from '../../../../packages/reception/src/callsign.ts'
 export type { Coordinates } from '../../../../packages/reception/src/geography.ts'
@@ -28,6 +29,12 @@ export interface RbnSnapshot {
   lastAttemptMs: number | null
   lastSuccessMs: number | null
   error: string | null
+  failureKind?: RbnFailureKind
+  refresh?: {
+    state: 'attempted' | 'cooldown' | 'rate-limit' | 'offline'
+    manualAtMs: number | null
+    automaticAtMs: number | null
+  }
   /** The response omitted matching rows, or exceeded the defensive row limit. */
   capped: boolean
 }

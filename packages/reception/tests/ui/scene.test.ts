@@ -311,6 +311,8 @@ describe('RBN native scene', () => {
       assertSceneBounds(result.scene)
     }
     const displayed = details.join(' ').replace(/\s+/g, ' ')
+    expect(text(first.scene).replace(/\s+/g, ' ')).toContain(warning)
+    expect(displayed.indexOf(warning)).toBeLessThan(displayed.indexOf('these reports belong'))
     expect(displayed).toContain(
       'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.',
     )

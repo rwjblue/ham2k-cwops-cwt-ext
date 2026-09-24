@@ -1,11 +1,117 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createRbnClient } from '../../src/data/client.ts'
+import { createRbnTransport } from '../../src/data/transport.ts'
 import { NOW, payload, spotPayload } from './fixtures.ts'
 
 const query = { call: ' n1rwj ', windowMinutes: 30 }
 const response = (data: unknown, status = 200) => ({ status, body: JSON.stringify(data) })
 
 describe('Vail ReRBN client', () => {
+  it.each([
+    [
+      new Error('TimeoutException after 0:00:03.000000: Future not completed'),
+      'timeout',
+      'TimeoutException',
+    ],
+    [new Error('SocketException: Failed host lookup'), 'request', 'Failed host lookup'],
+    ['TLS handshake failed', 'request', 'TLS handshake failed'],
+    [{ message: 'fetch blocked: undeclared domain' }, 'request', 'undeclared domain'],
+    [null, 'request', 'host supplied no error detail'],
+  ])('preserves rejected host fetch diagnostics: %j', async (error, kind, detail) => {
+    const client = createRbnClient({
+      fetch: async () => {
+        throw error
+      },
+      now: () => NOW,
+    })
+    const failed = await client.getSnapshot(query)
+    expect(failed).toMatchObject({ failureKind: kind, lastAttemptMs: NOW, lastSuccessMs: null })
+    expect(failed.error).toContain(detail)
+    expect(failed.error).toContain('no HTTP response was available')
+    expect(failed.error).not.toContain('Check your connection')
+  })
+
+  it('bounds and normalizes host error messages without exposing stacks', async () => {
+    const client = createRbnClient({
+      fetch: async () => {
+        throw new Error(`SocketException:\n\t${'x'.repeat(1000)}`)
+      },
+      now: () => NOW,
+    })
+    const failed = await client.getSnapshot(query)
+    expect(failed.error).toContain('Host detail: SocketException: xxx')
+    expect(failed.error).toMatch(/…$/)
+    expect(failed.error?.length).toBeLessThan(450)
+    expect(failed.error).not.toContain('\n')
+  })
+
+  it.each([
+    [{ status: 503, body: 'private response body' }, 'http', 'HTTP 503'],
+    [{ status: 200, body: '<html>oops</html>' }, 'response', 'invalid JSON (HTTP 200)'],
+    [response({ spots: 'changed schema' }), 'response', 'unsupported data format (HTTP 200)'],
+    [{ status: 200, body: ' '.repeat(1_000_001) }, 'response', 'too large (HTTP 200'],
+  ])('preserves HTTP status and response failure kind %#', async (result, kind, detail) => {
+    const failed = await createRbnClient({ fetch: async () => result, now: () => NOW }).getSnapshot(
+      query,
+    )
+    expect(failed.failureKind).toBe(kind)
+    expect(failed.error).toContain(detail)
+    expect(failed.error).not.toContain('private response body')
+  })
+
+  it('reports cooldown eligibility without changing the last actual attempt and clears failures after recovery', async () => {
+    let clock = NOW
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('socket failed'))
+      .mockResolvedValue(response(payload()))
+    const client = createRbnClient({ fetch, now: () => clock })
+    await client.getSnapshot(query)
+    clock += 10_000
+    const deferred = await client.getSnapshot(query, { force: true })
+    expect(deferred).toMatchObject({
+      lastAttemptMs: NOW,
+      failureKind: 'request',
+      refresh: { state: 'cooldown', manualAtMs: NOW + 30_000, automaticAtMs: NOW + 60_000 },
+    })
+    expect(fetch).toHaveBeenCalledTimes(1)
+    clock += 20_000
+    const recovered = await client.getSnapshot(query, { force: true })
+    expect(recovered).toMatchObject({ status: 'ready', error: null, lastAttemptMs: clock })
+    expect(recovered.failureKind).toBeUndefined()
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows shared transport backoff without recording an unsent request as an attempt', async () => {
+    let clock = NOW
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(response(payload()))
+      .mockResolvedValueOnce(response({ error: { retryAfter: 120 } }, 429))
+      .mockResolvedValue(response(payload()))
+    const transport = createRbnTransport(fetch, () => clock)
+    const client = createRbnClient({ fetch: transport, now: () => clock })
+    await client.getSnapshot(query)
+    clock += 60_000
+    await transport('https://vailrerbn.com/api/v1/spots?mode=CW')
+    const blocked = await client.getSnapshot(query)
+    expect(blocked).toMatchObject({
+      status: 'stale',
+      failureKind: 'rate-limit',
+      lastAttemptMs: NOW,
+      lastSuccessMs: NOW,
+      refresh: { state: 'rate-limit', manualAtMs: NOW + 180_000, automaticAtMs: NOW + 180_000 },
+    })
+    expect(blocked.error).toContain('HTTP 429')
+    expect(blocked.error).toContain('another RBN request')
+    expect(await client.getSnapshot({ ...query, call: 'K1ABC' })).toMatchObject({
+      lastAttemptMs: null,
+    })
+    expect(fetch).toHaveBeenCalledTimes(2)
+    clock += 120_000
+    expect(await client.getSnapshot(query)).toMatchObject({ status: 'ready', error: null })
+    expect(fetch).toHaveBeenCalledTimes(3)
+  })
   it('uses one bounded HTTP snapshot across modes and preserves exact portable calls', async () => {
     const fetch = vi.fn(async (_url: string) =>
       response(
@@ -107,6 +213,10 @@ describe('Vail ReRBN client', () => {
     await client.getSnapshot(query)
     const offline = await client.getSnapshot(query, { online: false, force: true })
     expect(offline).toMatchObject({ status: 'stale', lastSuccessMs: NOW })
+    expect(offline).toMatchObject({
+      failureKind: 'offline',
+      refresh: { state: 'offline', manualAtMs: null, automaticAtMs: null },
+    })
     expect(offline.reports).toHaveLength(1)
     expect(fetch).toHaveBeenCalledTimes(1)
   })
@@ -173,6 +283,10 @@ describe('Vail ReRBN client', () => {
     await client.getSnapshot(query, { realNowMillis: NOW })
     const limited = await client.getSnapshot(query, { realNowMillis: NOW + 60_000 })
     expect(limited).toMatchObject({ status: 'stale', lastSuccessMs: NOW })
+    expect(limited).toMatchObject({
+      failureKind: 'rate-limit',
+      refresh: { manualAtMs: NOW + 183_000, automaticAtMs: NOW + 183_000 },
+    })
     expect(limited.error).toContain('rate limit')
     expect(limited.reports).toHaveLength(1)
     for (const call of ['N1RWJ', 'K1ABC']) {
@@ -205,6 +319,21 @@ describe('Vail ReRBN client', () => {
       await client.getSnapshot(query)
       expect(fetch).toHaveBeenCalledTimes(2)
     }
+  })
+
+  it('keeps rate-limit diagnostics consistent for concurrent callers', async () => {
+    const fetch = vi.fn(async () => response({ error: { retryAfter: 120 } }, 429))
+    const client = createRbnClient({ fetch, now: () => NOW })
+    const [first, second] = await Promise.all([
+      client.getSnapshot(query),
+      client.getSnapshot(query),
+    ])
+    expect(first).toEqual(second)
+    expect(first).toMatchObject({
+      failureKind: 'rate-limit',
+      refresh: { state: 'rate-limit', manualAtMs: NOW + 123_000 },
+    })
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('evicts old queries to bound the cache', async () => {

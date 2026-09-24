@@ -195,6 +195,19 @@ preserves your view, band, sort, and page, and the icon uses the existing status
 row without taking space from the map. Offline state and server rate-limit
 backoff still apply.
 
+**Report details** puts refresh failures before the background explanation.
+It distinguishes HTTP 429 rate limits, request timeouts, other HTTP errors,
+invalid responses, and host-reported offline state. When the host rejects a
+request without an HTTP response, its error message is shown (bounded to 300
+characters); the extension does not assume that every failure is a connection
+problem. Details show the last request attempt separately from the last
+successful check, explain when a local cooldown sends no new request, and give
+the earliest manual and automatic retry times. Automatic checks still depend
+on the host rendering the visible panel. Rate-limit backoff is shared with
+other My Signal panels and RBN Spots; it is separate from the normal local
+refresh cooldown. A timeout or missing host error detail cannot establish
+whether the server throttled the request.
+
 Ham2K suppresses repeat renders behind another dock tab and while the app is
 hidden or paused; the extension has no independent polling timer. A panel that
 starts behind another tab makes no request until selected. An already-started
