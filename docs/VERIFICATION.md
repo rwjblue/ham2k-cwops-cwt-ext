@@ -1,5 +1,44 @@
 # Verification and compatibility
 
+## Release 0.4.2 publication — 2026-09-25
+
+Published [v0.4.2](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.4.2)
+from signed commit `de99b092c25b925d0b622020b2a971038cbcdab4` at 14:13 UTC
+on September 25. GitHub verified the commit signature. The
+[release workflow](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36146050962)
+passed checks and uploaded all five bundles and matching checksum files.
+
+Local `mise run release v0.4.2 --dry-run` passed **589 tests across 48 files**,
+lint, strict typechecks, builds, official packaging, synchronized-version checks,
+and checksums. `mise run release:notes v0.4.2` validated and previewed every
+extension's notes. After upload, `mise run release:catalog v0.4.2 --dry-run`
+downloaded and validated the actual published bundles and checksums; it did
+not submit them again. Published bundle SHA-256 digests are:
+
+| Extension | SHA-256 |
+| --- | --- |
+| CWT | `8430279581282bd77e9b0d1186f2200b94ea63c0de20756ec26f51840d6809b6` |
+| ICWC MST | `90d54c13e232fa857b1d8d1b5c2429693ae2f0b8260ced58231ddd8401f94899` |
+| PSK Reporter | `c29a2b564c3047dfb073e6d353bde4754172250a74e30d9067fa4f180ba5e1ea` |
+| RBN | `277b1a1b9f7c138f9fd82cee298babc63f4d44fb8b5f15fa1788c9c82a1658c8` |
+| K1USN SST | `6324ed7171a0dbdc01184e5c9a8bfecf94427a806acec97e0dad58435bd89123` |
+
+The catalog job accepted all five exact archives on `stable` between
+14:14:18 and 14:14:25 UTC, each **pending review**, with notes extracted
+from the same authored GitHub release body. This is submission evidence,
+not confirmation of catalog approval or installation availability.
+
+Tests cover persistent report caches, original report ages, exact portable
+callsigns, shared server backoff, automatic cooldowns, forced refreshes,
+offline resume, and fresh sandbox instances using the SDK settings bridge.
+These are deterministic and bundle checks. Native portable delivery, full
+app restart/resume, and PSK historical API availability remain unverified;
+the command-line history probe encountered a Cloudflare challenge.
+
+Contest behavior and dependencies are unchanged from v0.4.1. The contest
+version bumps and these publication records are personal packaging and
+repository documentation, exempt from upstream CWT synchronization.
+
 ## Dependency updates and contest history filtering — 2026-09-23
 
 Checked all root/workspace npm dependencies, the separate `mise/tasks` package,

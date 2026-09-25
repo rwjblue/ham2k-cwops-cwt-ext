@@ -8,19 +8,19 @@ each submission before operators can install it from the catalog.
 
 ## Current release status
 
-[v0.4.0](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.4.0)
-was published from signed commit `bf6fa7a4b0afb415628c98ae88c259aa943e8d66`
-on September 23, 2026 at 17:58 UTC. All four extension bundles and their
-four checksum files are available on GitHub. The
-[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35899278672/job/107310987750),
-and downloaded assets passed `mise run release:catalog v0.4.0 --dry-run`.
+[v0.4.2](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.4.2)
+was published from signed commit `de99b092c25b925d0b622020b2a971038cbcdab4`
+on September 25, 2026 at 14:13 UTC. All five extension bundles and their
+five checksum files are available on GitHub. The
+[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36146050962/job/108107381383),
+and downloaded assets passed `mise run release:catalog v0.4.2 --dry-run`.
 
-The [catalog job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/35899278672/job/107311193350):
-all four uploads to `stable` were accepted as **pending review** at 17:59 UTC
-on September 23, with extension-specific release notes. This confirms submission,
+The [catalog job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36146050962/job/108107542329):
+all five uploads to `stable` were accepted as **pending review** at 14:14 UTC
+on September 25, with extension-specific release notes. This confirms submission,
 not catalog approval or installation availability. See the
-[release notes](releases/v0.4.0.md) and
-[published artifact verification](VERIFICATION.md#release-040-publication--2026-09-23).
+[release notes](releases/v0.4.2.md) and
+[published artifact verification](VERIFICATION.md#release-042-publication--2026-09-25).
 
 Earlier v0.2.1, v0.3.0, and v0.3.1 runs failed with HTTP 403 from a Cloudflare
 challenge. The v0.3.2 retry and v0.3.3/v0.3.4 publications succeeded; inspect each earlier
