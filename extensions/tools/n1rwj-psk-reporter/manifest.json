@@ -10,7 +10,7 @@
   "api": 2,
   "keywords": ["psk-reporter", "ft8", "ft4", "map", "propagation"],
   "hooks": ["panel"],
-  "domains": [],
+  "domains": ["retrieve.pskreporter.info"],
   "sharedDependencies": {
     "@ham2k/lib-callsigns": "^1.0.2",
     "@ham2k/lib-country-files": "^1.0.202605301",

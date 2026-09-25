@@ -6,6 +6,7 @@ import type {
 import { parsePskPayload } from './data/parser.ts'
 import { createReportStore } from './data/store.ts'
 import { pskTopic } from './data/subscriptions.ts'
+import { createHistoryClient, type HistoryHost, type HistoryStatus } from './history/client.ts'
 import { type ConnectionState, createMqttClient } from './transport/client.ts'
 import type { OpenSocket } from './transport/socket.ts'
 
@@ -15,15 +16,35 @@ export interface LiveSnapshot {
   state: ConnectionState | 'invalid' | 'limit' | 'offline'
   message: string
   retryAt?: number
+  history?: HistoryStatus
 }
 
 /** One socket per extension; placements lease narrow subscriptions while rendering. */
-export function createLiveReception(open: OpenSocket, now = Date.now, random = Math.random) {
+export function createLiveReception(
+  open: OpenSocket,
+  now = Date.now,
+  random = Math.random,
+  historyHost?: HistoryHost,
+) {
   const leases = new Map<
     string,
     { call: string; direction: ReceptionDirection; topic: string; seen: number }
   >()
   const store = createReportStore()
+  const history = historyHost
+    ? createHistoryClient(
+        historyHost,
+        (reports) => {
+          for (const report of reports) store.ingestReport(report, now())
+        },
+        now,
+        (call, direction) =>
+          [...leases.values()].some(
+            (lease) =>
+              lease.call === call && lease.direction === direction && now() - lease.seen <= 30_000,
+          ),
+      )
+    : undefined
   const prune = () => {
     for (const [id, lease] of leases) {
       if (now() - lease.seen > 30_000 || now() < lease.seen) leases.delete(id)
@@ -76,7 +97,14 @@ export function createLiveReception(open: OpenSocket, now = Date.now, random = M
       else leases.set(instance, { call: normalizeCall(call), direction, topic, seen: now() })
       if (!online) leases.clear()
       client.tick([...new Set([...leases.values()].map((lease) => lease.topic))])
-      const stored = store.snapshot(now(), windowMinutes)
+      const historyStatus = history?.observe(
+        call,
+        direction,
+        windowMinutes,
+        !error && client.status().state === 'live',
+        online,
+      )
+      const stored = { ...store.snapshot(now(), windowMinutes), history: historyStatus }
       // The map's filter is also pure, but do not hand another call's data to a placement.
       stored.reports = stored.reports.filter(
         (report) =>
@@ -96,7 +124,10 @@ export function createLiveReception(open: OpenSocket, now = Date.now, random = M
         }
       return { ...stored, ...client.status() }
     },
+    forceHistory: (call: string, direction: ReceptionDirection, window: number, online: boolean) =>
+      history?.force(call, direction, window, online) ?? Promise.resolve(),
     stop: () => {
+      history?.stop()
       leases.clear()
       client.stop()
       store.clear()

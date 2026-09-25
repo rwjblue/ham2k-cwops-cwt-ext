@@ -2,8 +2,9 @@
 
 Live PSK Reporter reception maps for Ham2K **build 171 or newer**. The regular
 package uses the published `@ham2k/extension-sdk` **0.6.0** and
-`@ham2k/extension-tools` **0.5.0**, with API 2 and a single WebSocket permission
-for `mqtt.pskreporter.info`.
+`@ham2k/extension-tools` **0.5.0**, with API 2, a WebSocket permission
+for `mqtt.pskreporter.info`, and HTTPS access to `retrieve.pskreporter.info`
+for recent history.
 
 ## Build and install
 
@@ -12,7 +13,7 @@ mise run pack n1rwj-psk-reporter
 ```
 
 Install `dist/n1rwj-psk-reporter-0.4.1.h2kext` through Ham2K's extension installer,
-allow its declared socket host, and add **PSK Reporter** to an operation's layout.
+allow its declared network hosts, and add **PSK Reporter** to an operation's layout.
 It follows the operation's station callsign and location unless overridden.
 Choose **Who hears me** for outgoing reception or **Who I hear** for reports
 uploaded by your receiving software. No fixture reports appear in the app.
@@ -22,8 +23,9 @@ The extension key is unchanged, so this replaces the earlier offline preview.
 
 `mise run check` includes the normal bundle's binary MQTT smoke test, strict
 TypeScript checks, deterministic transport/panel tests and official packaging.
-The smoke test exercises the actual published SDK's socket bridge in a timerless
-Node VM. It does not validate native Ham2K UI or operating-system lifecycle.
+The smoke test exercises the actual published SDK's socket, HTTP, storage and
+force-reload bridges with fixture responses in a timerless Node VM. It does not
+validate native Ham2K UI, real HTTP access or operating-system lifecycle.
 
 The implementation first passed against upstream source commit
 [17b15fdcafdd](https://github.com/ham2k/halo/commit/17b15fdcafdd), then passed the
@@ -83,6 +85,25 @@ pending; the installed app was still build 170 at promotion time.
 - Panels render at most on the host's five-second tick cadence plus operation or
   UI events. Connection status is separate from report age; connecting is not
   presented as live reception. No per-report render or whole-log query occurs.
+- Recent history uses PSK Reporter's documented XML query API on startup,
+  after a collection gap, and when a larger report window needs older data.
+  It requests the configured 15/30/60-minute window across all bands, with a
+  1,000-record limit. History and MQTT reports share the same bounded cache;
+  newer observations win. Exact callsign and direction filtering also applies
+  to history. Unlocated stations remain in the list.
+- Automatic HTTP requests share one queue and are spaced at least five minutes
+  apart across all placements. The cooldown persists across extension reloads.
+  Failures increase the delay up to an hour. Hidden or replaced subscriptions
+  do not start queued work or ingest late responses. Requests time out after
+  seven seconds and never block automatic panel rendering or MQTT delivery.
+- The **Force reload** arrow explicitly bypasses the local history cooldown,
+  including failure backoff, but still obeys offline state and serializes requests.
+  Repeated clicks for the same in-flight request share its result. It does not
+  bypass server limits or browser challenges. Use it sparingly: the provider
+  recommends no more than one retrieval every five minutes.
+- Connection and history status are displayed separately. Challenges, HTTP
+  errors, unsupported XML, response limits and cache capacity are reported;
+  unsuccessful backfill never clears live reports or claims complete coverage.
 
 ## Visibility and remaining native tests
 
@@ -94,17 +115,28 @@ the broker's 30-second MQTT keepalive limit provides cleanup (normally by 45
 seconds without client traffic). Reveal/sleep recovery discards an old session
 and reconnects from a render. Host unload owns final socket cleanup.
 
-This is a **live window**, with no historical backfill or promise of background
-capture. Cache contents can remain visible while offline or reconnecting. Incoming
+This is a **live window with best-effort backfill**, without a promise of background
+capture or complete history. Cache contents can remain visible while offline or reconnecting. Incoming
 reports require uploads from receiving software. Portable calls containing `/`
 remain unsupported for subscriptions until the broker's encoding is verified;
 we neither remove suffixes nor widen subscriptions.
+
+History follows the [PSK Reporter query API](https://pskreporter.info/pskdev.html).
+The September 24, 2026 command-line API probe received a Cloudflare browser
+challenge instead of XML. Native `host.fetch` access remains unverified; this
+implementation handles that failure without interrupting the MQTT feed. The
+deterministic tests and SDK bundle smoke verify fixtures, not provider availability.
+History responses and live reports are held in memory; only the automatic-request
+cooldown persists across extension reloads. No background HTTP polling occurs.
 
 Before publishing, install on build 171 or newer and test both directions,
 multiple placements, callsign/operation changes, hidden tabs, app backgrounding,
 panel removal, sleep/resume, disconnects, denied grants and extension reload.
 Check native binary delivery and UI on each intended platform. Publication
 monitoring is paused because both required packages have been verified.
+Also check first-open history, force reload, returning after a gap, multiple
+panels sharing the HTTP cooldown, a callsign change during a request, and an
+HTTP denial or browser challenge while MQTT continues receiving.
 
 Reports originate at [PSK Reporter](https://pskreporter.info/); the MQTT distribution
 is operated by M0LTE ([feed schema and topics](https://www.mqtt.pskreporter.info/)).

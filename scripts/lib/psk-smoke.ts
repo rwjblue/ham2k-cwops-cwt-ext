@@ -48,6 +48,11 @@ export async function verifyPskBundle(path: string, manifest: Manifest) {
     },
     hostCall: async (method, params) => {
       calls.push({ method, params })
+      if (method === 'fetch')
+        return {
+          status: 200,
+          body: `<pskreporter><receptionReport senderCallsign="N1RWJ" receiverCallsign="W1AW" receiverLocator="FN31" frequency="14074000" mode="FT8" flowStartSeconds="${Math.floor(Date.now() / 1000) - 60}"/></pskreporter>`,
+        }
       return null
     },
   })
@@ -63,7 +68,7 @@ export async function verifyPskBundle(path: string, manifest: Manifest) {
   }
   await panel.render(args, { online: true })
   assert.deepEqual(
-    calls.map((call) => call.method),
+    calls.filter((call) => call.method.startsWith('webSocket')).map((call) => call.method),
     ['webSocketOpen'],
   )
   assert.equal(calls[0].params.url, 'wss://mqtt.pskreporter.info:1886')
@@ -107,10 +112,25 @@ export async function verifyPskBundle(path: string, manifest: Manifest) {
   const rendered = JSON.stringify(await panel.render(args, { online: true }))
   assert.ok(rendered.includes('Live reception'))
   assert.ok(rendered.includes('CU3AT'))
+  await panel.onEvent?.(
+    {
+      ...args,
+      event: { controlId: 'refresh', action: 'refresh:reports', phase: 'activate', sequence: 1 },
+    },
+    { online: true },
+  )
+  const fetched = calls.find((call) => call.method === 'fetch')
+  assert.ok(fetched)
+  assert.ok(
+    String(fetched.params.url).startsWith(
+      'https://retrieve.pskreporter.info/query?senderCallsign=N1RWJ',
+    ),
+  )
+  assert.ok(JSON.stringify(await panel.render(args, { online: true })).includes('W1AW'))
   await panel.render(args, { online: false })
   assert.equal(sent()[sent().length - 1][0], 0xe0)
   assert.equal(calls[calls.length - 1].method, 'webSocketClose')
   console.log(
-    'Candidate SDK bundle smoke passed: socket grant, MQTT handshake, binary report, native scene, disconnect.',
+    'Candidate SDK bundle smoke passed: socket grant, MQTT handshake, binary report, HTTP history, force reload, native scene, disconnect.',
   )
 }

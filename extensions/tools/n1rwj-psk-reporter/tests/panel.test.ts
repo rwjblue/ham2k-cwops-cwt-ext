@@ -58,7 +58,9 @@ it('uses the same renderer for both directions without RBN branding or invented 
     expect(text).toContain(incoming ? 'Transmitter' : 'Receiver')
     expect(text).toContain('PSK Reporter')
     expect(text).not.toMatch(/RBN|Vail/)
-    expect(scene.controls?.find((control) => control.id === 'refresh')).toBeUndefined()
+    expect(JSON.stringify(scene.controls?.find((control) => control.id === 'refresh'))).toContain(
+      'Force reload',
+    )
     expect(JSON.stringify(scene.controls)).not.toContain('CW speed')
   }
 })

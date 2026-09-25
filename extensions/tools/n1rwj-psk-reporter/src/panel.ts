@@ -41,7 +41,7 @@ export function pskPanelModel(
   args: PanelRenderArgs,
   reports: readonly ReceptionReport[],
   now: number,
-  live: Pick<LiveSnapshot, 'state' | 'message' | 'retryAt' | 'capped'>,
+  live: Pick<LiveSnapshot, 'state' | 'message' | 'retryAt' | 'capped' | 'history'>,
 ): UiModel {
   const config = readConfig(args.config)
   const incoming = args.config.receptionDirection === 'incoming'
@@ -59,7 +59,7 @@ export function pskPanelModel(
     lastReport: view.rows.length
       ? ageLabel(Math.max(...view.rows.map((row) => row.timeMs ?? 0)), now)
       : undefined,
-    status:
+    status: [
       live.state === 'live'
         ? view.rows.length
           ? 'Live reception'
@@ -70,6 +70,10 @@ export function pskPanelModel(
             (live.state === 'subscribing'
               ? 'Subscribing to reception reports'
               : 'Connecting to PSK Reporter'),
+      live.history?.message,
+    ]
+      .filter(Boolean)
+      .join(' · '),
     statusKind:
       live.state === 'live'
         ? 'live'
@@ -78,8 +82,11 @@ export function pskPanelModel(
           : live.state === 'retrying'
             ? 'error'
             : 'empty',
-    warnings: live.capped ? ['Report capacity reached; this window is incomplete.'] : [],
-    note: 'Live reports while this panel is visible; no historical backfill. Who I hear requires uploads from your receiving software. Reports are observations, not confirmed contacts.',
+    warnings: [
+      ...(live.capped ? ['Report capacity reached; this window is incomplete.'] : []),
+      ...(live.history?.warning ? [live.history.warning] : []),
+    ],
+    note: 'Live reports while this panel is visible, with recent history requested on opening and after collection gaps. Automatic history requests are shared across panels and spaced at least five minutes apart. Force reload bypasses that cooldown. History is best effort and may be delayed or incomplete. Who I hear requires uploads from your receiving software. Reports are observations, not confirmed contacts.',
     locationLabel: origin
       ? `Map origin ${origin.label}`
       : 'Set an operation location or map origin grid.',
@@ -87,6 +94,7 @@ export function pskPanelModel(
       source: 'PSK Reporter',
       stationLabel: incoming ? 'Transmitter' : 'Receiver',
       cwSpeed: false,
+      refreshLabel: 'Force reload recent history (bypasses five-minute cooldown)',
       details: [
         'Feed: PSK Reporter via the MQTT service operated by M0LTE. SNR is measured at the receiver.',
       ],
@@ -150,8 +158,18 @@ export function createPskPanel(live: LiveReception): PanelHook {
       state.selection = rendered.selection
       return { kind: 'svgScene', title: model.title, scene: rendered.scene }
     },
-    async onEvent(args) {
+    async onEvent(args, ctx) {
       if (args.instanceId && args.environment && args.event.phase === 'activate') {
+        if (args.event.controlId === 'refresh' && args.event.action === 'refresh:reports') {
+          const config = readConfig(args.config)
+          await live.forceHistory(
+            watchedCall(args.operation, config.watchCall),
+            args.config.receptionDirection === 'incoming' ? 'incoming' : 'outgoing',
+            config.windowMinutes,
+            ctx.online !== false,
+          )
+          return { values: {} }
+        }
         applySceneEvent(
           stateFor(args, String(args.config.receptionDirection ?? 'outgoing')),
           args.event.controlId,

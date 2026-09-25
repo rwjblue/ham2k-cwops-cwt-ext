@@ -15,29 +15,30 @@ export function createReportStore(capacity = 1000) {
     for (const [key, report] of reports) if (report.timeMs < now - maxAgeMs) reports.delete(key)
     if (droppedAt !== undefined && droppedAt < now - maxAgeMs) droppedAt = undefined
   }
+  function ingestReport(report: ReceptionReport | undefined, now: number): boolean {
+    prune(now)
+    if (!report || report.timeMs < now - maxAgeMs || report.timeMs > now + 60_000) return false
+    const key = receptionKey(report)
+    const previous = reports.get(key)
+    if (
+      previous &&
+      (previous.timeMs > report.timeMs ||
+        (previous.timeMs === report.timeMs && previous.id.localeCompare(report.id) >= 0))
+    )
+      return false
+    reports.set(key, report)
+    if (reports.size > capacity) {
+      const oldest = [...reports.entries()].sort(
+        (a, b) => a[1].timeMs - b[1].timeMs || a[0].localeCompare(b[0]),
+      )[0]
+      reports.delete(oldest[0])
+      droppedAt = now
+    }
+    return true
+  }
   return {
-    ingest(payload: string, now: number): boolean {
-      prune(now)
-      const report = parsePskPayload(payload)
-      if (!report || report.timeMs < now - maxAgeMs || report.timeMs > now + 60_000) return false
-      const key = receptionKey(report)
-      const previous = reports.get(key)
-      if (
-        previous &&
-        (previous.timeMs > report.timeMs ||
-          (previous.timeMs === report.timeMs && previous.id.localeCompare(report.id) >= 0))
-      )
-        return false
-      reports.set(key, report)
-      if (reports.size > capacity) {
-        const oldest = [...reports.entries()].sort(
-          (a, b) => a[1].timeMs - b[1].timeMs || a[0].localeCompare(b[0]),
-        )[0]
-        reports.delete(oldest[0])
-        droppedAt = now
-      }
-      return true
-    },
+    ingestReport,
+    ingest: (payload: string, now: number) => ingestReport(parsePskPayload(payload), now),
     snapshot(now: number, windowMinutes: number) {
       prune(now)
       const window = [15, 30, 60].includes(windowMinutes) ? windowMinutes : 15

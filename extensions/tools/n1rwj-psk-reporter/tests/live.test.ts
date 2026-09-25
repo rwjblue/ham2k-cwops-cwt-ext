@@ -1,4 +1,5 @@
-import { expect, it } from 'vitest'
+import type { FetchResponse } from '@ham2k/extension-sdk'
+import { expect, it, vi } from 'vitest'
 import { environment } from '../../../../packages/reception/tests/environment.ts'
 import { createLiveReception } from '../src/live.ts'
 import { createPskPanel } from '../src/panel.ts'
@@ -113,4 +114,34 @@ it('stops offline and updates a native panel on a five-second cadence without cl
   const offline = await panel.render(args, { online: false })
   expect(JSON.stringify(offline)).toContain('Offline · reception paused')
   expect(s.sockets[0].closed).toBe(1)
+})
+
+it('discards backfill for a replaced callsign while live reception remains independent', async () => {
+  let finish!: (response: FetchResponse) => void
+  const response = new Promise<FetchResponse>((resolve) => {
+    finish = resolve
+  })
+  const fetch = vi.fn(async () => response)
+  const socket = fakeSocket()
+  const live = createLiveReception(
+    () => socket.socket,
+    () => initialNow,
+    () => 0,
+    {
+      fetch,
+      kvGet: async () => null,
+      kvSet: async () => {},
+    },
+  )
+  live.snapshot('one', 'N1RWJ', 'outgoing', 15, true)
+  for (let n = 0; n < 10; n++) await Promise.resolve()
+  expect(fetch).toHaveBeenCalledTimes(1)
+  live.snapshot('one', 'W1AW', 'outgoing', 15, true)
+  finish({
+    status: 200,
+    body: `<pskreporter><receptionReport senderCallsign="N1RWJ" receiverCallsign="CU3AT" frequency="14074000" mode="FT8" flowStartSeconds="${initialNow / 1000}"/></pskreporter>`,
+  })
+  for (let n = 0; n < 10; n++) await Promise.resolve()
+  expect(live.snapshot('one', 'W1AW', 'outgoing', 15, true).reports).toEqual([])
+  expect(live.snapshot('one', 'N1RWJ', 'outgoing', 15, true).reports).toEqual([])
 })

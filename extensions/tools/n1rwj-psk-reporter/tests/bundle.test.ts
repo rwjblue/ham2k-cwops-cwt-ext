@@ -7,7 +7,7 @@ import manifest from '../manifest.json'
 it('loads the normal API-2 bundle and receives binary MQTT reports through the published SDK', async () => {
   expect(manifest.api).toBe(2)
   expect(manifest.webSockets).toEqual(['mqtt.pskreporter.info'])
-  expect(manifest.domains).toEqual([])
+  expect(manifest.domains).toEqual(['retrieve.pskreporter.info'])
   await verifyPskBundle(fileURLToPath(new URL('../build/index.js', import.meta.url)), manifest)
 })
 
