@@ -33,6 +33,12 @@ describe('PSK Reporter payloads and subscriptions', () => {
       band: '20m',
     })
   })
+  it('decodes dotted portable calls without removing prefixes or suffixes', () => {
+    expect(parsePskPayload(payload({ sc: 'ea8.n1rwj.p', rc: 'cu3at.p' }))).toMatchObject({
+      transmitter: { call: 'EA8/N1RWJ/P' },
+      receiver: { call: 'CU3AT/P' },
+    })
+  })
   it('keeps unlocated stations without manufacturing positions or measurements', () => {
     const report = parsePskPayload(payload({ sl: 'ZZ99', rl: null, rp: null, t_tx: undefined }))
     expect(report?.transmitter.location).toBeUndefined()
@@ -52,6 +58,8 @@ describe('PSK Reporter payloads and subscriptions', () => {
     { f: -1 },
     { t: null, t_tx: null },
     { sc: '+' },
+    { sc: 'N1RWJ..P' },
+    { rc: '.N1RWJ' },
     { rc: 'N1RWJ/#' },
     { md: '' },
     { b: 'garbage' },
@@ -59,10 +67,12 @@ describe('PSK Reporter payloads and subscriptions', () => {
   ])('rejects malformed essential fields %j', (changes) => {
     expect(parsePskPayload(payload(changes))).toBeUndefined()
   })
-  it('builds exact directional subscriptions and refuses wildcard or ambiguous portable topics', () => {
+  it('builds exact directional subscriptions and refuses wildcards and malformed callsigns', () => {
     expect(pskTopic(' n1rwj ', 'outgoing')).toBe('pskr/filter/v2/+/+/N1RWJ/#')
     expect(pskTopic('N1RWJ', 'incoming')).toBe('pskr/filter/v2/+/+/+/N1RWJ/#')
-    for (const call of ['', '+', '#', 'N1RWJ/#', 'N1RWJ/P'])
+    expect(pskTopic('ea8/n1rwj/p', 'outgoing')).toBe('pskr/filter/v2/+/+/EA8.N1RWJ.P/#')
+    expect(pskTopic('N1RWJ/P', 'incoming')).toBe('pskr/filter/v2/+/+/+/N1RWJ.P/#')
+    for (const call of ['', '+', '#', 'N1RWJ/#', 'N1RWJ.P', 'N1RWJ//P'])
       expect(pskTopic(call, 'outgoing')).toBeUndefined()
   })
 })

@@ -1,7 +1,7 @@
 import type { FetchResponse, JSONValue } from '@ham2k/extension-sdk'
 import { describe, expect, it, vi } from 'vitest'
 import { createReportStore } from '../src/data/store.ts'
-import { createHistoryClient, type HistoryHost } from '../src/history/client.ts'
+import { createHistoryClient, type HistoryHost, historyUrl } from '../src/history/client.ts'
 import { historyLimit, parseHistoryXml } from '../src/history/parser.ts'
 
 const initial = Date.UTC(2026, 8, 24, 18)
@@ -24,8 +24,8 @@ function setup(storage = new Map<string, JSONValue>()) {
   let time = initial
   const host = {
     fetch: vi.fn<HistoryHost['fetch']>(async () => ({ status: 200, body: xml() })),
-    kvGet: vi.fn<HistoryHost['kvGet']>(async (key) => storage.get(key) ?? null),
-    kvSet: vi.fn<HistoryHost['kvSet']>(async (key, value) => {
+    read: vi.fn<HistoryHost['read']>(async (key) => storage.get(key) ?? null),
+    write: vi.fn<HistoryHost['write']>(async (key, value) => {
       storage.set(key, value)
     }),
   }
@@ -200,7 +200,7 @@ describe('shared backfill scheduling', () => {
     s.observe('N1RWJ', 15, false, false)
     await s.client.force('N1RWJ', 'outgoing', 15, false)
     expect(s.host.fetch).not.toHaveBeenCalled()
-    s.host.kvSet.mockRejectedValue(new Error('storage failed'))
+    s.host.write.mockRejectedValue(new Error('storage failed'))
     s.observe()
     await flush()
     expect(s.host.fetch).not.toHaveBeenCalled()
@@ -236,4 +236,8 @@ describe('shared backfill scheduling', () => {
     await flush()
     expect(s.host.fetch.mock.calls[1][0]).toContain('flowStartSeconds=-3600')
   })
+})
+
+it('keeps slashes in exact portable HTTP queries', () => {
+  expect(historyUrl('EA8/N1RWJ/P', 'outgoing', 15)).toContain('senderCallsign=EA8%2FN1RWJ%2FP&')
 })

@@ -1,9 +1,10 @@
-import { isValidCall, normalizeCall } from '../../../../../packages/reception/src/callsign.ts'
+import { isValidCall } from '../../../../../packages/reception/src/callsign.ts'
 import { operationOrigin } from '../../../../../packages/reception/src/config.ts'
 import type {
   ReceptionReport,
   ReceptionStation,
 } from '../../../../../packages/reception/src/reports.ts'
+import { decodePskCall } from './subscriptions.ts'
 
 function station(call: string, locator: unknown): ReceptionStation {
   const grid = typeof locator === 'string' ? locator.trim().toUpperCase() : ''
@@ -32,8 +33,8 @@ export function parsePskPayload(payload: string): ReceptionReport | undefined {
   } catch {
     return undefined
   }
-  const tx = typeof raw.sc === 'string' ? normalizeCall(raw.sc) : ''
-  const rx = typeof raw.rc === 'string' ? normalizeCall(raw.rc) : ''
+  const tx = typeof raw.sc === 'string' ? decodePskCall(raw.sc) : ''
+  const rx = typeof raw.rc === 'string' ? decodePskCall(raw.rc) : ''
   const time = raw.t_tx ?? raw.t
   if (
     !isValidCall(tx) ||
@@ -49,6 +50,7 @@ export function parsePskPayload(payload: string): ReceptionReport | undefined {
     typeof raw.md !== 'string' ||
     !/^[A-Z0-9+-]{1,16}$/i.test(raw.md) ||
     typeof raw.b !== 'string' ||
+    raw.b.length > 16 ||
     !/^\d+(?:\.\d+)?(?:m|cm|mm)$/.test(raw.b)
   )
     return undefined

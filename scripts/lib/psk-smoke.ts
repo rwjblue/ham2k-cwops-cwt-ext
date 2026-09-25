@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { createContext, runInContext } from 'node:vm'
-import type { ExtensionDefinition, PanelHook } from '@ham2k/extension-sdk'
+import type { ExtensionDefinition, JSONValue, PanelHook } from '@ham2k/extension-sdk'
 import { environment } from '../../packages/reception/tests/environment.ts'
 import type { Manifest } from './extensions.ts'
 
@@ -9,8 +9,28 @@ import type { Manifest } from './extensions.ts'
  * This stand-in for the host is not a native Ham2K runtime test.
  */
 export async function verifyPskBundle(path: string, manifest: Manifest) {
+  let clock = Date.now()
   const definitions: ExtensionDefinition[] = []
   const calls: { method: string; params: Record<string, unknown> }[] = []
+  const saved: Record<string, JSONValue> = {
+    unrelated: 'preserved',
+    'psk-reports-v1': JSON.stringify({
+      version: 1,
+      reports: [
+        {
+          id: 'cached',
+          sc: 'N1RWJ',
+          rc: 'K1ABC/P',
+          sl: 'FN42',
+          rl: 'FN31',
+          f: 14074000,
+          md: 'FT8',
+          b: '20m',
+          t: Math.floor(Date.now() / 1000) - 120,
+        },
+      ],
+    }),
+  }
   let listener: ((event: Record<string, unknown>) => void) | undefined
   let panel: PanelHook | undefined
   const sharedModules = Object.fromEntries(
@@ -24,6 +44,11 @@ export async function verifyPskBundle(path: string, manifest: Manifest) {
   runInContext(
     await readFile(path, 'utf8'),
     createContext({
+      Date: class extends Date {
+        static now() {
+          return clock
+        }
+      },
       __polo: {
         sharedModules,
         defineExtension: (definition: ExtensionDefinition) => definitions.push(definition),
@@ -48,6 +73,12 @@ export async function verifyPskBundle(path: string, manifest: Manifest) {
     },
     hostCall: async (method, params) => {
       calls.push({ method, params })
+      if (method === 'getSettings') return { extensions: { [`extension_${manifest.key}`]: saved } }
+      if (method === 'setSettings') {
+        assert.equal(params.ns, manifest.key)
+        Object.assign(saved, params.values)
+        return null
+      }
       if (method === 'fetch')
         return {
           status: 200,
@@ -66,13 +97,15 @@ export async function verifyPskBundle(path: string, manifest: Manifest) {
     config: {},
     reason: 'operation' as const,
   }
-  await panel.render(args, { online: true })
+  assert.ok(JSON.stringify(await panel.render(args, { online: true })).includes('K1ABC/P'))
   assert.deepEqual(
     calls.filter((call) => call.method.startsWith('webSocket')).map((call) => call.method),
     ['webSocketOpen'],
   )
-  assert.equal(calls[0].params.url, 'wss://mqtt.pskreporter.info:1886')
-  assert.equal(JSON.stringify(calls[0].params.protocols), '["mqtt"]')
+  const opened = calls.find((call) => call.method === 'webSocketOpen')
+  assert.ok(opened)
+  assert.equal(opened.params.url, 'wss://mqtt.pskreporter.info:1886')
+  assert.equal(JSON.stringify(opened.params.protocols), '["mqtt"]')
   assert.ok(listener)
   listener({ type: 'open', protocol: 'mqtt' })
   const sent = () =>
@@ -127,10 +160,17 @@ export async function verifyPskBundle(path: string, manifest: Manifest) {
     ),
   )
   assert.ok(JSON.stringify(await panel.render(args, { online: true })).includes('W1AW'))
+  clock += 30_000
   await panel.render(args, { online: false })
   assert.equal(sent()[sent().length - 1][0], 0xe0)
-  assert.equal(calls[calls.length - 1].method, 'webSocketClose')
+  const socketCalls = calls.filter((call) => call.method.startsWith('webSocket'))
+  assert.equal(socketCalls[socketCalls.length - 1]?.method, 'webSocketClose')
+  for (let i = 0; i < 60; i++) await Promise.resolve()
+  assert.ok(typeof saved['psk-history-next-request-v1'] === 'number')
+  assert.ok(String(saved['psk-reports-v1']).includes('CU3AT'))
+  assert.equal(saved.unrelated, 'preserved')
+  assert.ok(!calls.some((call) => call.method === 'kvGet' || call.method === 'kvSet'))
   console.log(
-    'Candidate SDK bundle smoke passed: socket grant, MQTT handshake, binary report, HTTP history, force reload, native scene, disconnect.',
+    'Candidate SDK bundle smoke passed: socket grant, MQTT handshake, binary report, HTTP history, force reload, persistent settings, native scene, disconnect.',
   )
 }

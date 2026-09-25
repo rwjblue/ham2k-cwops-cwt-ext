@@ -6,11 +6,16 @@ export const pskProtocols = ['mqtt']
 
 /** Narrow subscriptions only; never subscribe to the entire worldwide feed. */
 export function pskTopic(call: string, direction: ReceptionDirection): string | undefined {
-  const station = normalizeCall(call)
-  // MQTT treats slash as a path separator. Verify the broker's portable-call
-  // encoding before supporting it; never remove a suffix or widen the feed.
-  if (!isValidCall(station) || station.includes('/')) return undefined
+  const normalized = normalizeCall(call)
+  if (!isValidCall(normalized)) return undefined
+  // Match GridTracker's filtered-v2 encoding without broadening the callsign.
+  const station = normalized.replace(/\//g, '.')
   return direction === 'outgoing'
     ? `pskr/filter/v2/+/+/${station}/#`
     : `pskr/filter/v2/+/+/+/${station}/#`
+}
+
+/** Dots escape portable-call separators in MQTT topics and payloads. */
+export function decodePskCall(call: string): string {
+  return normalizeCall(call.replace(/\./g, '/'))
 }

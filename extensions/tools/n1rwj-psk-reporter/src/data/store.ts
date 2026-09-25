@@ -10,10 +10,18 @@ export function createReportStore(capacity = 1000) {
     throw new Error('Invalid report capacity')
   const reports = new Map<string, ReceptionReport>()
   let droppedAt: number | undefined
+  let revision = 0
   const maxAgeMs = 60 * 60_000
   function prune(now: number) {
-    for (const [key, report] of reports) if (report.timeMs < now - maxAgeMs) reports.delete(key)
-    if (droppedAt !== undefined && droppedAt < now - maxAgeMs) droppedAt = undefined
+    for (const [key, report] of reports)
+      if (report.timeMs < now - maxAgeMs) {
+        reports.delete(key)
+        revision++
+      }
+    if (droppedAt !== undefined && droppedAt < now - maxAgeMs) {
+      droppedAt = undefined
+      revision++
+    }
   }
   function ingestReport(report: ReceptionReport | undefined, now: number): boolean {
     prune(now)
@@ -27,6 +35,7 @@ export function createReportStore(capacity = 1000) {
     )
       return false
     reports.set(key, report)
+    revision++
     if (reports.size > capacity) {
       const oldest = [...reports.entries()].sort(
         (a, b) => a[1].timeMs - b[1].timeMs || a[0].localeCompare(b[0]),
@@ -37,6 +46,25 @@ export function createReportStore(capacity = 1000) {
     return true
   }
   return {
+    get revision() {
+      return revision
+    },
+    checkpoint(now: number) {
+      prune(now)
+      return { reports: [...reports.values()], droppedAt }
+    },
+    restoreCapacityLoss(value: unknown, now: number) {
+      if (
+        typeof value === 'number' &&
+        Number.isFinite(value) &&
+        value >= now - maxAgeMs &&
+        value <= now &&
+        (droppedAt === undefined || value > droppedAt)
+      ) {
+        droppedAt = value
+        revision++
+      }
+    },
     ingestReport,
     ingest: (payload: string, now: number) => ingestReport(parsePskPayload(payload), now),
     snapshot(now: number, windowMinutes: number) {
@@ -50,6 +78,7 @@ export function createReportStore(capacity = 1000) {
     clear() {
       reports.clear()
       droppedAt = undefined
+      revision++
     },
   }
 }

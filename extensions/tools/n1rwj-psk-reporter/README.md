@@ -82,6 +82,11 @@ pending; the installed app was still build 170 at promotion time.
   against report payloads and exact watched calls before storing reports. The
   cache retains at most 1,000 newest links and expires them after one hour.
   Capacity loss is visible. A new callsign cannot display the prior call's data.
+  Reports and capacity-loss state are saved in the extension's persistent settings,
+  with changed snapshots checkpointed at most every 30 seconds on render ticks.
+  Restart restores the full hour with original timestamps and exact callsigns;
+  the newest reports win if live delivery overlaps restoration. An abrupt close
+  can lose reports since the last checkpoint. Storage failures are shown in the panel.
 - Panels render at most on the host's five-second tick cadence plus operation or
   UI events. Connection status is separate from report age; connecting is not
   presented as live reception. No per-report render or whole-log query occurs.
@@ -117,17 +122,21 @@ and reconnects from a render. Host unload owns final socket cleanup.
 
 This is a **live window with best-effort backfill**, without a promise of background
 capture or complete history. Cache contents can remain visible while offline or reconnecting. Incoming
-reports require uploads from receiving software. Portable calls containing `/`
-remain unsupported for subscriptions until the broker's encoding is verified;
-we neither remove suffixes nor widen subscriptions.
+reports require uploads from receiving software. Portable prefixes and suffixes
+remain part of the exact watched callsign. MQTT uses dots for slashes in topics
+and decodes dotted payload calls, matching
+[GridTracker's MQTT client](https://gitlab.com/gridtracker.org/gridtracker2/-/blob/10d0e195b34c3d2d46dd8d79ccf927ea13dbd6f6/src/renderer/lib/mqttPsk.js).
+The displayed calls and HTTP queries retain slashes. Portable delivery still
+needs a live native test with a transmitting or receiving portable station.
 
 History follows the [PSK Reporter query API](https://pskreporter.info/pskdev.html).
 The September 24, 2026 command-line API probe received a Cloudflare browser
 challenge instead of XML. Native `host.fetch` access remains unverified; this
 implementation handles that failure without interrupting the MQTT feed. The
 deterministic tests and SDK bundle smoke verify fixtures, not provider availability.
-History responses and live reports are held in memory; only the automatic-request
-cooldown persists across extension reloads. No background HTTP polling occurs.
+History responses, live reports and the automatic-request cooldown use the host's
+persistent extension settings. The host's `kvGet`/`kvSet` are memory-only and are
+not used for persistence. No background HTTP polling or cache writing occurs.
 
 Before publishing, install on build 171 or newer and test both directions,
 multiple placements, callsign/operation changes, hidden tabs, app backgrounding,
@@ -136,7 +145,9 @@ Check native binary delivery and UI on each intended platform. Publication
 monitoring is paused because both required packages have been verified.
 Also check first-open history, force reload, returning after a gap, multiple
 panels sharing the HTTP cooldown, a callsign change during a request, and an
-HTTP denial or browser challenge while MQTT continues receiving.
+HTTP denial or browser challenge while MQTT continues receiving. Verify cached
+reports and the cooldown survive a full app restart, including an offline restart,
+and verify portable calls in both directions.
 
 Reports originate at [PSK Reporter](https://pskreporter.info/); the MQTT distribution
 is operated by M0LTE ([feed schema and topics](https://www.mqtt.pskreporter.info/)).

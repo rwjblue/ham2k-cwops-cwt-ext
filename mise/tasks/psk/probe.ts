@@ -2,7 +2,7 @@
 
 //[MISE] description="Probe the actual PSK transport against a narrow live feed for up to 75 seconds"
 //[MISE] depends=["install", "local-tasks-npm-install"]
-//[USAGE] arg "<call>" help="Exact watched callsign (no portable suffix)"
+//[USAGE] arg "<call>" help="Exact watched callsign (including portable suffix)"
 //[USAGE] flag "--incoming" help="Observe reports received by this callsign"
 
 import { pskTopic } from '../../../extensions/tools/n1rwj-psk-reporter/src/data/subscriptions.ts'
@@ -11,8 +11,7 @@ import type { ReceptionSocket } from '../../../extensions/tools/n1rwj-psk-report
 
 const call = process.env.usage_call ?? ''
 const direction = process.env.usage_incoming === 'true' ? 'incoming' : 'outgoing'
-if (!pskTopic(call, direction))
-  throw new Error('An exact callsign without a portable suffix is required')
+if (!pskTopic(call, direction)) throw new Error('A valid exact callsign is required')
 const live = createLiveReception((url, options) => {
   const ws = new WebSocket(url, options?.protocols)
   ws.binaryType = 'arraybuffer'

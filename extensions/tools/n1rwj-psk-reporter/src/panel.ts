@@ -41,7 +41,7 @@ export function pskPanelModel(
   args: PanelRenderArgs,
   reports: readonly ReceptionReport[],
   now: number,
-  live: Pick<LiveSnapshot, 'state' | 'message' | 'retryAt' | 'capped' | 'history'>,
+  live: Pick<LiveSnapshot, 'state' | 'message' | 'retryAt' | 'capped' | 'history' | 'cacheWarning'>,
 ): UiModel {
   const config = readConfig(args.config)
   const incoming = args.config.receptionDirection === 'incoming'
@@ -85,6 +85,7 @@ export function pskPanelModel(
     warnings: [
       ...(live.capped ? ['Report capacity reached; this window is incomplete.'] : []),
       ...(live.history?.warning ? [live.history.warning] : []),
+      ...(live.cacheWarning ? [live.cacheWarning] : []),
     ],
     note: 'Live reports while this panel is visible, with recent history requested on opening and after collection gaps. Automatic history requests are shared across panels and spaced at least five minutes apart. Force reload bypasses that cooldown. History is best effort and may be delayed or incomplete. Who I hear requires uploads from your receiving software. Reports are observations, not confirmed contacts.',
     locationLabel: origin
@@ -142,6 +143,7 @@ export function createPskPanel(live: LiveReception): PanelHook {
       const state = stateFor(args, String(args.config.receptionDirection ?? 'outgoing'))
       const config = readConfig(args.config)
       const now = args.clock?.realNowMillis ?? Date.now()
+      await live.restore()
       const snapshot = live.snapshot(
         args.instanceId,
         watchedCall(args.operation, config.watchCall),

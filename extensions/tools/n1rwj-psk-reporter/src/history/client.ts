@@ -1,16 +1,15 @@
-import type { FetchOptions, FetchResponse, JSONValue } from '@ham2k/extension-sdk'
+import type { FetchOptions, FetchResponse } from '@ham2k/extension-sdk'
 import { normalizeCall } from '../../../../../packages/reception/src/callsign.ts'
 import type {
   ReceptionDirection,
   ReceptionReport,
 } from '../../../../../packages/reception/src/reports.ts'
 import { pskTopic } from '../data/subscriptions.ts'
+import type { PersistentStorage } from '../storage.ts'
 import { historyLimit, parseHistoryXml } from './parser.ts'
 
-export interface HistoryHost {
+export interface HistoryHost extends PersistentStorage {
   fetch: (url: string, options: FetchOptions) => Promise<FetchResponse>
-  kvGet: (key: string) => Promise<JSONValue | null>
-  kvSet: (key: string, value: JSONValue) => Promise<void>
 }
 
 export interface HistoryStatus {
@@ -59,7 +58,7 @@ export function createHistoryClient(
     current(entry) && now() - entry.seen <= 30_000 && watched(entry.call, entry.direction)
 
   async function restore() {
-    restored ??= host.kvGet(storageKey).then((value) => {
+    restored ??= host.read(storageKey).then((value) => {
       if (typeof value === 'number' && Number.isFinite(value))
         nextRequest = Math.max(nextRequest, Math.min(value, now() + 60 * 60_000))
     })
@@ -84,7 +83,7 @@ export function createHistoryClient(
         entry.loading = true
         nextRequest = started + cooldown
         // Save before sending, so a reload cannot reset the automatic budget.
-        await host.kvSet(storageKey, nextRequest)
+        await host.write(storageKey, nextRequest)
         if (epoch !== generation || !online || !active(entry)) return
         const response = await host.fetch(historyUrl(entry.call, entry.direction, window), {
           timeout: 7000,
@@ -121,7 +120,7 @@ export function createHistoryClient(
         // Failed reads may recover later; never let storage failure create a request loop.
         restored = undefined
         try {
-          await host.kvSet(storageKey, nextRequest)
+          await host.write(storageKey, nextRequest)
         } catch {
           /* In-memory backoff remains. */
         }

@@ -3,9 +3,10 @@ import type {
   ReceptionDirection,
   ReceptionReport,
 } from '../../../../packages/reception/src/reports.ts'
+import { createReportCache } from './data/cache.ts'
 import { parsePskPayload } from './data/parser.ts'
 import { createReportStore } from './data/store.ts'
-import { pskTopic } from './data/subscriptions.ts'
+import { decodePskCall, pskTopic } from './data/subscriptions.ts'
 import { createHistoryClient, type HistoryHost, type HistoryStatus } from './history/client.ts'
 import { type ConnectionState, createMqttClient } from './transport/client.ts'
 import type { OpenSocket } from './transport/socket.ts'
@@ -17,6 +18,7 @@ export interface LiveSnapshot {
   message: string
   retryAt?: number
   history?: HistoryStatus
+  cacheWarning?: string
 }
 
 /** One socket per extension; placements lease narrow subscriptions while rendering. */
@@ -31,6 +33,7 @@ export function createLiveReception(
     { call: string; direction: ReceptionDirection; topic: string; seen: number }
   >()
   const store = createReportStore()
+  const cache = historyHost ? createReportCache(historyHost, store, now) : undefined
   const history = historyHost
     ? createHistoryClient(
         historyHost,
@@ -64,8 +67,8 @@ export function createLiveReception(
         parts.slice(0, 3).join('/') !== 'pskr/filter/v2' ||
         parts[3] !== report.band ||
         parts[4].toUpperCase() !== report.mode ||
-        normalizeCall(parts[5]) !== report.transmitter.call ||
-        normalizeCall(parts[6]) !== report.receiver.call
+        decodePskCall(parts[5]) !== report.transmitter.call ||
+        decodePskCall(parts[6]) !== report.receiver.call
       )
         return
       if (
@@ -79,6 +82,7 @@ export function createLiveReception(
     },
   })
   return {
+    restore: () => cache?.ready() ?? Promise.resolve(),
     snapshot(
       instance: string,
       call: string,
@@ -104,7 +108,12 @@ export function createLiveReception(
         !error && client.status().state === 'live',
         online,
       )
-      const stored = { ...store.snapshot(now(), windowMinutes), history: historyStatus }
+      const stored = {
+        ...store.snapshot(now(), windowMinutes),
+        history: historyStatus,
+        cacheWarning: cache?.warning,
+      }
+      cache?.tick()
       // The map's filter is also pure, but do not hand another call's data to a placement.
       stored.reports = stored.reports.filter(
         (report) =>
@@ -117,7 +126,7 @@ export function createLiveReception(
           state: error,
           message:
             error === 'invalid'
-              ? 'Set a callsign without a portable suffix to receive reports.'
+              ? 'Set a valid callsign to receive reports.'
               : error === 'limit'
                 ? 'At most eight callsign/direction subscriptions can be active.'
                 : 'Offline · reception paused',
@@ -127,6 +136,7 @@ export function createLiveReception(
     forceHistory: (call: string, direction: ReceptionDirection, window: number, online: boolean) =>
       history?.force(call, direction, window, online) ?? Promise.resolve(),
     stop: () => {
+      cache?.stop()
       history?.stop()
       leases.clear()
       client.stop()

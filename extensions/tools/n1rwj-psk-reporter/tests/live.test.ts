@@ -68,9 +68,9 @@ it('shares a socket and subscriptions, isolates directions and rejects unrelated
   expect(s.snapshot('one', 'W1AW').reports).toEqual([])
 })
 
-it('refuses portable/wildcard subscriptions and bounds active placements/topics', () => {
+it('refuses malformed/wildcard subscriptions and bounds active placements/topics', () => {
   const s = setup()
-  for (const call of ['N1RWJ/P', '#', '']) expect(s.snapshot('bad', call).state).toBe('invalid')
+  for (const call of ['N1RWJ.P', '#', '']) expect(s.snapshot('bad', call).state).toBe('invalid')
   expect(s.sockets).toHaveLength(0)
   for (let n = 0; n < 8; n++) expect(s.snapshot(String(n), `W${n}AA`).state).not.toBe('limit')
   expect(s.snapshot('excess', 'W9ZZ').state).toBe('limit')
@@ -129,19 +129,35 @@ it('discards backfill for a replaced callsign while live reception remains indep
     () => 0,
     {
       fetch,
-      kvGet: async () => null,
-      kvSet: async () => {},
+      read: async () => null,
+      write: async () => {},
     },
   )
   live.snapshot('one', 'N1RWJ', 'outgoing', 15, true)
-  for (let n = 0; n < 10; n++) await Promise.resolve()
+  for (let n = 0; n < 30; n++) await Promise.resolve()
   expect(fetch).toHaveBeenCalledTimes(1)
   live.snapshot('one', 'W1AW', 'outgoing', 15, true)
   finish({
     status: 200,
     body: `<pskreporter><receptionReport senderCallsign="N1RWJ" receiverCallsign="CU3AT" frequency="14074000" mode="FT8" flowStartSeconds="${initialNow / 1000}"/></pskreporter>`,
   })
-  for (let n = 0; n < 10; n++) await Promise.resolve()
+  for (let n = 0; n < 30; n++) await Promise.resolve()
   expect(live.snapshot('one', 'W1AW', 'outgoing', 15, true).reports).toEqual([])
   expect(live.snapshot('one', 'N1RWJ', 'outgoing', 15, true).reports).toEqual([])
+})
+
+it('matches exact portable topics and payloads in both directions', () => {
+  const s = setup()
+  s.snapshot('one', 'EA8/N1RWJ/P')
+  s.sockets[0].socket.onopen?.()
+  s.sockets[0].receive([0x20, 2, 0, 0])
+  s.sockets[0].receive([0x90, 3, 0, 1, 0])
+  s.snapshot('two', 'CU3AT/P', true)
+  const portableTopic = topic.replace('N1RWJ/CU3AT', 'EA8.N1RWJ.P/CU3AT.P')
+  s.sockets[0].receive(publication(portableTopic, payload({ sc: 'EA8.N1RWJ.P', rc: 'CU3AT.P' })))
+  expect(s.snapshot('one', 'EA8/N1RWJ/P').reports).toHaveLength(1)
+  expect(s.snapshot('two', 'CU3AT/P', true).reports).toHaveLength(1)
+  expect(s.snapshot('base', 'N1RWJ').reports).toHaveLength(0)
+  s.sockets[0].receive(publication(portableTopic, payload({ sc: 'EA8/N1RWJ', rc: 'CU3AT/P' })))
+  expect(s.snapshot('two', 'CU3AT/P', true).reports).toHaveLength(1)
 })
