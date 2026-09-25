@@ -188,8 +188,8 @@ the reports. The cooldown starts at the request, not at the last tab visit.
 Changing the callsign or report window can request a different snapshot immediately.
 
 Use **↻** beside the Details button to check manually without waiting for the
-next automatic refresh. It shares the same cache and waits at least 30 seconds
-between requests for the same query; earlier taps reuse the cached reports.
+next automatic refresh. It bypasses the local cooldown immediately. Concurrent
+requests for the same query share one request, including repeated refresh taps.
 The host disables scene buttons while the refresh action is pending. Refreshing
 preserves your view, band, sort, and page, and the icon uses the existing status
 row without taking space from the map. Offline state and server rate-limit
@@ -202,7 +202,7 @@ request without an HTTP response, its error message is shown (bounded to 300
 characters); the extension does not assume that every failure is a connection
 problem. Details show the last request attempt separately from the last
 successful check, explain when a local cooldown sends no new request, and give
-the earliest manual and automatic retry times. Automatic checks still depend
+whether manual refresh is available and the earliest automatic retry time. Automatic checks still depend
 on the host rendering the visible panel. Rate-limit backoff is shared with
 other My Signal panels and RBN Spots; it is separate from the normal local
 refresh cooldown. A timeout or missing host error detail cannot establish
@@ -219,8 +219,26 @@ losing focus is still considered visible. See the
 The SDK does not expose device battery level, charging state, or Low Power Mode,
 so the extension cannot automatically adapt the interval to those conditions.
 A failed refresh retains cached reports within the selected
-time window and marks the failure. Reports expire as they age; the in-memory
-cache does not survive an extension restart. A successful check with no reports
+time window and marks the failure. Up to eight callsign/window snapshots (500
+reports each) persist in the extension's settings for up to two hours. Restored
+reports keep their original observation and check times and are marked cached
+until a successful new request. Expired reports are removed on reading. Changing
+a callsign or window never displays another query's reports.
+
+The last request attempt is saved before fetching; the result is saved after
+completion, including failed-attempt timing and the last successful snapshot.
+The shared server rate-limit delay also persists across extension restarts.
+Manual refresh bypasses only the local cooldown. Storage errors appear in
+Report details and do not stop in-memory reception. These are persistent
+`getSettings`/`setSettings` values, not the host's memory-only `kvGet`/`kvSet`.
+No storage writes are triggered by cached renders or background timers.
+
+After a long absence, the next visible render makes one request for the selected
+time window, subject to server backoff. It does not replay missed polling
+intervals. Rapid tab changes reuse results until a minute after the last attempt.
+The native Spots report cache and polling cadence are unchanged.
+
+A successful check with no reports
 is different from a failed check. **Checked** and **Heard** show when data was
 fetched and when your signal was last reported.
 
@@ -283,3 +301,8 @@ The examples are placeholders; choose a station active at the time of testing.
 For building from source, static previews, native acceptance steps and the
 earlier HTML investigation, see the
 [development and migration notes](../../../docs/RBN-SVG-MIGRATION.md).
+
+
+Restart/resume behavior is covered by deterministic tests and isolated SDK bundle
+restarts using a simulated persistent host. Full app restart, offline resume and
+background/foreground behavior still need a native Ham2K runtime check.

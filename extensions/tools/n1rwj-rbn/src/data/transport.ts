@@ -1,4 +1,6 @@
 import type { FetchOptions, FetchResponse } from '@ham2k/extension-sdk'
+import type { PersistentStorage } from '../../../../../packages/reception/src/storage.ts'
+import { backoffKey, readBackoff } from './cache.ts'
 import { RbnRequestError } from './errors.ts'
 import { record } from './parser.ts'
 
@@ -6,10 +8,25 @@ import { record } from './parser.ts'
 export function createRbnTransport(
   fetch: (url: string, options?: FetchOptions) => Promise<FetchResponse>,
   now: () => number = Date.now,
+  storage?: PersistentStorage,
 ) {
   let blockedUntil = 0
+  let restored: Promise<void> | undefined
+  let restoreAfter = 0
   const pending = new Map<string, Promise<FetchResponse>>()
-  return (url: string, options?: FetchOptions): Promise<FetchResponse> => {
+  return async (url: string, options?: FetchOptions): Promise<FetchResponse> => {
+    if (storage && now() >= restoreAfter) {
+      restored ??= storage
+        .read(backoffKey)
+        .then((value) => {
+          blockedUntil = Math.max(blockedUntil, readBackoff(value, now()))
+        })
+        .catch(() => {
+          restored = undefined
+          restoreAfter = now() + 60_000
+        })
+      await restored
+    }
     if (now() < blockedUntil)
       return Promise.reject(
         new RbnRequestError(
@@ -22,7 +39,7 @@ export function createRbnTransport(
     const current = pending.get(key)
     if (current) return current
     const request = fetch(url, options)
-      .then((response) => {
+      .then(async (response) => {
         if (response.status === 429) {
           let delay = 60_000
           try {
@@ -35,6 +52,11 @@ export function createRbnTransport(
             /* Default backoff. */
           }
           blockedUntil = Math.max(blockedUntil, now() + delay)
+          try {
+            await storage?.write(backoffKey, blockedUntil)
+          } catch {
+            // In-memory backoff remains effective if persistent storage fails.
+          }
         }
         return response
       })

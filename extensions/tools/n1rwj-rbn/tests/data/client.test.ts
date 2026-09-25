@@ -68,11 +68,11 @@ describe('Vail ReRBN client', () => {
     const client = createRbnClient({ fetch, now: () => clock })
     await client.getSnapshot(query)
     clock += 10_000
-    const deferred = await client.getSnapshot(query, { force: true })
+    const deferred = await client.getSnapshot(query)
     expect(deferred).toMatchObject({
       lastAttemptMs: NOW,
       failureKind: 'request',
-      refresh: { state: 'cooldown', manualAtMs: NOW + 30_000, automaticAtMs: NOW + 60_000 },
+      refresh: { state: 'cooldown', manualAtMs: 0, automaticAtMs: NOW + 60_000 },
     })
     expect(fetch).toHaveBeenCalledTimes(1)
     clock += 20_000
@@ -165,21 +165,27 @@ describe('Vail ReRBN client', () => {
     })
   })
 
-  it('deduplicates concurrent queries and enforces cooldowns including forced refreshes', async () => {
+  it('deduplicates requests and bypasses only the local cooldown for forced refreshes', async () => {
     let clock = NOW
     const fetch = vi.fn(async () => response(payload()))
     const client = createRbnClient({ fetch, now: () => clock })
     const [a, b] = await Promise.all([client.getSnapshot(query), client.getSnapshot(query)])
     expect(a).toEqual(b)
     expect(fetch).toHaveBeenCalledTimes(1)
-    clock += 29_999
-    await client.getSnapshot(query, { force: true })
-    expect(fetch).toHaveBeenCalledTimes(1)
     clock += 1
     await client.getSnapshot(query)
     expect(fetch).toHaveBeenCalledTimes(1)
-    await client.getSnapshot(query, { force: true })
+    await Promise.all([
+      client.getSnapshot(query, { force: true }),
+      client.getSnapshot(query, { force: true }),
+    ])
     expect(fetch).toHaveBeenCalledTimes(2)
+    clock += 59_999
+    await client.getSnapshot(query)
+    expect(fetch).toHaveBeenCalledTimes(2)
+    clock += 1
+    await client.getSnapshot(query)
+    expect(fetch).toHaveBeenCalledTimes(3)
   })
 
   it('keeps cached reports and success time on failure; expires old reports and waits to retry', async () => {

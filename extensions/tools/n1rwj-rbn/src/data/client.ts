@@ -1,6 +1,8 @@
 import type { FetchOptions, FetchResponse } from '@ham2k/extension-sdk'
+import type { PersistentStorage } from '../../../../../packages/reception/src/storage.ts'
 import type { RbnSnapshot } from '../model.ts'
 import { isValidCall, normalizeCall } from '../model.ts'
+import { decodeSnapshots, encodeSnapshots, snapshotKey } from './cache.ts'
 import { RbnRequestError, requestFailure } from './errors.ts'
 import { parseRbnPayload, record } from './parser.ts'
 
@@ -21,6 +23,7 @@ export interface RbnClientOptions {
   fetch: (url: string, options?: FetchOptions) => Promise<FetchResponse>
   now?: () => number
   refreshIntervalMs?: number
+  storage?: PersistentStorage
 }
 
 export interface RbnClient {
@@ -40,6 +43,66 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
   const refreshIntervalMs = Math.max(30_000, options.refreshIntervalMs ?? 60_000)
   const cache = new Map<string, Entry>()
   let rateLimitedUntil = 0
+  let restored = !options.storage
+  let restoring: Promise<void> | undefined
+  let restoreAfter = 0
+  let storageWarning: string | undefined
+  let writing = Promise.resolve()
+
+  async function restore(time: number) {
+    const storage = options.storage
+    if (!storage || restored || time < restoreAfter) return
+    restoring ??= (async () => {
+      try {
+        const value = await storage.read(snapshotKey)
+        try {
+          const saved = decodeSnapshots(value, time)
+          rateLimitedUntil = Math.max(rateLimitedUntil, saved.rateLimitedUntil)
+          for (const snapshot of saved.snapshots) {
+            const key = `${snapshot.call}|${snapshot.windowMinutes}`
+            const current = cache.get(key)
+            if (
+              !current ||
+              (!current.inFlight &&
+                (current.snapshot.lastAttemptMs ?? 0) < (snapshot.lastAttemptMs ?? 0))
+            )
+              cache.set(key, { snapshot })
+          }
+          pruneCache()
+          storageWarning = undefined
+        } catch {
+          storageWarning = 'Saved RBN reports could not be restored.'
+        }
+        restored = true
+      } catch {
+        storageWarning = 'RBN storage unavailable; reports are kept only for this session.'
+        restoreAfter = time + 60_000
+      }
+    })().finally(() => {
+      restoring = undefined
+    })
+    await restoring
+  }
+
+  async function save(time: number) {
+    if (!options.storage || !restored) return
+    const storage = options.storage
+    const value = encodeSnapshots(
+      [...cache.values()].map((entry) => entry.snapshot),
+      rateLimitedUntil,
+      time,
+    )
+    writing = writing.then(async () => {
+      try {
+        await storage.write(snapshotKey, value)
+        storageWarning = undefined
+      } catch {
+        storageWarning =
+          'RBN reports or request timing could not be saved; they may be lost on restart.'
+      }
+    })
+    await writing
+  }
 
   async function getJson(url: string, requestNow: () => number) {
     let response: FetchResponse
@@ -105,12 +168,10 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
     )
     return {
       ...snapshot,
+      storageWarning,
       refresh: {
         state,
-        manualAtMs:
-          state === 'offline'
-            ? null
-            : Math.max(rateLimitedUntil, (snapshot.lastAttemptMs ?? 0) + 30_000),
+        manualAtMs: state === 'offline' ? null : rateLimitedUntil,
         automaticAtMs:
           state === 'offline'
             ? null
@@ -159,6 +220,7 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
     }
     if (!isValidCall(call))
       return { ...initial, error: 'Set a valid station callsign to see RBN reports.' }
+    if (options.storage) await restore(time)
     const key = `${call}|${windowMinutes}`
     let entry = cache.get(key)
     if (requestOptions.online === false) {
@@ -191,8 +253,12 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
       cache.delete(key)
       cache.set(key, entry)
       if (entry.inFlight) return entry.inFlight.then((snapshot) => clip(snapshot, requestNow()))
-      const cooldown = requestOptions.force ? 30_000 : refreshIntervalMs
-      if (entry.snapshot.lastAttemptMs !== null && time - entry.snapshot.lastAttemptMs < cooldown) {
+      if (
+        !requestOptions.force &&
+        entry.snapshot.lastAttemptMs !== null &&
+        time >= entry.snapshot.lastAttemptMs &&
+        time - entry.snapshot.lastAttemptMs < refreshIntervalMs
+      ) {
         return clip(entry.snapshot, requestNow(), 'cooldown')
       }
     } else {
@@ -209,8 +275,13 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
       pruneCache()
     }
     const current = entry
+    const previousAttempt = current.snapshot.lastAttemptMs
     current.inFlight = (async () => {
       try {
+        // Persist the attempt before sending so restarting cannot reset the budget.
+        // Keep the old attempt if the shared transport reports no request was sent.
+        current.snapshot = { ...current.snapshot, lastAttemptMs: time }
+        if (options.storage) await save(time)
         const response = await getReports(normalized, requestNow)
         let result: ReturnType<typeof parseRbnPayload>
         try {
@@ -236,11 +307,12 @@ export function createRbnClient(options: RbnClientOptions): RbnClient {
         current.snapshot = {
           ...current.snapshot,
           status: current.snapshot.lastSuccessMs === null ? 'error' : 'stale',
-          lastAttemptMs: failure.requestSent ? time : current.snapshot.lastAttemptMs,
+          lastAttemptMs: failure.requestSent ? time : previousAttempt,
           failureKind: failure.kind,
           error: failure.message,
         }
       } finally {
+        if (options.storage) await save(requestNow())
         current.inFlight = undefined
         pruneCache()
       }

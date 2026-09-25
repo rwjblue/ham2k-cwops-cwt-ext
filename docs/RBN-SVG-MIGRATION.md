@@ -60,14 +60,17 @@ limits network refreshes to once a minute per callsign/window and coalesces
 concurrent requests. The minute is measured from the last request attempt,
 including failures; visiting a tab does not restart it. The shared client lives
 outside panel placement state, so hiding/revealing a placement or creating another
-placement for the same query reuses the cache. Extension restarts and eviction
-from the eight-query cache lose that history. Failed refreshes retain only
-unexpired cached reports.
+placement for the same query reuses the cache. Up to eight query snapshots and
+request timing persist in extension settings across runtime restarts, with a
+two-hour retention limit. Restored reports retain original times and remain
+marked cached until a successful request. Eviction removes the oldest query;
+failed refreshes retain only unexpired cached reports.
 
 The **↻** button shares the status row with Details, without changing map bounds.
 Its `refresh:reports` activation awaits `getSnapshot` with `force: true`, using
-the host's real clock and online state. Manual requests retain the client's
-30-second minimum interval, in-flight deduplication, and client-wide 429 backoff.
+the host's real clock and online state. Manual requests bypass the local cooldown
+and retain in-flight deduplication and shared 429 backoff. The server backoff
+also persists across restarts and applies to native Spots requests.
 Awaiting the action lets the native scene host disable buttons while it is
 pending. The host's post-event render then reads the shared cache, without a
 second request or resetting the display selection.

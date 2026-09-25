@@ -4,8 +4,8 @@ import type {
   ReceptionDirection,
   ReceptionReport,
 } from '../../../../../packages/reception/src/reports.ts'
+import type { PersistentStorage } from '../../../../../packages/reception/src/storage.ts'
 import { pskTopic } from '../data/subscriptions.ts'
-import type { PersistentStorage } from '../storage.ts'
 import { historyLimit, parseHistoryXml } from './parser.ts'
 
 export interface HistoryHost extends PersistentStorage {

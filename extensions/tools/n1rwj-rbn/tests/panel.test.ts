@@ -139,7 +139,7 @@ describe('RBN native panel integration', () => {
     expect(result).toContain('Last request attempt: 14:00:00 UTC')
     expect(result).toContain('Last successful check: never')
     expect(result).toContain('No new request sent: local refresh cooldown')
-    expect(result).toContain('Manual refresh allowed from 14:00:30 UTC')
+    expect(result).toContain('Manual refresh is available now and bypasses the local cooldown')
     expect(result).toContain('Automatic check eligible from 14:01:00 UTC')
     expect(result.match(/Host detail:/g)).toHaveLength(1)
     expect(fetch).toHaveBeenCalledTimes(1)
@@ -306,7 +306,7 @@ describe('RBN native panel integration', () => {
     }
     expect(getSnapshot).not.toHaveBeenCalled()
   })
-  it('manually refreshes after 30 seconds without refetching on the post-event render', async () => {
+  it('manually refreshes immediately without refetching on the post-event render', async () => {
     const fetch = vi.fn(async () => ({
       status: 200,
       body: JSON.stringify(payload({ spots: [], total: 0 })),
@@ -316,34 +316,21 @@ describe('RBN native panel integration', () => {
       nowMillis: now - 86_400_000,
       realNowMillis: now + elapsed,
     })
-    expect(
-      sceneText(await panel.render({ ...args, clock: clockAt(0) }, { online: true })),
-    ).toContain('No recent reports')
-    await panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(29_999) }), {
-      online: true,
-    })
-    expect(fetch).toHaveBeenCalledTimes(1)
+    await panel.render({ ...args, clock: clockAt(0) }, { online: true })
     await Promise.all([
-      panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(30_000) }), {
-        online: true,
-      }),
-      panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(30_000) }), {
-        online: true,
-      }),
+      panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(1) }), { online: true }),
+      panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(1) }), { online: true }),
     ])
     expect(fetch).toHaveBeenCalledTimes(2)
     const refreshed = await panel.render(
-      { ...args, clock: clockAt(30_000), reason: 'event' },
+      { ...args, clock: clockAt(1), reason: 'event' },
       { online: true },
     )
     expect(sceneText(refreshed)).toContain('No recent reports')
-    expect(sceneText(refreshed)).toContain('14:00:30 UTC')
-    await panel.onEvent?.(event('refresh', 'refresh:reports', { clock: clockAt(59_999) }), {
-      online: true,
-    })
+    expect(fetch).toHaveBeenCalledTimes(2)
     await panel.render({ ...args, clock: clockAt(60_000) }, { online: true })
     expect(fetch).toHaveBeenCalledTimes(2)
-    await panel.render({ ...args, clock: clockAt(90_000) }, { online: true })
+    await panel.render({ ...args, clock: clockAt(60_001) }, { online: true })
     expect(fetch).toHaveBeenCalledTimes(3)
   })
   it('awaits manual refresh so host buttons stay disabled and preserves display choices', async () => {

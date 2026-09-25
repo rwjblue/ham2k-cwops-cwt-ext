@@ -1,5 +1,5 @@
 import type { JSONValue } from '@ham2k/extension-sdk'
-import type { PersistentStorage } from '../storage.ts'
+import type { PersistentStorage } from '../../../../../packages/reception/src/storage.ts'
 import { parsePskPayload } from './parser.ts'
 import type { createReportStore } from './store.ts'
 

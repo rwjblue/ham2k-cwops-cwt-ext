@@ -30,6 +30,7 @@ export interface RbnSnapshot {
   lastSuccessMs: number | null
   error: string | null
   failureKind?: RbnFailureKind
+  storageWarning?: string
   refresh?: {
     state: 'attempted' | 'cooldown' | 'rate-limit' | 'offline'
     manualAtMs: number | null

@@ -1,9 +1,9 @@
 import type { JSONValue } from '@ham2k/extension-sdk'
 import { expect, it, vi } from 'vitest'
+import { createPersistentStorage } from '../../../../packages/reception/src/storage.ts'
 import { createReportCache, reportCacheKey } from '../src/data/cache.ts'
 import { createReportStore } from '../src/data/store.ts'
 import { createHistoryClient } from '../src/history/client.ts'
-import { createPersistentStorage } from '../src/storage.ts'
 
 const initial = Date.UTC(2026, 8, 24, 18)
 const key = 'n1rwj-psk-reporter'

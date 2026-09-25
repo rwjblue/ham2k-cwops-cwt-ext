@@ -38,7 +38,7 @@ function refreshDetails(snapshot: RbnSnapshot): string {
           ? 'Requests paused after HTTP 429, shared with other My Signal panels and RBN Spots.'
           : '',
     refresh?.manualAtMs != null && refresh.automaticAtMs != null
-      ? `Manual refresh allowed from ${utcLabel(refresh.manualAtMs)}. Automatic check eligible from ${utcLabel(refresh.automaticAtMs)} while visible.`
+      ? `${refresh.state === 'rate-limit' ? `Manual refresh allowed from ${utcLabel(refresh.manualAtMs)}.` : 'Manual refresh is available now and bypasses the local cooldown.'} Automatic check eligible from ${utcLabel(refresh.automaticAtMs)} while visible.`
       : '',
   ]
     .filter(Boolean)
@@ -68,6 +68,7 @@ export function panelModel(
     .some((part) => part === 'TEST' || part === 'T')
   const warnings = [
     snapshot.error ? `${snapshot.error} ${refreshDetails(snapshot)}` : '',
+    snapshot.storageWarning ?? '',
     snapshot.capped ? '500-report limit reached; some reports may be missing.' : '',
     reports.some((report) => !receiverCoordinates(report))
       ? 'Unlocated receivers are listed but not mapped.'
@@ -78,7 +79,7 @@ export function panelModel(
       ? `TEST OPERATION — observing ${snapshot.call}; these reports belong to that station.`
       : '',
     snapshot.error ? '' : refreshDetails(snapshot),
-    `Last ${config.windowMinutes} minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Automatic checks at most once a minute while this panel is visible. Manual refresh waits at least 30 seconds between requests.`,
+    `Last ${config.windowMinutes} minutes of CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN. Automatic checks at most once a minute while this panel is visible. Manual refresh bypasses the local cooldown; offline state and server rate limits still apply.`,
     'Receiver locations and countries use the cached RBN receiver directory, with HamDB registered grids supplied by Vail ReRBN as a fallback. Distances and bearings are estimates. Refresh the receiver directory in Data Files settings.',
     snapshot.capped
       ? 'The Vail ReRBN response reached its 500-report limit; additional reports may be missing.'
@@ -97,7 +98,9 @@ export function panelModel(
         response: 'invalid response',
         offline: 'offline',
       }[snapshot.failureKind]
-    : 'refresh unavailable'
+    : snapshot.error
+      ? 'refresh unavailable'
+      : 'awaiting refresh'
   const brightness =
     args.environment?.brightness ??
     (themeMode === 'light' || themeMode === 'dark' ? themeMode : undefined)

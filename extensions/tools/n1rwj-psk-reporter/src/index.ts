@@ -1,8 +1,8 @@
 import { defineExtension, host } from '@ham2k/extension-sdk'
+import { createPersistentStorage } from '../../../../packages/reception/src/storage.ts'
 import manifest from '../manifest.json'
 import { createLiveReception } from './live.ts'
 import { createPskPanel } from './panel.ts'
-import { createPersistentStorage } from './storage.ts'
 
 defineExtension({
   ...manifest,
