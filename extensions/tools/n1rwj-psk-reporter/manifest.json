@@ -2,7 +2,7 @@
   "key": "n1rwj-psk-reporter",
   "name": "N1RWJ PSK Reporter",
   "shortName": "PSK Reporter",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Live PSK Reporter reception maps for a watched callsign.",
   "category": "dashboard",
   "icon": "radar",

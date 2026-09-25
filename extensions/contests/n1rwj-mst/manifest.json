@@ -2,7 +2,7 @@
   "key": "n1rwj-mst",
   "name": "N1RWJ ICWC MST",
   "shortName": "MST",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "ICWC Medium Speed Test with serial exchanges, weekly sessions, scoring and N1MM name history.",
   "category": "contest",
   "icon": "clock-fast",

@@ -1,6 +1,6 @@
 {
   "name": "ham2k-n1rwj-extensions",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "license": "MPL-2.0",
   "description": "N1RWJ Ham2K extensions: CWT, ICWC MST, K1USN SST, and RBN reception maps",
