@@ -64,6 +64,8 @@ commit-message-default: auto
   shared workspace changes belong to every affected consumer. Every extension
   needs its own section, explicitly stating no extension-specific changes when
   applicable. Use that same file for the GitHub release body; the catalog
-  extracts each extension's section plus shared changes.
+  extracts each extension's section plus shared changes. Catalog publishing skips
+  sections containing only `No extension-specific changes for <name>.` when
+  there are no shared changes; review affected consumers before declaring no changes.
 - Follow the user's Jujutsu workflow for commits and pushes. If RTK is
   available, prefix shell commands with `rtk`, or `rtk proxy` for full output.

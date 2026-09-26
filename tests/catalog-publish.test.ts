@@ -36,6 +36,19 @@ afterEach(async () => {
 })
 
 describe('catalog publishing', () => {
+  it('treats an unchanged release as a successful no-op without a token', async () => {
+    const { root, release, dependencies } = await fixture()
+    vi.stubEnv('H2K_CATALOG_TOKEN', undefined)
+    release.skipped = release.bundles.map(({ key }) => key)
+    release.bundles = []
+    publishCatalogRelease(root, release, {}, dependencies)
+    expect(dependencies.runPublisher).not.toHaveBeenCalled()
+    expect(dependencies.log).toHaveBeenCalledWith('No changed extensions to submit to the catalog.')
+    for (const key of release.skipped) {
+      expect(dependencies.log).toHaveBeenCalledWith(expect.stringContaining(`Skipping ${key}:`))
+    }
+  })
+
   it('submits the existing archives using the pinned CLI, stable channel, and release notes', async () => {
     const { root, release, dependencies } = await fixture()
     vi.stubEnv('CATALOG_TEST_OTHER_ENV', 'preserved')

@@ -70,6 +70,24 @@ afterEach(async () => {
 })
 
 describe('GitHub release catalog inputs', () => {
+  it.each([undefined, 'n1rwj-sst'])(
+    'skips unchanged extensions even with explicit selection %s',
+    async (key) => {
+      const data = await fixture()
+      data.metadata.body =
+        '## n1rwj-cwt\n\nNew contest support.\n\n## n1rwj-sst\n\nNo extension-specific changes for SST.\n\n## Repository notes\n\nVersions advanced.'
+      const publish = vi.fn(async () => undefined)
+      await withCatalogRelease(data.root, 'v0.2.0', key, publish, data)
+      expect(publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipped: ['n1rwj-sst'],
+          bundles: key ? [] : [expect.objectContaining({ key: 'n1rwj-cwt' })],
+        }),
+      )
+      expect(data.runGh).toHaveBeenCalledTimes(2)
+    },
+  )
+
   it('uses verified published assets and notes, then removes the temporary download', async () => {
     const data = await fixture()
     data.metadata.isPrerelease = true

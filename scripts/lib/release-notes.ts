@@ -33,6 +33,7 @@ export function scaffoldReleaseNotes(tag: string, extensions: NotesExtension[]):
 export function catalogNotesByExtension(
   body: string,
   extensions: NotesExtension[],
+  options: { changedOnly?: boolean } = {},
 ): Map<string, string> {
   // Comments are author guidance, not catalog content or evidence of a completed section.
   const markdown = body.replace(/<!--[\s\S]*?-->/g, '').replace(/\r\n?/g, '\n')
@@ -96,6 +97,15 @@ export function catalogNotesByExtension(
       throw new Error(
         `Missing or empty release notes section "## ${key}". Describe its changes or explicitly state no extension-specific changes.`,
       )
+    }
+    // The authored release document is the reviewed publication plan. A version
+    // bump or repository-only change does not warrant another catalog review.
+    if (
+      options.changedOnly &&
+      !shared &&
+      /^No extension-specific changes for [^\n.]+\.$/.test(specific)
+    ) {
+      continue
     }
     result.set(
       key,

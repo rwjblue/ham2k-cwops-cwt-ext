@@ -2,7 +2,7 @@
 
 GitHub releases remain the archive of installable `.h2kext` files and their
 SHA-256 checksums. After those assets upload successfully, the **Release**
-workflow attempts to submit the exact same bundles to the
+workflow submits changed extensions using the exact same bundles to the
 [Ham2K extension catalog](https://catalog.ham2k.net/docs). The catalog reviews
 each submission before operators can install it from the catalog.
 
@@ -83,6 +83,16 @@ Archives larger than 16 MiB are refused. It uses the pinned official
 they are never rebuilt or repackaged for the catalog. Each catalog entry gets
 only its extension's section and the shared changes from GitHub's release body.
 
+The reviewed release notes also determine which extensions are submitted.
+An extension whose entire section says `No extension-specific changes for <name>.`
+is skipped when there is no nonempty **Shared changes** section. Version bumps
+and **Repository notes** alone never trigger catalog submissions. Shared runtime
+changes belong in every affected consumer's section; universal dependency
+changes belong in **Shared changes** and select all extensions. Review the diff
+when writing these notes: this is an authored publication plan, not automatic
+source or archive comparison. GitHub still archives every synchronized bundle.
+A release with no changed extensions succeeds without submitting anything.
+
 ### One release document, separate catalog audiences
 
 `release:notes <tag> --create` creates `docs/releases/<tag>.md` from the
@@ -141,8 +151,9 @@ This is a format example, not a claim about the next release's contents.
   **Shared changes** only if every extension is affected.
 - Every extension requires a nonempty section. Explicitly write
   `No extension-specific changes for <name>.` after reviewing its own changes
-  and shared consumers. With no shared changes this is the entire catalog note;
-  with shared changes it is followed by those updates. All versions still advance.
+  and shared consumers. With no shared changes this skips its catalog submission;
+  with shared changes it is followed by those updates and the extension is submitted.
+  All versions still advance in GitHub releases.
 - **Repository notes** is optional and stays on GitHub, for tooling,
   validation, installation details, and other repository context. Use `###`
   for subsections within any audience and inline Markdown links so each
@@ -165,7 +176,7 @@ mise run release:catalog v0.3.5 --dry-run
 ```
 
 This downloads and validates assets and prints the exact notes for each
-catalog entry, but needs no catalog token and submits nothing. Unlike
+changed catalog entry and lists skipped extensions, but needs no catalog token and submits nothing. Unlike
 `release --dry-run`, it reads GitHub's published assets rather
 than building the working tree. After resolving any catalog outage and
 checking for earlier accepted submissions, omit `--dry-run` to submit locally.
@@ -178,7 +189,8 @@ mise run release:catalog v0.3.5 n1rwj-mst
 mise run release:catalog v0.3.5 --channel bleeding
 ```
 
-The optional extension key limits submission to one extension. All release
+The optional extension key limits submission to one extension and does not override
+the unchanged-extension skip. All release
 assets are still validated first. The channel override accepts `stable`,
 `unstable`, or `bleeding`; prereleases cannot target `stable`.
 

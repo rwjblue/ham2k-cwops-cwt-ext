@@ -9,6 +9,31 @@ const sections =
   '## n1rwj-cwt\n\nNo extension-specific changes for CWT.\n\n## n1rwj-rbn\n\n- Improved receiver map.'
 
 describe('release notes audiences', () => {
+  it('skips only reviewed no-change sections without shared changes', () => {
+    const body = `${sections}\n\n## Repository notes\n\nAll versions advance; publishing tooling improved.`
+    expect([...catalogNotesByExtension(body, extensions, { changedOnly: true }).keys()]).toEqual([
+      'n1rwj-rbn',
+    ])
+    expect([
+      ...catalogNotesByExtension(`## Shared changes\n\nUpdated SDK.\n\n${body}`, extensions, {
+        changedOnly: true,
+      }).keys(),
+    ]).toEqual(['n1rwj-cwt', 'n1rwj-rbn'])
+  })
+
+  it.each(['\n\n', ' '])(
+    'does not skip additional changes following a no-change sentence (%j)',
+    (separator) => {
+      const body = sections.replace(
+        'changes for CWT.',
+        `changes for CWT.${separator}Shared contest-history fix.`,
+      )
+      expect(
+        catalogNotesByExtension(body, extensions, { changedOnly: true }).has('n1rwj-cwt'),
+      ).toBe(true)
+    },
+  )
+
   it('keeps the overview and repository notes on GitHub and isolates extension changes', () => {
     const body = `# v0.3.5 — Better maps\n\nA summary of the whole release.\n\n${sections}\n\n## Repository notes\n\nBuild validation and installation details.`
     expect(catalogNotesByExtension(body, extensions)).toEqual(

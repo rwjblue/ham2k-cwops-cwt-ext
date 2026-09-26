@@ -10,6 +10,7 @@ import { catalogNotesByExtension } from './release-notes.ts'
 export interface CatalogRelease {
   tag: string
   prerelease: boolean
+  skipped?: string[]
   bundles: Array<{ key: string; version: string; path: string; notes: string }>
 }
 
@@ -64,6 +65,7 @@ export async function withCatalogRelease<T>(
   const notes = catalogNotesByExtension(
     metadata.body,
     extensions.map(({ manifest }) => manifest),
+    { changedOnly: true },
   )
   const directory = await mkdtemp(join(tmpdir(), 'h2k-catalog-release-'))
   try {
@@ -77,16 +79,21 @@ export async function withCatalogRelease<T>(
     return await callback({
       tag,
       prerelease: metadata.isPrerelease,
-      bundles: selected.map(({ manifest }) => {
-        const bundleNotes = notes.get(manifest.key)
-        if (!bundleNotes) throw new Error(`Missing catalog notes for ${manifest.key}`)
-        return {
-          key: manifest.key,
-          version: manifest.version,
-          path: join(directory, `${manifest.key}-${manifest.version}.h2kext`),
-          notes: bundleNotes,
-        }
-      }),
+      skipped: selected
+        .filter(({ manifest }) => !notes.has(manifest.key))
+        .map(({ manifest }) => manifest.key),
+      bundles: selected
+        .filter(({ manifest }) => notes.has(manifest.key))
+        .map(({ manifest }) => {
+          const bundleNotes = notes.get(manifest.key)
+          if (!bundleNotes) throw new Error(`Missing catalog notes for ${manifest.key}`)
+          return {
+            key: manifest.key,
+            version: manifest.version,
+            path: join(directory, `${manifest.key}-${manifest.version}.h2kext`),
+            notes: bundleNotes,
+          }
+        }),
     })
   } finally {
     await rm(directory, { recursive: true, force: true })

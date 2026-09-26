@@ -30,7 +30,14 @@ export function publishCatalogRelease(
   options: CatalogPublishOptions = {},
   dependencies: CatalogPublishDependencies = {},
 ): void {
-  if (release.bundles.length === 0) throw new Error('No release bundles selected for publishing')
+  const log = dependencies.log ?? console.log
+  for (const key of release.skipped ?? []) {
+    log(`Skipping ${key}: no extension-specific or shared changes in the reviewed release notes.`)
+  }
+  if (release.bundles.length === 0) {
+    log('No changed extensions to submit to the catalog.')
+    return
+  }
   let isPrerelease = release.prerelease
   for (const bundle of release.bundles) {
     if (valid(bundle.version) !== bundle.version) {
@@ -66,7 +73,6 @@ export function publishCatalogRelease(
     }
     return { ...bundle, path }
   })
-  const log = dependencies.log ?? console.log
   const runPublisher = dependencies.runPublisher ?? execFileSync
   const command = join(root, 'node_modules', '.bin', 'h2kext-publish')
   for (const bundle of bundles) {
