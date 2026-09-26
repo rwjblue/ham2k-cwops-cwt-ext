@@ -17,7 +17,8 @@ working without translating their contest references or exchanges. Install
 only one provider at a time; export a backup before switching.
 
 Build an installable bundle with `mise run pack n1rwj-cqww`. New builds are
-in `dist/`; this preview has not been published to the catalog.
+in `dist/`. GitHub release assets and catalog approval are separate; see
+[publication status](../../../docs/PUBLISHING.md).
 
 ## Operating guide
 

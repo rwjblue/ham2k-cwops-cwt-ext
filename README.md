@@ -76,8 +76,8 @@ for settings, test observations, and device-testing limits.
 
 The [temporary CQ WW extension](extensions/contests/n1rwj-cqww/README.md)
 is being contributed to the official extension in
-[Ham2K/extensions PR #2](https://github.com/ham2k/extensions/pull/2). Build it locally with
-`mise run pack n1rwj-cqww`; it is not yet in the published release above.
+[Ham2K/extensions PR #2](https://github.com/ham2k/extensions/pull/2). Version 0.5.0 includes the installable preview. You can also build it locally
+with `mise run pack n1rwj-cqww`.
 Disable official CQ WW while using this copy. Both use `cqww` references,
 so saved operations can switch back when the official update ships.
 
