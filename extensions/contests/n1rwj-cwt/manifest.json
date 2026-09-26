@@ -2,7 +2,7 @@
   "key": "n1rwj-cwt",
   "name": "N1RWJ CWT",
   "shortName": "CWT",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "CWops CWT with exchange suggestions from N1MM call history and past CWT contacts; adapted from Sebastian Delmont KI2D's official extension",
   "category": "contest",
   "icon": "clock-fast",

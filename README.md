@@ -7,6 +7,7 @@ install only the ones you want.
 | Extension | What it adds |
 | --- | --- |
 | [RBN](extensions/tools/n1rwj-rbn/README.md) (`n1rwj-rbn`) | Reception map and sortable CW, RTTY, FT8, and FT4 reports from the Reverse Beacon Network via Vail ReRBN, using your operation's callsign and location |
+| [CQ WW (temporary)](extensions/contests/n1rwj-cqww/README.md) (`n1rwj-cqww`) | Preview of official CQ WW RTTY exchange, scoring, and export improvements |
 | [CWops CWT](extensions/contests/n1rwj-cwt/README.md) (`n1rwj-cwt`) | CWT sessions, exchange suggestions, scoring, and exports |
 | [ICWC MST](extensions/contests/n1rwj-mst/README.md) (`n1rwj-mst`) | MST sessions, name suggestions, outgoing serials, scoring, and exports |
 | [K1USN SST](extensions/contests/n1rwj-sst/README.md) (`n1rwj-sst`) | SST sessions, name/location suggestions, scoring, and exports |
@@ -71,7 +72,16 @@ refresh during data-file sync after seven days.
 See the [RBN guide and historical screenshots](extensions/tools/n1rwj-rbn/README.md)
 for settings, test observations, and device-testing limits.
 
-### Contest extensions
+### CQ WW RTTY preview
+
+The [temporary CQ WW extension](extensions/contests/n1rwj-cqww/README.md)
+is being contributed to the official extension in
+[Ham2K/extensions PR #2](https://github.com/ham2k/extensions/pull/2). Build it locally with
+`mise run pack n1rwj-cqww`; it is not yet in the published release above.
+Disable official CQ WW while using this copy. Both use `cqww` references,
+so saved operations can switch back when the official update ships.
+
+### Weekly CW contest extensions
 
 1. **For CWT, disable the original CWops CWT extension.** Both handle `cwt`
    references, so enabling both creates duplicate handlers. The personal key,
@@ -155,6 +165,7 @@ installed macOS Ham2K JavaScript kernel; it does not substitute for native
 installation and logging tests.
 
 ```text
+extensions/contests/n1rwj-cqww/  Temporary official CQ WW RTTY preview
 extensions/contests/n1rwj-cwt/   CWT manifest, source, and tests
 extensions/contests/n1rwj-mst/   MST manifest and configuration
 extensions/contests/n1rwj-sst/   SST manifest and configuration
@@ -203,7 +214,9 @@ Vitest tests. The repository uses the user's Jujutsu workflow and
 
 The personal CWT extension is temporary, pending
 [Ham2K/extensions PR #1](https://github.com/ham2k/extensions/pull/1).
-MST, SST, RBN, and future extensions will continue to live in this repository.
+The CQ WW preview is also temporary, on upstream branch `codex/cqww-rtty`;
+keep its source and translations aligned with the official `ham2k-cqww` PR.
+MST, SST, RBN, and PSK Reporter will continue to live in this repository.
 
 While the personal CWT extension is in use, synchronize CWT behavior, fixes,
 tests, translations, and relevant documentation with the source branch of

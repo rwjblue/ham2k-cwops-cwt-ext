@@ -10,7 +10,7 @@ MST and SST extensions, an RBN reception panel, shared N1MM and operation-histor
 adapters, tests, and independent packaging. These are independent extensions;
 Ham2K and Sebastian Delmont do not maintain or endorse them.
 
-The adapted source is distributed under MPL-2.0; see [LICENSE](LICENSE).
+The adapted CWT source is distributed under MPL-2.0; see [LICENSE](LICENSE).
 Source and build instructions are available at
 [ham2k-n1rwj-extensions](https://github.com/rwjblue/ham2k-n1rwj-extensions).
 See [provenance](https://github.com/rwjblue/ham2k-n1rwj-extensions/blob/main/docs/PROVENANCE.md)
@@ -25,7 +25,9 @@ The bundles include portions of the published `@ham2k/extension-sdk`;
 CWT also includes prefill improvements backported from Ham2K/extensions
 PR #1. The shared spot-filter contract and its CWT provider are original
 MIT-licensed contributions by Robert Jackson. The SDK and build tools are
-separately licensed under MIT. Retained MIT notices follow:
+separately licensed under MIT. The temporary CQ WW extension also retains the official extension’s MIT
+license and Sebastian Delmont’s copyright; its complete license is bundled
+as `assets/CQWW-LICENSE.md`. Retained MIT notices follow:
 
 Copyright (c) 2026 Sebastian Delmont <sd@ham2k.com>
 Copyright (c) 2026 Robert Jackson (N1RWJ)

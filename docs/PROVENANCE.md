@@ -99,7 +99,8 @@ MST uses `IsMultPer=4`, meaning once per contest. Both sponsors permit QRP,
 low-power, and high-power entries. Their published exchanges and N1MM
 Cabrillo layouts contain no signal report.
 
-Only CWT is subject to the temporary upstream-PR synchronization requirement.
+CWT and the separate CQ WW preview are subject to their own temporary
+upstream-PR synchronization requirements.
 These new contests and the monorepo's personal tooling and release layout do
 not modify the official CWT extension.
 
@@ -150,3 +151,20 @@ and are exempt from the upstream CWT synchronization requirement.
   exchange sources are exhausted. Data/history suggestions
   introduced by this adaptation must explicitly identify a valid exchange;
   missing membership records do not prove nonmembership.
+
+### Temporary CQ WW preview
+
+`extensions/contests/n1rwj-cqww/` derives from Sebastian Delmont's official
+MIT-licensed `ham2k-cqww` at upstream main commit
+[`2cb349bf`](https://github.com/ham2k/extensions/commit/2cb349bf).
+The RTTY additions are developed on `codex/cqww-rtty` in
+[Ham2K/extensions PR #2](https://github.com/ham2k/extensions/pull/2) for that
+same official extension. Runtime source and translations are identical;
+personal manifest identity and repository versioning differ. The upstream
+copyright and MIT license are retained, including `assets/CQWW-LICENSE.md`.
+The original CQ WW activity/ref type and export identifiers remain unchanged.
+
+CQ WW does not change the CWT implementation or its shared libraries and is
+exempt from synchronization to the CWT PR. Future CQ WW fixes must instead
+stay synchronized with its own upstream PR until the official release makes
+the temporary personal package unnecessary.

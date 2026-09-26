@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { access, readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { performance } from 'node:perf_hooks'
 import { createContext, runInContext } from 'node:vm'
 import { satisfies } from 'semver'
 import type { Manifest } from './lib/extensions.ts'
@@ -80,7 +81,7 @@ interface Kernel {
       ): void
     }): void
   }): void
-  activateAll(): void
+  activateAll(): void | Promise<void>
   invokeLocal(
     category: string,
     method: string,
@@ -106,6 +107,7 @@ export async function verifyInstalledHost(
   const manifests: Manifest[] = extensions.map(({ manifest }) => manifest)
   const messages: HostMessage[] = []
   const context = createContext({
+    performance,
     sendMessage(_channel: string, raw: string) {
       const message = JSON.parse(raw) as HostMessage
       messages.push(message)
@@ -152,7 +154,7 @@ export async function verifyInstalledHost(
       })
     },
   })
-  kernel.activateAll()
+  await kernel.activateAll()
   const probe = await kernel.invokeLocal('lookup', 'probe', {}, false, probeKey)
   const contextCapabilities = probe[0]?.value ?? []
   if (!contextCapabilities.includes('getHistoryForCall')) {
@@ -171,7 +173,7 @@ export async function verifyInstalledHost(
       } finally {
         kernel.endBundle()
       }
-      kernel.activateAll()
+      await kernel.activateAll()
       registeredHooks.push(
         ...kernel.registeredHooks().filter((hook) => hook.includes(`(${manifest.key})`)),
       )

@@ -1199,3 +1199,27 @@ in native macOS Next 26.9.0 build 170. Both section headings and explanatory
 copy rendered correctly, and existing preferences remained intact. This UI
 check does not extend the live-feed verification above. RBN-only code,
 tests, and documentation are exempt from upstream CWT synchronization.
+
+## CQ WW RTTY preview — September 26, 2026
+
+The temporary `n1rwj-cqww` 0.5.0 package passes `mise run check` (620 tests,
+strict source/test/tooling typechecks, lint, official ES2020 build and package
+validation). The official `ham2k-cqww` source passes its 30 tests, typecheck,
+and official packaging with upstream SDK 0.8.1. The personal copy retains
+this repository's SDK 0.6.0 and existing host-library compatibility ranges.
+
+`mise run verify-host n1rwj-cqww` passes against the running Ham2K Mac Logger
+(Next) 26.9.0 build 174, kernel SHA-256
+`ee7338084608394a7a9409f4feda32a5438ec642ca8876db249f684d614dee63`.
+All five declared hooks register under the personal extension key and the
+shared-library requirements match. This evaluates the installed JavaScript
+kernel under Node VM; it does not install the extension into the native app,
+change an operation, or establish on-air/UI verification.
+
+Source and bundle tests cover RTTY point rules, band filtering, single-band
+entries, UTC-day duplicate continuity, Canadian areas/aliases, Alaska/Hawaii,
+CQ/WAE countries, maritime-mobile multiplier exclusion, explicit exchange
+edits/clearing, RTTY mode variants, ADIF fields, and exact Cabrillo QSO columns.
+CW/SSB regression tests remain in both copies. Before operating, verify native
+setup, field focus/editing, QSO saving, and export in a disposable operation;
+verify radio-reported frequency/mode separately with the intended radio.

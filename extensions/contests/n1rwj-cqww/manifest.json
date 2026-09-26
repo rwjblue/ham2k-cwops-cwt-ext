@@ -1,0 +1,31 @@
+{
+  "key": "n1rwj-cqww",
+  "name": "N1RWJ CQ WW (temporary)",
+  "shortName": "CQ WW",
+  "version": "0.5.0",
+  "description": "Temporary preview of official CQ WW RTTY exchange, scoring, and export improvements; disable the official CQ WW extension while using this one.",
+  "category": "contest",
+  "icon": "earth",
+  "accentColor": "#C8102E",
+  "api": 1,
+  "keywords": ["contest", "dx", "zone", "cabrillo", "rtty", "temporary"],
+  "hooks": ["activity", "adifFields", "export", "ref:cqww", "scoring"],
+  "sharedDependencies": {
+    "@ham2k/lib-callsigns": "^1.0.2",
+    "@ham2k/lib-country-files": "^1.0.202605301",
+    "@ham2k/lib-dxcc-data": "^1.0.1",
+    "@ham2k/lib-format-tools": "^1.2.0",
+    "@ham2k/lib-geo-tools": "^1.1.1",
+    "@ham2k/lib-operation-data": "^1.1.3",
+    "@ham2k/lib-qson-cabrillo": "^1.2.0",
+    "i18next": "^23.16.8",
+    "liquidjs": "^10.28.0"
+  },
+  "translations": {
+    "es": {
+      "name": "N1RWJ CQ WW (temporal)",
+      "description": "Vista previa temporal de las mejoras RTTY de CQ WW; desactiva la extensión oficial CQ WW mientras uses esta.",
+      "keywords": ["concurso", "zona"]
+    }
+  }
+}
