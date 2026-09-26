@@ -1223,3 +1223,24 @@ edits/clearing, RTTY mode variants, ADIF fields, and exact Cabrillo QSO columns.
 CW/SSB regression tests remain in both copies. Before operating, verify native
 setup, field focus/editing, QSO saving, and export in a disposable operation;
 verify radio-reported frequency/mode separately with the intended radio.
+
+## Release 0.5.0 publication — 2026-09-26
+
+Published [v0.5.0](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.5.0)
+from signed commit `f0bcef322306c7b7d37422e25f17145ffbf05ef6` at 20:50 UTC.
+The final `mise run check` passed **627 tests across 52 files**, lint, strict
+source/test/tooling typechecks, builds, and official packaging for six extensions.
+The [release workflow](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36270914995)
+succeeded and uploaded all six bundles and six checksums.
+
+`mise run release:catalog v0.5.0 --dry-run` downloaded and verified every
+published archive/checksum, validated every release-note section, selected
+CQ WW/CWT/MST/SST, and skipped unchanged PSK Reporter/RBN. The actual catalog
+job logged those same two skips and four successful `stable` publications,
+each returning **approved**, at 20:51 UTC. CQ WW's submitted name includes
+“temporary”; the release notes link Ham2K/extensions PR #2 and require removal
+when an official CQ WW release includes the changes. Automated publication
+verification does not extend the native UI or on-air verification above.
+
+Publication tooling and personal release records are exempt from upstream
+CWT/CQ WW runtime synchronization.

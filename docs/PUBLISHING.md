@@ -8,19 +8,20 @@ each submission before operators can install it from the catalog.
 
 ## Current release status
 
-[v0.4.2](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.4.2)
-was published from signed commit `de99b092c25b925d0b622020b2a971038cbcdab4`
-on September 25, 2026 at 14:13 UTC. All five extension bundles and their
-five checksum files are available on GitHub. The
-[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36146050962/job/108107381383),
-and downloaded assets passed `mise run release:catalog v0.4.2 --dry-run`.
+[v0.5.0](https://github.com/rwjblue/ham2k-n1rwj-extensions/releases/tag/v0.5.0)
+was published from signed commit `f0bcef322306c7b7d37422e25f17145ffbf05ef6`
+on September 26, 2026 at 20:50 UTC. All six extension bundles and their
+six checksum files are available on GitHub. The
+[GitHub upload job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36270914995/job/108484568716),
+and downloaded assets passed `mise run release:catalog v0.5.0 --dry-run`.
 
-The [catalog job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36146050962/job/108107542329):
-all five uploads to `stable` were accepted as **pending review** at 14:14 UTC
-on September 25, with extension-specific release notes. This confirms submission,
-not catalog approval or installation availability. See the
-[release notes](releases/v0.4.2.md) and
-[published artifact verification](VERIFICATION.md#release-042-publication--2026-09-25).
+The [catalog job succeeded](https://github.com/rwjblue/ham2k-n1rwj-extensions/actions/runs/36270914995/job/108484637517):
+CQ WW, CWT, MST, and SST uploads to `stable` returned **approved** at 20:51 UTC
+on September 26, with extension-specific release notes. Unchanged PSK Reporter
+and RBN were skipped. The CQ WW catalog name explicitly says **temporary**,
+and its description and release notes link the upstream PR and retirement
+condition. See the [release notes](releases/v0.5.0.md) and
+[published artifact verification](VERIFICATION.md#release-050-publication--2026-09-26).
 
 Earlier v0.2.1, v0.3.0, and v0.3.1 runs failed with HTTP 403 from a Cloudflare
 challenge. The v0.3.2 retry and v0.3.3/v0.3.4 publications succeeded; inspect each earlier
