@@ -3,7 +3,7 @@
   "name": "N1RWJ CQ WW (temporary)",
   "shortName": "CQ WW",
   "version": "0.5.0",
-  "description": "Temporary preview of official CQ WW RTTY exchange, scoring, and export improvements; disable the official CQ WW extension while using this one.",
+  "description": "Temporary preview of CQ WW RTTY improvements from https://github.com/ham2k/extensions/pull/2. Remove this preview once an official CQ WW release includes that PR, then enable the updated official extension. Disable official CQ WW while using this preview.",
   "category": "contest",
   "icon": "earth",
   "accentColor": "#C8102E",
@@ -24,7 +24,7 @@
   "translations": {
     "es": {
       "name": "N1RWJ CQ WW (temporal)",
-      "description": "Vista previa temporal de las mejoras RTTY de CQ WW; desactiva la extensión oficial CQ WW mientras uses esta.",
+      "description": "Vista previa temporal de las mejoras RTTY de CQ WW de https://github.com/ham2k/extensions/pull/2. Elimina esta vista previa cuando una versión oficial de CQ WW incluya ese PR y activa la extensión oficial actualizada. Desactiva CQ WW oficial mientras uses esta vista previa.",
       "keywords": ["concurso", "zona"]
     }
   }
